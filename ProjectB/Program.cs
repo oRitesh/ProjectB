@@ -44,7 +44,7 @@ static void ShowInformationPage()
     Console.WriteLine("==================================");
     Console.WriteLine("Restaurantnaam : Restaurant B");
     Console.WriteLine("Telefoonnummer : 0612345678");
-    Console.WriteLine("Adres          : Voorbeeldstraat 12, Amsterdam");
+    Console.WriteLine("Adres          : Witte de Withstraat 12, Rotterdam");
     Console.WriteLine("Openingstijden : Dinsdag t/m zaterdag");
     Console.WriteLine("                  17:00 - 00:00");
     Console.WriteLine();
