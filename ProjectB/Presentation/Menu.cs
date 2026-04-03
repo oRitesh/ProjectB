@@ -38,11 +38,15 @@ public static class Menu
         Console.WriteLine("==================================");
         Console.WriteLine("           RESERVEREN             ");
         Console.WriteLine("==================================");
-        Console.WriteLine("Reserveringssysteem komt binnenkort.");
+
+        Timeslots timeslots = new Timeslots();
+        timeslots.Run();
+
         Console.WriteLine();
         Console.WriteLine("Druk op een toets om terug te gaan...");
         Console.ReadKey(true);
     }
+
     public static void Show()
     {
         bool running = true;
