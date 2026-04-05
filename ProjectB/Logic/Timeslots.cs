@@ -84,8 +84,8 @@ public class Timeslots
     {
         List<(DateTime, DateTime)> slots = new();
 
-        DateTime start = date.Date.AddHours(10);
-        DateTime end = date.Date.AddHours(22);
+        DateTime start = date.Date.AddHours(17); // Restaurant opent om 17:00
+        DateTime end = date.Date.AddHours(24);   // Restaurant sluit om 00:00
 
         while (start.AddHours(2) <= end)
         {
