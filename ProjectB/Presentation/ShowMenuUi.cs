@@ -65,9 +65,9 @@ public class ShowMenuUI
 
         foreach (var item in items)
         {
-            Console.WriteLine($"{item.Name} - €{item.Price}");
-            Console.WriteLine(item.Description);
-            Console.WriteLine($"Allergenen: {item.Allergens}");
+            Console.WriteLine($"{item.Naam} - €{item.Prijs:0.00}");
+            Console.WriteLine(item.Beschrijving);
+            Console.WriteLine($"Allergenen: {item.Allergenen}");
             Console.WriteLine("----------------------------------");
         }
 
