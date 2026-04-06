@@ -72,7 +72,8 @@ public static class Menu
                     ShowInformationPage();
                     break;
                 case "2":
-                    ShowMenuPage();
+                    ShowMenuUI menuUI = new ShowMenuUI();
+                    menuUI.ShowMenuPage();
                     break;
                 case "3":
                     ShowReservationPlaceholder();
