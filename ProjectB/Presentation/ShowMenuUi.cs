@@ -49,7 +49,7 @@ public class ShowMenuUI
                     viewingMenu = false;
                     break;
                 default:
-                    Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                    Console.WriteLine("Ongeldige keuze. Druk op enter toets om verder te gaan...");
                     Console.ReadKey(true);
                     break;
             }
