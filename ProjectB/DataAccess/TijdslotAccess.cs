@@ -15,10 +15,10 @@ public class TijdslotAccess
     public void AddTijdslot(Tijdslot tijdslot)
     {
         string sql = $@"
-INSERT INTO {Table}
-(Datum, StartTijd, EindTijd)
-VALUES
-(@Datum, @StartTijd, @EindTijd);";
+            INSERT INTO {Table}
+            (Datum, StartTijd, EindTijd)
+            VALUES
+            (@Datum, @StartTijd, @EindTijd);";
 
         db.Connection.Execute(sql, tijdslot);
     }
@@ -26,11 +26,11 @@ VALUES
     public void UpdateTijdslot(Tijdslot tijdslot)
     {
         string sql = $@"
-UPDATE {Table}
-SET Datum = @Datum,
-    StartTijd = @StartTijd,
-    EindTijd = @EindTijd
-WHERE ID = @ID;";
+            UPDATE {Table}
+            SET Datum = @Datum,
+                StartTijd = @StartTijd,
+                EindTijd = @EindTijd
+            WHERE ID = @ID;";
 
         db.Connection.Execute(sql, tijdslot);
     }
@@ -50,9 +50,9 @@ WHERE ID = @ID;";
     public List<Tijdslot> GetTijdslotenByDatum(string datum)
     {
         string sql = $@"
-SELECT * FROM {Table}
-WHERE Datum = @Datum
-ORDER BY StartTijd;";
+            SELECT * FROM {Table}
+            WHERE Datum = @Datum
+            ORDER BY StartTijd;";
 
         return db.Connection.Query<Tijdslot>(sql, new { Datum = datum }).ToList();
     }
