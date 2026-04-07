@@ -9,6 +9,10 @@ public class Reservering
     public string Opmerking { get; set; }
     public string GemaaktOp { get; set; }
 
+    public Reservering()
+    {
+    }
+
     public Reservering(int id, int gebruikerID, int tafelID, string startTijd, string eindTijd, int aantalGasten, string opmerking, string gemaaktOp)
     {
         ID = id;
