@@ -2,11 +2,10 @@ public class ShowMenuUI
 {
     private readonly MenuService menuService;
 
-    public ShowMenuUI()
+    public ShowMenuUI(DatabaseContext db)
     {
-        menuService = new MenuService();
+        menuService = new MenuService(db);
     }
-
     public void ShowMenuPage()
     {
         bool viewingMenu = true;
@@ -67,7 +66,7 @@ public class ShowMenuUI
         {
             Console.WriteLine($"{item.Naam} - €{item.Prijs:0.00}");
             Console.WriteLine(item.Beschrijving);
-            Console.WriteLine($"Allergenen: {item.Allergenen}");
+            Console.WriteLine($"Allergenen: {item.Allergeen}");
             Console.WriteLine("----------------------------------");
         }
 

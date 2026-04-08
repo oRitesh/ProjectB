@@ -74,8 +74,10 @@ public static class Menu
                     ShowInformationPage();
                     break;
                 case "2":
-                    ShowMenuUI menuUI = new ShowMenuUI();
+                    DatabaseContext db = new DatabaseContext();
+                    ShowMenuUI menuUI = new ShowMenuUI(db);
                     menuUI.ShowMenuPage();
+                    db.Close();
                     break;
                 case "3":
                     ShowReservationPage();

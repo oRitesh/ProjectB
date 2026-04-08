@@ -1,19 +1,22 @@
 public class MenuItem
 {
     public int ID { get; set; }
-    public int MenuCategorieID { get; set; }
+    public int MenuCatogorieID { get; set; }
     public string Naam { get; set; }
     public decimal Prijs { get; set; }
     public string Beschrijving { get; set; }
-    public string Allergenen { get; set; }
+    public string Allergeen { get; set; }
 
-    public MenuItem(int id, int menuCategorieID, string naam, int prijs, string beschrijving, string allergenen)
+    public MenuItem()
+    {
+    }
+    public MenuItem(int id, int menuCatogorieID, string naam, int prijs, string beschrijving, string allergeen)
     {
         ID = id;
-        MenuCategorieID = menuCategorieID;
+        MenuCatogorieID = menuCatogorieID;
         Naam = naam;
         Prijs = prijs;
         Beschrijving = beschrijving;
-        Allergenen = allergenen;
+        Allergeen = allergeen;
     }
 }
