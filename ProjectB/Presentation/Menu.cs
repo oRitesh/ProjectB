@@ -32,19 +32,21 @@ public static class Menu
         Console.ReadKey(true);
     }
 
-    static void ShowReservationPlaceholder()
+    static void ShowReservationPage()
     {
-        Console.Clear();
-        Console.WriteLine("==================================");
-        Console.WriteLine("           RESERVEREN             ");
-        Console.WriteLine("==================================");
+        DatabaseContext db = new DatabaseContext();
 
-        Timeslots timeslots = new Timeslots();
-        timeslots.Run();
+        ReserveringAccess reserveringAccess = new ReserveringAccess(db);
+        TafelAccess tafelAccess = new TafelAccess(db);
+        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
+        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess);
 
-        Console.WriteLine();
-        Console.WriteLine("Druk op een toets om terug te gaan...");
-        Console.ReadKey(true);
+        int gebruikerID = 1;
+
+        ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, gebruikerID);
+        reserveringUI.ShowReserveringPage();
+
+        db.Close();
     }
 
     public static void Show()
@@ -72,11 +74,13 @@ public static class Menu
                     ShowInformationPage();
                     break;
                 case "2":
-                    ShowMenuUI menuUI = new ShowMenuUI();
+                    DatabaseContext db = new DatabaseContext();
+                    ShowMenuUI menuUI = new ShowMenuUI(db);
                     menuUI.ShowMenuPage();
+                    db.Close();
                     break;
                 case "3":
-                    ShowReservationPlaceholder();
+                    ShowReservationPage();
                     break;
                 case "0":
                     running = false;
