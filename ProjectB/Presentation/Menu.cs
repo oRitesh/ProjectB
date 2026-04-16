@@ -1,5 +1,6 @@
 public static class Menu
 {
+    private static Gebruiker? HuidigeGebruiker = new Gebruiker (0, 0, "gast", "", "", "");
     static void ShowInformationPage()
     {
         Console.Clear();
@@ -29,9 +30,7 @@ public static class Menu
         TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
         ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess);
 
-        int gebruikerID = 1;
-
-        ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, gebruikerID);
+        ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, HuidigeGebruiker);
         reserveringUI.ShowReserveringPage();
 
         db.Close();
@@ -46,10 +45,12 @@ public static class Menu
             Console.Clear();
             Console.WriteLine("==================================");
             Console.WriteLine("     WELKOM BIJ RESTAURANT B      ");
+            Console.WriteLine("      Ingelogd als: " + HuidigeGebruiker.Naam);
             Console.WriteLine("==================================");
             Console.WriteLine("1. Bekijk informatiepagina");
             Console.WriteLine("2. Bekijk menukaart");
             Console.WriteLine("3. Reserveer een tafel");
+            Console.WriteLine("4. Login / registreer");
             Console.WriteLine("0. Afsluiten");
             Console.WriteLine();
             Console.Write("Maak een keuze: ");
@@ -69,6 +70,18 @@ public static class Menu
                     break;
                 case "3":
                     ShowReservationPage();
+                    break;
+                case "4":
+                    if (HuidigeGebruiker.ID == 0)
+                    {
+                        HuidigeGebruiker = new Gebruiker(1, 1, "Dikke aap", "dikke.aap@example.com", "0612345678", "IkbenDikkeAap123");
+                    }
+                    else
+                    {
+                        Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
+                        Console.WriteLine("Druk op een toets om verder te gaan...");
+                        Console.ReadKey(true);
+                    }
                     break;
                 case "0":
                     running = false;
