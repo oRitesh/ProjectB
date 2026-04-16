@@ -20,18 +20,6 @@ public static class Menu
         Console.ReadKey(true);
     }
 
-    static void ShowMenuPage()
-    {
-        Console.Clear();
-        Console.WriteLine("==================================");
-        Console.WriteLine("            MENUKAART             ");
-        Console.WriteLine("==================================");
-        Console.WriteLine("Menu komt snel!");
-        Console.WriteLine();
-        Console.WriteLine("Druk op een toets om terug te gaan...");
-        Console.ReadKey(true);
-    }
-
     static void ShowReservationPage()
     {
         DatabaseContext db = new DatabaseContext();
