@@ -3,12 +3,14 @@ using System.Globalization;
 public class ReserveringUI
 {
     private readonly ReservationLogic ReservationLogic;
-    private readonly int gebruikerID;
+    private readonly Gebruiker huidigeGebruiker;
+    private string gastNaam = "";
+    private string gastTelefoon = "";
 
-    public ReserveringUI(ReservationLogic ReservationLogic, int gebruikerID)
+    public ReserveringUI(ReservationLogic ReservationLogic, Gebruiker gebruiker)
     {
         this.ReservationLogic = ReservationLogic;
-        this.gebruikerID = gebruikerID;
+        this.huidigeGebruiker = gebruiker;
     }
 
     public void ShowReserveringPage()
@@ -74,20 +76,29 @@ public class ReserveringUI
                     else
                     {
                         opmerking = opmerkingKeuze;
-                        stap = 5;
+                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 5;
                     }
                     break;
 
+                case 45: // Extra stap voor GASTEN
+                    if (VulGastGegevensIn()) stap = 5;
+                    else stap = 4;
+                    break;
+
                 case 5:
-                    bool? bevestiging = BevestigReservering(aantalPersonen, gekozenDatum, gekozenTijdslot, opmerking);
+
+                    string displayNaam = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Naam : gastNaam;
+                    string displayTel = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Telefoonnummer : gastTelefoon;
+
+                    bool? bevestiging = BevestigReservering(aantalPersonen, gekozenDatum, gekozenTijdslot, opmerking, displayNaam, displayTel);
                     if (bevestiging == null)
                     {
-                        stap = 4;
+                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
                     }
                     else if (bevestiging == true)
                     {
                         bool gelukt = ReservationLogic.AddReservering(
-                            gebruikerID,
+                            huidigeGebruiker.ID,
                             aantalPersonen,
                             gekozenTijdslot,
                             opmerking
@@ -102,6 +113,8 @@ public class ReserveringUI
                         if (gelukt)
                         {
                             Console.WriteLine("Je reservering is succesvol opgeslagen.");
+                            Console.WriteLine($"Naam: {displayNaam}");
+                            Console.WriteLine($"Telefoon: {displayTel}");
                         }
                         else
                         {
@@ -115,13 +128,23 @@ public class ReserveringUI
                     }
                     else
                     {
-                        stap = 4;
+                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
                     }
                     break;
             }
         }
     }
 
+    private bool VulGastGegevensIn()
+    {
+        Console.Clear();
+        Console.WriteLine("=== Gastgegevens ===");
+        Console.Write("Voer uw naam in: ");
+        gastNaam = Console.ReadLine() ?? "Anoniem";
+        Console.Write("Voer uw telefoonnummer in: ");
+        gastTelefoon = Console.ReadLine() ?? "Onbekend";
+        return true;
+    }
     private int? KiesAantalPersonen()
     {
         List<int> opties = ReservationLogic.GetAantalPersonenOpties();
@@ -341,7 +364,7 @@ public class ReserveringUI
         }
     }
 
-    private bool? BevestigReservering(int aantalPersonen, DateTime datum, Tijdslot tijdslot, string opmerking)
+    private bool? BevestigReservering(int aantalPersonen, DateTime datum, Tijdslot tijdslot, string opmerking, string naam, string tel)
     {
         List<string> opties = new List<string> { "Bevestigen", "Terug" };
         int geselecteerd = 0;
@@ -352,6 +375,9 @@ public class ReserveringUI
             Console.WriteLine("==================================");
             Console.WriteLine("       BEVESTIG RESERVERING       ");
             Console.WriteLine("==================================");
+            Console.WriteLine();
+            Console.WriteLine($"Naam: {naam}");
+            Console.WriteLine($"Telefoon: {tel}");
             Console.WriteLine();
             Console.WriteLine($"Aantal personen: {aantalPersonen}");
             Console.WriteLine($"Datum: {datum:dd-MM-yyyy}");
