@@ -81,6 +81,15 @@ public class ReservationLogic
         }
     }
 
+    public int GetBenodigdeCapaciteit(int aantalPersonen)
+    {
+        if (aantalPersonen >= 1 && aantalPersonen <= 2) return 2;
+        if (aantalPersonen >= 3 && aantalPersonen <= 4) return 4;
+        if (aantalPersonen >= 5 && aantalPersonen <= 6) return 6;
+
+        throw new ArgumentException("Ongeldig aantal personen.");
+    }
+
     public List<Tijdslot> GetBeschikbareTijdsloten(int aantalPersonen, DateTime datum)
     {
         List<Tijdslot> beschikbareTijdsloten = new List<Tijdslot>();
@@ -92,7 +101,8 @@ public class ReservationLogic
 
         MaakTijdslotenVoorDatumAlsNietBestaan(datum);
 
-        List<Tafel> mogelijkeTafels = tafelAccess.GetTafelsByMinimaleCapaciteit(aantalPersonen);
+        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
+        List<Tafel> mogelijkeTafels = tafelAccess.GetTafelsByCapaciteit(benodigdeCapaciteit);
         List<Tijdslot> tijdsloten = tijdslotAccess.GetTijdslotenByDatum(datum.ToString("yyyy-MM-dd"));
 
         foreach (Tijdslot tijdslot in tijdsloten)
