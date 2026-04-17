@@ -133,6 +133,60 @@ public class ReservationLogic
         return beschikbareTijdsloten;
     }
 
+    public List<TafelWeergave> GetTafelWeergaveVoorTijdslot(int aantalPersonen, Tijdslot tijdslot)
+    {
+        List<TafelWeergave> overzicht = new List<TafelWeergave>();
+        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
+        List<Tafel> alleTafels = tafelAccess.GetAllTafels();
+
+        foreach (Tafel tafel in alleTafels.OrderBy(t => t.TafelNummer))
+        {
+            List<Reservering> overlappendeReserveringen = reserveringAccess.GetOverlappendeReserveringen(
+                tafel.ID,
+                tijdslot.StartTijd,
+                tijdslot.EindTijd
+            );
+
+            bool isBeschikbaar = overlappendeReserveringen.Count == 0;
+            bool isToegestaan = tafel.Capaciteit == benodigdeCapaciteit;
+
+            overzicht.Add(new TafelWeergave(
+                tafel.ID,
+                tafel.TafelNummer,
+                tafel.Capaciteit,
+                isBeschikbaar,
+                isToegestaan
+            ));
+        }
+
+        return overzicht;
+    }
+
+    public bool IsTafelBeschikbaarVoorKeuze(int tafelNummer, int aantalPersonen, Tijdslot tijdslot)
+    {
+        Tafel? tafel = tafelAccess.GetTafelByNummer(tafelNummer);
+        if (tafel == null) return false;
+
+        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
+        if (tafel.Capaciteit != benodigdeCapaciteit) return false;
+
+        var overlappende = reserveringAccess.GetOverlappendeReserveringen(
+            tafel.ID,
+            tijdslot.StartTijd,
+            tijdslot.EindTijd
+        );
+
+        return overlappende.Count == 0;
+    }
+
+    public List<int> GetBeschikbareTafelNummers(int aantalPersonen, Tijdslot tijdslot)
+    {
+        return GetTafelWeergaveVoorTijdslot(aantalPersonen, tijdslot)
+            .Where(t => t.IsBeschikbaar && t.IsToegestaan)
+            .Select(t => t.TafelNummer)
+            .ToList();
+    }
+
     public bool AddReservering(int gebruikerID, int aantalPersonen, Tijdslot tijdslot, string opmerking)
     {
         if (!IsGeldigAantalPersonen(aantalPersonen))
