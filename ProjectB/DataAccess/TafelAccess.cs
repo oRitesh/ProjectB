@@ -59,4 +59,20 @@ public class TafelAccess
 
         return db.Connection.Query<Tafel>(sql, new { AantalPersonen = aantalPersonen }).ToList();
     }
+
+    public Tafel? GetTafelByNummer(int tafelNummer)
+    {
+        string sql = $@"SELECT * FROM {Table} WHERE TafelNummer = @TafelNummer;";
+        return db.Connection.QueryFirstOrDefault<Tafel>(sql, new { TafelNummer = tafelNummer });
+    }
+
+    public List<Tafel> GetTafelsByCapaciteit(int capaciteit)
+    {
+        string sql = $@"
+            SELECT * FROM {Table}
+            WHERE Capaciteit = @Capaciteit
+            ORDER BY TafelNummer;";
+
+        return db.Connection.Query<Tafel>(sql, new { Capaciteit = capaciteit }).ToList();
+    }
 }
