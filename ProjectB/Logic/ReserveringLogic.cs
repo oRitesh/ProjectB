@@ -187,48 +187,31 @@ public class ReservationLogic
             .ToList();
     }
 
-    public bool AddReservering(int gebruikerID, int aantalPersonen, Tijdslot tijdslot, string opmerking)
+    public bool AddReservering(int gebruikerID, int aantalPersonen, Tijdslot tijdslot, int tafelNummer, string opmerking)
     {
-        if (!IsGeldigAantalPersonen(aantalPersonen))
-        {
-            return false;
-        }
+        if (!IsGeldigAantalPersonen(aantalPersonen)) return false;
 
         DateTime datum = DateTime.Parse(tijdslot.Datum);
+        if (!IsGeldigeDatum(datum)) return false;
 
-        if (!IsGeldigeDatum(datum))
-        {
-            return false;
-        }
+        Tafel? tafel = tafelAccess.GetTafelByNummer(tafelNummer);
+        if (tafel == null) return false;
 
-        List<Tafel> mogelijkeTafels = tafelAccess.GetTafelsByMinimaleCapaciteit(aantalPersonen);
+        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
+        if (tafel.Capaciteit != benodigdeCapaciteit) return false;
 
-        Tafel? beschikbareTafel = null;
+        var overlappende = reserveringAccess.GetOverlappendeReserveringen(
+            tafel.ID,
+            tijdslot.StartTijd,
+            tijdslot.EindTijd
+        );
 
-        foreach (Tafel tafel in mogelijkeTafels)
-        {
-            List<Reservering> overlappendeReserveringen = reserveringAccess.GetOverlappendeReserveringen(
-                tafel.ID,
-                tijdslot.StartTijd,
-                tijdslot.EindTijd
-            );
-
-            if (overlappendeReserveringen.Count == 0)
-            {
-                beschikbareTafel = tafel;
-                break;
-            }
-        }
-
-        if (beschikbareTafel == null)
-        {
-            return false;
-        }
+        if (overlappende.Count > 0) return false;
 
         Reservering reservering = new Reservering(
             0,
             gebruikerID,
-            beschikbareTafel.ID,
+            tafel.ID,
             tijdslot.StartTijd,
             tijdslot.EindTijd,
             aantalPersonen,
