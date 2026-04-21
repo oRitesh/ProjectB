@@ -22,15 +22,6 @@ public class MenuItemAccess
         return db.Connection.Query<MenuItem>(sql, new { CategoryID = categoryId }).ToList();
     }
 
-    public MenuItem RemoveItemById(int id)
-    {
-        string sql = $@"
-            SELECT * FROM {Table}
-            WHERE ID = @ID;";
-
-        return db.Connection.QueryFirstOrDefault<MenuItem>(sql, new { ID = id });
-    }
-
     public void AddMenuItem(MenuItem item)
     {
         string sql = $@"
