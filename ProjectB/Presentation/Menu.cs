@@ -64,15 +64,20 @@ public static class Menu
                     ShowInformationPage();
                     break;
                 case "2":
+                {
                     DatabaseContext db = new DatabaseContext();
                     ShowMenuUI menuUI = new ShowMenuUI(db);
                     menuUI.ShowMenuPage();
                     db.Close();
                     break;
+                }
                 case "3":
                     ShowReservationPage();
                     break;
                 case "4":
+                {
+                    DatabaseContext db = new DatabaseContext();
+                    UserAccess userAccess = new UserAccess(db);
                     if (HuidigeGebruiker.ID == 0)
                     {
                         string? regName = null;
@@ -146,6 +151,7 @@ public static class Menu
 
 
                         HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
+                        userAccess.AddUser(HuidigeGebruiker);
                     }
 
                     else
@@ -155,6 +161,7 @@ public static class Menu
                         Console.ReadKey(true);
                     }
                     break;
+                }
                 case "0":
                     running = false;
                     break;
