@@ -1,6 +1,6 @@
 public static class Menu
 {
-    private static Gebruiker? HuidigeGebruiker = new Gebruiker (0, 0, "gast", "", "", "");
+    private static Gebruiker? HuidigeGebruiker = new Gebruiker(0, 0, "gast", "", "", "");
     static void ShowInformationPage()
     {
         Console.Clear();
@@ -74,8 +74,79 @@ public static class Menu
                 case "4":
                     if (HuidigeGebruiker.ID == 0)
                     {
-                        HuidigeGebruiker = new Gebruiker(1, 1, "Dikke aap", "dikke.aap@example.com", "0612345678", "IkbenDikkeAap123");
+                        string? regName = null;
+                        string? regEmail = null;
+                        string? regPhone = null;
+                        string? regPassword = null;
+
+                        while (string.IsNullOrWhiteSpace(regName))
+                        {
+                            Console.Write("Voer uw naam in: ");
+                            regName = Console.ReadLine();
+
+                            if (string.IsNullOrWhiteSpace(regName))
+                            {
+                                Console.WriteLine("Naam mag niet leeg zijn. Probeer het opnieuw.");
+                                Console.ReadKey();
+                            }
+                        }
+
+                        while (string.IsNullOrWhiteSpace(regEmail))
+                        {
+                            Console.Write("Voer uw e-mailadres in: ");
+                            regEmail = Console.ReadLine();
+                            if (string.IsNullOrWhiteSpace(regEmail))
+                            {
+                                Console.WriteLine("E-mailadres mag niet leeg zijn. Probeer het opnieuw.");
+                                Console.ReadKey();
+                            }
+
+                            else if (!regEmail.Contains("@") || !regEmail.Contains("."))
+                            {
+                                Console.WriteLine("Ongeldig e-mailadres. Probeer het opnieuw.");
+                                regEmail = null; // Reset zodat de loop doorgaat
+                            }
+                        }
+
+                        while (string.IsNullOrWhiteSpace(regPhone))
+                        {
+                            Console.Write("Voer uw telefoonnummer in: ");
+                            regPhone = Console.ReadLine();
+                            if (string.IsNullOrWhiteSpace(regPhone))
+                            {
+                                Console.WriteLine("Telefoonnummer mag niet leeg zijn. Probeer het opnieuw.");
+                                Console.ReadKey();
+                            }
+                        }
+
+                        while (string.IsNullOrWhiteSpace(regPassword))
+                        {
+                            Console.Write("Voer uw wachtwoord in: ");
+                            regPassword = Console.ReadLine();
+                            if (string.IsNullOrWhiteSpace(regPassword))
+                            {
+                                Console.WriteLine("Wachtwoord mag niet leeg zijn. Probeer het opnieuw.");
+                                Console.ReadKey();
+                            }
+
+                            else if (regPassword.Length < 6)
+                            {
+                                Console.WriteLine("Wachtwoord moet minimaal 6 tekens bevatten. Probeer het opnieuw.");
+                                regPassword = null; // Reset zodat de loop doorgaat
+                            }
+
+                        }
+
+                        Console.Clear();
+                        Console.WriteLine("Registratie succesvol!");
+                        Console.WriteLine($"Welkom {regName}!");
+                        Console.WriteLine("\nDruk op een toets om verder te gaan...");
+                        Console.ReadKey();
+
+
+                        HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
                     }
+
                     else
                     {
                         Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
