@@ -24,4 +24,20 @@ public class UserAccess
         //db.Connection.Execute(sql, gebruiker);
         return db.Connection.QuerySingle<int>(sql, gebruiker);
     }
+
+    // Voeg dit toe aan UserAccess.cs
+    public Gebruiker? GetUserByEmail(string email, string password)
+    {
+        // We zoeken de gebruiker op basis van email
+        string sql = $"SELECT * FROM {table} WHERE Email = @Email";
+
+        var user = db.Connection.QuerySingleOrDefault<Gebruiker>(sql, new { Email = email });
+
+        if (user != null && user.Wachtwoord == password)
+        {
+            return user;
+        }
+
+        return null;
+    }
 }

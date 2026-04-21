@@ -64,104 +64,130 @@ public static class Menu
                     ShowInformationPage();
                     break;
                 case "2":
-                {
-                    DatabaseContext db = new DatabaseContext();
-                    ShowMenuUI menuUI = new ShowMenuUI(db);
-                    menuUI.ShowMenuPage();
-                    db.Close();
-                    break;
-                }
+                    {
+                        DatabaseContext db = new DatabaseContext();
+                        ShowMenuUI menuUI = new ShowMenuUI(db);
+                        menuUI.ShowMenuPage();
+                        db.Close();
+                        break;
+                    }
                 case "3":
                     ShowReservationPage();
                     break;
                 case "4":
-                {
-                    DatabaseContext db = new DatabaseContext();
-                    UserAccess userAccess = new UserAccess(db);
-                    if (HuidigeGebruiker.ID == 0)
                     {
-                        string? regName = null;
-                        string? regEmail = null;
-                        string? regPhone = null;
-                        string? regPassword = null;
-
-                        while (string.IsNullOrWhiteSpace(regName))
+                        DatabaseContext db = new DatabaseContext();
+                        UserAccess userAccess = new UserAccess(db);
+                        if (HuidigeGebruiker.ID == 0)
                         {
-                            Console.Write("Voer uw naam in: ");
-                            regName = Console.ReadLine();
+                            Console.WriteLine("1. Inloggen");
+                            Console.WriteLine("2. Registreren");
+                            string? loginChoice = Console.ReadLine();
 
-                            if (string.IsNullOrWhiteSpace(regName))
+                            if (loginChoice == "1")
                             {
-                                Console.WriteLine("Naam mag niet leeg zijn. Probeer het opnieuw.");
+                                Console.Write("E-mail: ");
+                                string? email = Console.ReadLine();
+                                Console.Write("Wachtwoord: ");
+                                string? pass = Console.ReadLine();
+
+                                var user = userAccess.GetUserByEmail(email, pass);
+                                if (user != null)
+                                {
+                                    HuidigeGebruiker = user;
+                                    Console.WriteLine($"Succesvol ingelogd! Welkom terug, {user.Naam}.");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Onjuiste gegevens.");
+                                }
                                 Console.ReadKey();
+                            }
+                            else if (loginChoice == "2")
+                            {
+                                string? regName = null;
+                                string? regEmail = null;
+                                string? regPhone = null;
+                                string? regPassword = null;
+
+                                while (string.IsNullOrWhiteSpace(regName))
+                                {
+                                    Console.Write("Voer uw naam in: ");
+                                    regName = Console.ReadLine();
+
+                                    if (string.IsNullOrWhiteSpace(regName))
+                                    {
+                                        Console.WriteLine("Naam mag niet leeg zijn. Probeer het opnieuw.");
+                                        Console.ReadKey();
+                                    }
+                                }
+
+                                while (string.IsNullOrWhiteSpace(regEmail))
+                                {
+                                    Console.Write("Voer uw e-mailadres in: ");
+                                    regEmail = Console.ReadLine();
+                                    if (string.IsNullOrWhiteSpace(regEmail))
+                                    {
+                                        Console.WriteLine("E-mailadres mag niet leeg zijn. Probeer het opnieuw.");
+                                        Console.ReadKey();
+                                    }
+
+                                    else if (!regEmail.Contains("@") || !regEmail.Contains("."))
+                                    {
+                                        Console.WriteLine("Ongeldig e-mailadres. Probeer het opnieuw.");
+                                        regEmail = null; // Reset zodat de loop doorgaat
+                                    }
+                                }
+
+                                while (string.IsNullOrWhiteSpace(regPhone))
+                                {
+                                    Console.Write("Voer uw telefoonnummer in: ");
+                                    regPhone = Console.ReadLine();
+                                    if (string.IsNullOrWhiteSpace(regPhone))
+                                    {
+                                        Console.WriteLine("Telefoonnummer mag niet leeg zijn. Probeer het opnieuw.");
+                                        Console.ReadKey();
+                                    }
+                                }
+
+                                while (string.IsNullOrWhiteSpace(regPassword))
+                                {
+                                    Console.Write("Voer uw wachtwoord in: ");
+                                    regPassword = Console.ReadLine();
+                                    if (string.IsNullOrWhiteSpace(regPassword))
+                                    {
+                                        Console.WriteLine("Wachtwoord mag niet leeg zijn. Probeer het opnieuw.");
+                                        Console.ReadKey();
+                                    }
+
+                                    else if (regPassword.Length < 6)
+                                    {
+                                        Console.WriteLine("Wachtwoord moet minimaal 6 tekens bevatten. Probeer het opnieuw.");
+                                        regPassword = null; // Reset zodat de loop doorgaat
+                                    }
+
+                                }
+
+                                Console.Clear();
+                                Console.WriteLine("Registratie succesvol!");
+                                Console.WriteLine($"Welkom {regName}!");
+                                Console.WriteLine("\nDruk op een toets om verder te gaan...");
+                                Console.ReadKey();
+
+
+                                HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
+                                userAccess.AddUser(HuidigeGebruiker);
                             }
                         }
 
-                        while (string.IsNullOrWhiteSpace(regEmail))
+                        else
                         {
-                            Console.Write("Voer uw e-mailadres in: ");
-                            regEmail = Console.ReadLine();
-                            if (string.IsNullOrWhiteSpace(regEmail))
-                            {
-                                Console.WriteLine("E-mailadres mag niet leeg zijn. Probeer het opnieuw.");
-                                Console.ReadKey();
-                            }
-
-                            else if (!regEmail.Contains("@") || !regEmail.Contains("."))
-                            {
-                                Console.WriteLine("Ongeldig e-mailadres. Probeer het opnieuw.");
-                                regEmail = null; // Reset zodat de loop doorgaat
-                            }
+                            Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
+                            Console.WriteLine("Druk op een toets om verder te gaan...");
+                            Console.ReadKey(true);
                         }
-
-                        while (string.IsNullOrWhiteSpace(regPhone))
-                        {
-                            Console.Write("Voer uw telefoonnummer in: ");
-                            regPhone = Console.ReadLine();
-                            if (string.IsNullOrWhiteSpace(regPhone))
-                            {
-                                Console.WriteLine("Telefoonnummer mag niet leeg zijn. Probeer het opnieuw.");
-                                Console.ReadKey();
-                            }
-                        }
-
-                        while (string.IsNullOrWhiteSpace(regPassword))
-                        {
-                            Console.Write("Voer uw wachtwoord in: ");
-                            regPassword = Console.ReadLine();
-                            if (string.IsNullOrWhiteSpace(regPassword))
-                            {
-                                Console.WriteLine("Wachtwoord mag niet leeg zijn. Probeer het opnieuw.");
-                                Console.ReadKey();
-                            }
-
-                            else if (regPassword.Length < 6)
-                            {
-                                Console.WriteLine("Wachtwoord moet minimaal 6 tekens bevatten. Probeer het opnieuw.");
-                                regPassword = null; // Reset zodat de loop doorgaat
-                            }
-
-                        }
-
-                        Console.Clear();
-                        Console.WriteLine("Registratie succesvol!");
-                        Console.WriteLine($"Welkom {regName}!");
-                        Console.WriteLine("\nDruk op een toets om verder te gaan...");
-                        Console.ReadKey();
-
-
-                        HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
-                        userAccess.AddUser(HuidigeGebruiker);
+                        break;
                     }
-
-                    else
-                    {
-                        Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
-                        Console.WriteLine("Druk op een toets om verder te gaan...");
-                        Console.ReadKey(true);
-                    }
-                    break;
-                }
                 case "0":
                     running = false;
                     break;

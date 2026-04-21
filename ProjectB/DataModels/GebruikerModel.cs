@@ -7,6 +7,8 @@ public class Gebruiker
     public string Telefoonnummer { get; set; }
     public string Wachtwoord { get; set; }
 
+    public Gebruiker() { }
+
     public Gebruiker(int id, int rol, string naam, string? email, string telefoonnummer, string wachtwoord)
     {
         ID = id;
