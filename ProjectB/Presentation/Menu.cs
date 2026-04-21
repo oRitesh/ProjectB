@@ -82,11 +82,14 @@ public static class Menu
                         {
                             Console.WriteLine("1. Inloggen");
                             Console.WriteLine("2. Registreren");
+                            Console.WriteLine("0. Terug");
+                            Console.Write("Maak een keuze: ");
                             string? loginChoice = Console.ReadLine();
 
                             if (loginChoice == "1")
                             {
-                                Console.Write("E-mail: ");
+                                Console.Clear();
+                                Console.Write("E-mailadres: ");
                                 string? email = Console.ReadLine();
                                 Console.Write("Wachtwoord: ");
                                 string? pass = Console.ReadLine();
@@ -177,6 +180,15 @@ public static class Menu
 
                                 HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
                                 userAccess.AddUser(HuidigeGebruiker);
+                            }
+                            else if (loginChoice == "0")
+                            {
+                                // Do nothing, just return to the main menu
+                            }
+                            else
+                            {
+                                Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                                Console.ReadKey(true);
                             }
 
                         }
