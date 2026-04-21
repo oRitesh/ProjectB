@@ -90,17 +90,25 @@ public class ReserveringUI
                     string displayNaam = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Naam : gastNaam;
                     string displayTel = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Telefoonnummer : gastTelefoon;
 
-                    bool? bevestiging = BevestigReservering(aantalPersonen, gekozenDatum, gekozenTijdslot, opmerking, displayNaam, displayTel);
+                    bool? bevestiging = BevestigReservering(aantalPersonen, gekozenDatum, gekozenTijdslot!, opmerking, displayNaam, displayTel);
                     if (bevestiging == null)
                     {
                         stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
                     }
                     else if (bevestiging == true)
                     {
+                        int definitiefID = huidigeGebruiker.ID;
+
+                        // Als gast: Sla de gast EERST op in de database om een echt ID te krijgen
+                        if (huidigeGebruiker.Rol == 0)
+                        {
+                            definitiefID = ReservationLogic.VoegGastToe(displayNaam, displayTel);
+                        }
+
                         bool gelukt = ReservationLogic.AddReservering(
-                            huidigeGebruiker.ID,
+                            definitiefID,
                             aantalPersonen,
-                            gekozenTijdslot,
+                            gekozenTijdslot!,
                             opmerking
                         );
 
