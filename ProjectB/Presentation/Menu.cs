@@ -179,23 +179,24 @@ public static class Menu
                                 userAccess.AddUser(HuidigeGebruiker);
                             }
 
-                            else
-                            {
-                                Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
-                                Console.WriteLine("Druk op een toets om verder te gaan...");
-                                Console.ReadKey(true);
-                            }
-                            break;
                         }
-                case "0":
-                            running = false;
-                            break;
-                        default:
-                            Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                        else
+                        {
+                            Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
+                            Console.WriteLine("Druk op een toets om verder te gaan...");
                             Console.ReadKey(true);
-                            break;
                         }
+                        break;
                     }
+                case "0":
+                    running = false;
+                    break;
+                default:
+                    Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                    Console.ReadKey(true);
+                    break;
             }
         }
+    }
+}
 
