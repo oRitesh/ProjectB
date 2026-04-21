@@ -149,7 +149,7 @@ public static class Menu
                         Console.WriteLine("\nDruk op een toets om verder te gaan...");
                         Console.ReadKey();
 
-
+                        
                         HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
                         userAccess.AddUser(HuidigeGebruiker);
                     }
