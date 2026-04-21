@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Dapper;
 
-public class GebruikerAccess
+public class UserAccess
 {
-    private readonly DatabaseContext = db;
+    private readonly DatabaseContext db;
     public const string table = "User";
 
     public UserAccess(DatabaseContext db)
@@ -15,7 +15,7 @@ public class GebruikerAccess
     public void AddUser(Gebruiker gebruiker)
     {
         string sql = $@"
-            INSERT INTO {Table}
+            INSERT INTO {table}
             (Rol, Naam, Email, Telefoonnummer, Wachtwoord)
             VALUES
             (@Rol, @Naam, @Email, @Telefoonnummer, @Wachtwoord);";
