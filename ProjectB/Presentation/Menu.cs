@@ -52,6 +52,7 @@ public static class Menu
             Console.WriteLine("2. Bekijk menukaart");
             Console.WriteLine("3. Reserveer een tafel");
             Console.WriteLine("4. Login / registreer");
+            Console.WriteLine("5. overzicht reserveringen/ reservering wijzigen");
             Console.WriteLine("0. Afsluiten");
             Console.WriteLine();
             Console.Write("Maak een keuze: ");
@@ -63,6 +64,7 @@ public static class Menu
                 case "1":
                     ShowInformationPage();
                     break;
+
                 case "2":
                     {
                         DatabaseContext db = new DatabaseContext();
@@ -71,9 +73,11 @@ public static class Menu
                         db.Close();
                         break;
                     }
+
                 case "3":
                     ShowReservationPage();
                     break;
+
                 case "4":
                     {
                         DatabaseContext db = new DatabaseContext();
@@ -200,6 +204,31 @@ public static class Menu
                         }
                         break;
                     }
+
+                case "5":
+                {
+                    if (HuidigeGebruiker.ID == 0)
+                    {
+                        Console.WriteLine("U moet eerst inloggen.");
+                        Console.ReadKey();
+                        break;
+                    }
+
+                    DatabaseContext db = new DatabaseContext();
+                    ReserveringAccess reserveringAccess = new ReserveringAccess(db);
+                    TafelAccess tafelAccess = new TafelAccess(db);
+                    TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
+                    UserAccess userAccess = new UserAccess(db);
+
+                    ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+
+                    ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
+                    overzichtUI.ShowOverzicht();
+
+                    db.Close();
+                    break;
+                }
+
                 case "0":
                     running = false;
                     break;
