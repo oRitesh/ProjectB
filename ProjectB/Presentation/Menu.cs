@@ -131,21 +131,26 @@ public static class Menu
                                     regEmail = Console.ReadLine();
                                     if (string.IsNullOrWhiteSpace(regEmail))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("E-mailadres mag niet leeg zijn. Probeer het opnieuw.");
                                         Console.ReadKey();
                                     }
 
                                     else if (!regEmail.Contains("@") || !regEmail.Contains("."))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Ongeldig e-mailadres. Probeer het opnieuw.");
-                                        regEmail = null; // Reset zodat de loop doorgaat
+                                        regEmail = null;
+                                        Console.ReadKey();
                                     }
 
                                     var checkUser = userAccess.GetUserByEmail(regEmail);
                                     if (checkUser != null)
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("E-mailadres is al in gebruik. Probeer het opnieuw.");
-                                        regEmail = null; // Reset zodat de loop doorgaat
+                                        regEmail = null;
+                                        Console.ReadKey();
                                     }
                                 }
 
@@ -155,7 +160,17 @@ public static class Menu
                                     regPhone = Console.ReadLine();
                                     if (string.IsNullOrWhiteSpace(regPhone))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Telefoonnummer mag niet leeg zijn. Probeer het opnieuw.");
+                                        Console.ReadKey();
+                                    }
+
+                                    var checkUser = userAccess.GetUserByPhoneNumber(regPhone);
+                                    if (checkUser != null)
+                                    {
+                                        Console.WriteLine();
+                                        Console.WriteLine("Dit telefoonnummer is al gekoppeld aan een account.");
+                                        regPhone = null;
                                         Console.ReadKey();
                                     }
                                 }
@@ -166,13 +181,16 @@ public static class Menu
                                     regPassword = Console.ReadLine();
                                     if (string.IsNullOrWhiteSpace(regPassword))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Wachtwoord mag niet leeg zijn. Probeer het opnieuw.");
                                         Console.ReadKey();
                                     }
 
                                     else if (regPassword.Length < 6)
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Wachtwoord moet minimaal 6 tekens bevatten. Probeer het opnieuw.");
+                                        Console.ReadKey();
                                         regPassword = null; // Reset zodat de loop doorgaat
                                     }
 
