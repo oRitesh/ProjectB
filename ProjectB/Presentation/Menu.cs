@@ -140,6 +140,13 @@ public static class Menu
                                         Console.WriteLine("Ongeldig e-mailadres. Probeer het opnieuw.");
                                         regEmail = null; // Reset zodat de loop doorgaat
                                     }
+
+                                    var checkUser = userAccess.GetUserByEmail(regEmail);
+                                    if (checkUser != null)
+                                    {
+                                        Console.WriteLine("E-mailadres is al in gebruik. Probeer het opnieuw.");
+                                        regEmail = null; // Reset zodat de loop doorgaat
+                                    }
                                 }
 
                                 while (string.IsNullOrWhiteSpace(regPhone))
