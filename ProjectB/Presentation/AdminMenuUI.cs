@@ -43,7 +43,7 @@ public class AdminMenuUI
                     break;
 
                 case "4":
-                    bezig = false;   // ❗ Nu pas verlaat je het Admin-menu
+                    bezig = false;
                     break;
 
                 default:
