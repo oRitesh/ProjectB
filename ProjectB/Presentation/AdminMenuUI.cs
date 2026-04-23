@@ -54,7 +54,6 @@ public class AdminMenuUI
         }
     }
 
-
     public void EditMenu()
     {
         bool bezig = true;

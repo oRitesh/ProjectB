@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Dapper;
 
 public class MenuItemAccess
@@ -20,6 +18,19 @@ public class MenuItemAccess
             ORDER BY Prijs;";
 
         return db.Connection.Query<MenuItem>(sql, new { CategoryID = categoryId }).ToList();
+    }
+
+    public void DisplayAllItems()
+    {
+        string sql = $@"
+            SELECT * FROM {Table}
+            ORDER BY Prijs;";
+
+        var items = db.Connection.Query<MenuItem>(sql).ToList();
+        foreach (var item in items)
+        {
+            Console.WriteLine($"ID: {item.ID}, Naam: {item.Naam}, Prijs: {item.Prijs}, CategorieID: {item.MenuCatogorieID}");
+        }
     }
 
     public void AddMenuItem(MenuItem item)
