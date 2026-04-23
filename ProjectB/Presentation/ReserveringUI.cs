@@ -69,7 +69,7 @@ public class ReserveringUI
                     break;
 
                 case 4:
-                    int? tafelKeuze = KiesTafel(aantalPersonen, gekozenTijdslot);
+                    int? tafelKeuze = KiesTafel(aantalPersonen, gekozenTijdslot!);
                     if (tafelKeuze == null)
                     {
                         stap = 3;
@@ -77,26 +77,24 @@ public class ReserveringUI
                     else
                     {
                         gekozenTafelNummer = tafelKeuze.Value;
-                        stap = 5;
-                        opmerking = opmerkingKeuze;
                         stap = (huidigeGebruiker.Rol == 0) ? 45 : 5;
                     }
                     break;
 
-                case 45: // Extra stap voor GASTEN
-                    if (VulGastGegevensIn()) stap = 5;
-                    else stap = 4;
+                case 45:
+                    if (VulGastGegevensIn())
+                    {
+                        stap = 5;
+                    }
+                    else
+                    {
+                        stap = 4;
+                    }
                     break;
 
                 case 5:
                     string? opmerkingKeuze = KiesOpmerking();
                     if (opmerkingKeuze == null)
-
-                    string displayNaam = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Naam : gastNaam;
-                    string displayTel = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Telefoonnummer : gastTelefoon;
-
-                    bool? bevestiging = BevestigReservering(aantalPersonen, gekozenDatum, gekozenTijdslot!, opmerking, displayNaam, displayTel);
-                    if (bevestiging == null)
                     {
                         stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
                     }
@@ -108,7 +106,19 @@ public class ReserveringUI
                     break;
 
                 case 6:
-                    bool? bevestiging = BevestigReservering(aantalPersonen, gekozenDatum, gekozenTijdslot, gekozenTafelNummer, opmerking);
+                    string displayNaam = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Naam : gastNaam;
+                    string displayTel = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Telefoonnummer : gastTelefoon;
+
+                    bool? bevestiging = BevestigReservering(
+                        aantalPersonen,
+                        gekozenDatum,
+                        gekozenTijdslot!,
+                        gekozenTafelNummer,
+                        opmerking,
+                        displayNaam,
+                        displayTel
+                    );
+
                     if (bevestiging == null)
                     {
                         stap = 5;
@@ -117,7 +127,6 @@ public class ReserveringUI
                     {
                         int definitiefID = huidigeGebruiker.ID;
 
-                        // Als gast: Sla de gast EERST op in de database om een echt ID te krijgen
                         if (huidigeGebruiker.Rol == 0)
                         {
                             definitiefID = ReservationLogic.VoegGastToe(displayNaam, displayTel);
@@ -126,9 +135,8 @@ public class ReserveringUI
                         bool gelukt = ReservationLogic.AddReservering(
                             definitiefID,
                             aantalPersonen,
-                            gekozenTijdslot,
-                            gekozenTafelNummer,
                             gekozenTijdslot!,
+                            gekozenTafelNummer,
                             opmerking
                         );
 
@@ -157,7 +165,6 @@ public class ReserveringUI
                     else
                     {
                         stap = 5;
-                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
                     }
                     break;
             }
@@ -174,6 +181,7 @@ public class ReserveringUI
         gastTelefoon = Console.ReadLine() ?? "Onbekend";
         return true;
     }
+
     private int? KiesAantalPersonen()
     {
         List<int> opties = ReservationLogic.GetAantalPersonenOpties();
@@ -334,7 +342,8 @@ public class ReserveringUI
 
             for (int i = 0; i < tijdsloten.Count; i++)
             {
-                string label = $"{DateTime.Parse(tijdsloten[i].StartTijd):HH:mm} - {DateTime.Parse(tijdsloten[i].EindTijd):HH:mm}";
+                string label =
+                    $"{DateTime.Parse(tijdsloten[i].StartTijd):HH:mm} - {DateTime.Parse(tijdsloten[i].EindTijd):HH:mm}";
 
                 if (i == geselecteerd)
                 {
@@ -503,7 +512,14 @@ public class ReserveringUI
         }
     }
 
-    private bool? BevestigReservering(int aantalPersonen, DateTime datum, Tijdslot tijdslot, string opmerking, string naam, string tel)
+    private bool? BevestigReservering(
+        int aantalPersonen,
+        DateTime datum,
+        Tijdslot tijdslot,
+        int tafelNummer,
+        string opmerking,
+        string naam,
+        string tel)
     {
         List<string> opties = new List<string> { "Bevestigen", "Terug" };
         int geselecteerd = 0;
