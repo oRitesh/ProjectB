@@ -4,11 +4,14 @@ public class ReservationLogic
     private readonly TafelAccess tafelAccess;
     private readonly TijdslotAccess tijdslotAccess;
 
-    public ReservationLogic(ReserveringAccess reserveringAccess, TafelAccess tafelAccess, TijdslotAccess tijdslotAccess)
+    private readonly UserAccess userAccess;
+
+    public ReservationLogic(ReserveringAccess reserveringAccess, TafelAccess tafelAccess, TijdslotAccess tijdslotAccess, UserAccess userAccess)
     {
         this.reserveringAccess = reserveringAccess;
         this.tafelAccess = tafelAccess;
         this.tijdslotAccess = tijdslotAccess;
+        this.userAccess = userAccess;
     }
 
     public List<int> GetAantalPersonenOpties()
@@ -258,5 +261,12 @@ public class ReservationLogic
 
         reserveringAccess.AddReservering(reservering);
         return true;
+    }
+
+    public int VoegGastToe(string naam, string telefoonnummer)
+    {
+        Gebruiker NieuweGast = new Gebruiker(0, naam, telefoonnummer);
+        int gastID = userAccess.AddUser(NieuweGast);
+        return gastID;
     }
 }
