@@ -126,11 +126,31 @@ public class AdminMenuUI
             Console.WriteLine("Ongeldige categorie. Probeer opnieuw:");
         }
 
+        Console.WriteLine("Beschrijving: ");
+        string beschrijving = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(beschrijving))
+        {
+            Console.WriteLine("Beschrijving mag niet leeg zijn.");
+            Console.ReadKey();
+            return;
+        }
+
+        Console.WriteLine("Allergeen: ");
+        string allergeen = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(allergeen))
+        {
+            Console.WriteLine("Allergeen mag niet leeg zijn.");
+            Console.ReadKey();
+            return;
+        }
+
         menuItemAccess.AddMenuItem(new MenuItem
         {
             Naam = naam,
             Prijs = prijs,
-            MenuCatogorieID = categorieID
+            MenuCatogorieID = categorieID,
+            Beschrijving = beschrijving,
+            Allergeen = allergeen
         });
 
         Console.WriteLine("Item toegevoegd!");
