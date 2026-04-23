@@ -40,4 +40,18 @@ public class UserAccess
 
         return null;
     }
+
+    public Gebruiker? GetUserByEmail(string email)
+    {
+        string sql = "SELECT * FROM Gebruiker WHERE Email = @Email";
+
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { Email = email });
+    }
+
+    public Gebruiker? GetUserByPhoneNumber(string phoneNumber)
+    {
+        string sql = "SELECT * FROM Gebruiker WHERE Telefoonnummer = @Phone";
+
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { Phone = phoneNumber });
+    }
 }
