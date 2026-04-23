@@ -86,7 +86,7 @@ public void EditMenu()
                 break;
 
             case "4":
-                bezig = false;
+                Environment.Exit(0);
                 break;
 
             default:
