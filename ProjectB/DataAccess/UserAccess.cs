@@ -54,4 +54,11 @@ public class UserAccess
 
         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { Phone = phoneNumber });
     }
+
+    public Gebruiker? GetRoleByUser(int userId)
+    {
+        string sql = "SELECT Rol FROM Gebruiker WHERE Id = @UserId";
+
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
+    }
 }
