@@ -20,6 +20,7 @@ public class ReserveringUI
         int aantalPersonen = 1;
         DateTime gekozenDatum = DateTime.Today;
         Tijdslot? gekozenTijdslot = null;
+        int gekozenTafelNummer = 0;
         string opmerking = "";
 
         bool bezig = true;
@@ -68,38 +69,64 @@ public class ReserveringUI
                     break;
 
                 case 4:
-                    string? opmerkingKeuze = KiesOpmerking();
-                    if (opmerkingKeuze == null)
+                    int? tafelKeuze = KiesTafel(aantalPersonen, gekozenTijdslot!);
+                    if (tafelKeuze == null)
                     {
                         stap = 3;
                     }
                     else
                     {
-                        opmerking = opmerkingKeuze;
+                        gekozenTafelNummer = tafelKeuze.Value;
                         stap = (huidigeGebruiker.Rol == 0) ? 45 : 5;
                     }
                     break;
 
-                case 45: // Extra stap voor GASTEN
-                    if (VulGastGegevensIn()) stap = 5;
-                    else stap = 4;
+                case 45:
+                    if (VulGastGegevensIn())
+                    {
+                        stap = 5;
+                    }
+                    else
+                    {
+                        stap = 4;
+                    }
                     break;
 
                 case 5:
+                    string? opmerkingKeuze = KiesOpmerking();
+                    if (opmerkingKeuze == null)
+                    {
+                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
+                    }
+                    else
+                    {
+                        opmerking = opmerkingKeuze;
+                        stap = 6;
+                    }
+                    break;
 
+                case 6:
                     string displayNaam = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Naam : gastNaam;
                     string displayTel = (huidigeGebruiker.Rol == 1) ? huidigeGebruiker.Telefoonnummer : gastTelefoon;
 
-                    bool? bevestiging = BevestigReservering(aantalPersonen, gekozenDatum, gekozenTijdslot!, opmerking, displayNaam, displayTel);
+                    bool? bevestiging = BevestigReservering(
+                        aantalPersonen,
+                        gekozenDatum,
+                        gekozenTijdslot!,
+                        gekozenTafelNummer,
+                        opmerking,
+                        displayNaam,
+                        displayTel
+                    );
+
                     if (bevestiging == null)
                     {
-                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
+                        stap = 5;
                     }
                     else if (bevestiging == true)
                     {
                         int definitiefID = huidigeGebruiker.ID;
 
-                        // Als gast: Sla de gast EERST op in de database om een echt ID te krijgen
                         if (huidigeGebruiker.Rol == 0)
                         {
                             definitiefID = ReservationLogic.VoegGastToe(displayNaam, displayTel);
@@ -109,6 +136,7 @@ public class ReserveringUI
                             definitiefID,
                             aantalPersonen,
                             gekozenTijdslot!,
+                            gekozenTafelNummer,
                             opmerking
                         );
 
@@ -126,7 +154,7 @@ public class ReserveringUI
                         }
                         else
                         {
-                            Console.WriteLine("Er is geen beschikbaarheid meer voor dit tijdslot.");
+                            Console.WriteLine("De gekozen tafel is niet meer beschikbaar of is ongeldig.");
                         }
 
                         Console.WriteLine();
@@ -136,7 +164,7 @@ public class ReserveringUI
                     }
                     else
                     {
-                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
+                        stap = 5;
                     }
                     break;
             }
@@ -153,6 +181,7 @@ public class ReserveringUI
         gastTelefoon = Console.ReadLine() ?? "Onbekend";
         return true;
     }
+
     private int? KiesAantalPersonen()
     {
         List<int> opties = ReservationLogic.GetAantalPersonenOpties();
@@ -203,7 +232,7 @@ public class ReserveringUI
         }
     }
 
-    private DateTime? KiesDatum()
+    public DateTime? KiesDatum()
     {
         List<DateTime> datums = ReservationLogic.GetBeschikbareDatums();
         int geselecteerd = 0;
@@ -276,7 +305,7 @@ public class ReserveringUI
         Console.WriteLine($"Geselecteerde datum: {datums[geselecteerd].ToString("dddd dd MMMM yyyy", nl)}");
     }
 
-    private Tijdslot? KiesTijdslot(int aantalPersonen, DateTime datum)
+    public Tijdslot? KiesTijdslot(int aantalPersonen, DateTime datum)
     {
         List<Tijdslot> tijdsloten = ReservationLogic.GetBeschikbareTijdsloten(aantalPersonen, datum);
         int geselecteerd = 0;
@@ -347,6 +376,117 @@ public class ReserveringUI
         }
     }
 
+    private int? KiesTafel(int aantalPersonen, Tijdslot tijdslot)
+    {
+        while (true)
+        {
+            Console.Clear();
+            ToonPlattegrond(aantalPersonen, tijdslot);
+
+            Console.WriteLine();
+            Console.WriteLine("Typ het tafelnummer en druk op Enter.");
+            Console.WriteLine("Typ /back om terug te gaan.");
+            Console.Write("> ");
+
+            string? input = Console.ReadLine();
+
+            if (input == "/back")
+            {
+                return null;
+            }
+
+            if (!int.TryParse(input, out int tafelNummer))
+            {
+                Console.WriteLine();
+                Console.WriteLine("Ongeldige invoer. Voer een geldig tafelnummer in.");
+                Console.WriteLine("Druk op een toets om opnieuw te proberen...");
+                Console.ReadKey(true);
+                continue;
+            }
+
+            if (!ReservationLogic.IsTafelBeschikbaarVoorKeuze(tafelNummer, aantalPersonen, tijdslot))
+            {
+                Console.WriteLine();
+                Console.WriteLine("Deze tafel is niet beschikbaar of niet toegestaan voor jouw groepsgrootte.");
+                Console.WriteLine("Druk op een toets om opnieuw te proberen...");
+                Console.ReadKey(true);
+                continue;
+            }
+
+            return tafelNummer;
+        }
+    }
+
+    private void ToonPlattegrond(int aantalPersonen, Tijdslot tijdslot)
+    {
+        List<TafelWeergave> tafels = ReservationLogic.GetTafelWeergaveVoorTijdslot(aantalPersonen, tijdslot);
+        int benodigdeCapaciteit = ReservationLogic.GetBenodigdeCapaciteit(aantalPersonen);
+
+        Console.WriteLine("==================================");
+        Console.WriteLine("         KIES EEN TAFEL           ");
+        Console.WriteLine("==================================");
+        Console.WriteLine();
+        Console.WriteLine("Legenda:");
+        Console.WriteLine("[2] = beschikbaar");
+        Console.WriteLine("(2) = gereserveerd");
+        Console.WriteLine("-2- = verkeerde capaciteit");
+        Console.WriteLine();
+        Console.WriteLine($"Jouw gezelschap: {aantalPersonen} personen");
+        Console.WriteLine($"Toegestane tafels: capaciteit {benodigdeCapaciteit}");
+        Console.WriteLine();
+        Console.WriteLine("              INGANG");
+        Console.WriteLine();
+
+        List<TafelWeergave> gesorteerd = tafels.OrderBy(t => t.TafelNummer).ToList();
+
+        for (int i = 0; i < gesorteerd.Count; i++)
+        {
+            string vak = MaakTafelVak(gesorteerd[i]);
+            Console.Write(vak.PadRight(10));
+
+            if ((i + 1) % 3 == 0)
+            {
+                Console.WriteLine();
+                Console.WriteLine();
+            }
+        }
+
+        if (gesorteerd.Count % 3 != 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine();
+        }
+
+        Console.WriteLine("              KEUKEN");
+        Console.WriteLine();
+
+        List<int> beschikbareTafels = ReservationLogic.GetBeschikbareTafelNummers(aantalPersonen, tijdslot);
+
+        if (beschikbareTafels.Count == 0)
+        {
+            Console.WriteLine("Beschikbare tafelnummers: geen");
+        }
+        else
+        {
+            Console.WriteLine($"Beschikbare tafelnummers: {string.Join(", ", beschikbareTafels)}");
+        }
+    }
+
+    private string MaakTafelVak(TafelWeergave tafel)
+    {
+        if (!tafel.IsToegestaan)
+        {
+            return $"-{tafel.TafelNummer}-";
+        }
+
+        if (!tafel.IsBeschikbaar)
+        {
+            return $"({tafel.TafelNummer})";
+        }
+
+        return $"[{tafel.TafelNummer}]";
+    }
+
     private string? KiesOpmerking()
     {
         while (true)
@@ -372,7 +512,14 @@ public class ReserveringUI
         }
     }
 
-    private bool? BevestigReservering(int aantalPersonen, DateTime datum, Tijdslot tijdslot, string opmerking, string naam, string tel)
+    private bool? BevestigReservering(
+        int aantalPersonen,
+        DateTime datum,
+        Tijdslot tijdslot,
+        int tafelNummer,
+        string opmerking,
+        string naam,
+        string tel)
     {
         List<string> opties = new List<string> { "Bevestigen", "Terug" };
         int geselecteerd = 0;
@@ -390,6 +537,7 @@ public class ReserveringUI
             Console.WriteLine($"Aantal personen: {aantalPersonen}");
             Console.WriteLine($"Datum: {datum:dd-MM-yyyy}");
             Console.WriteLine($"Tijdslot: {DateTime.Parse(tijdslot.StartTijd):HH:mm} - {DateTime.Parse(tijdslot.EindTijd):HH:mm}");
+            Console.WriteLine($"Tafelnummer: {tafelNummer}");
             Console.WriteLine($"Opmerking: {opmerking}");
             Console.WriteLine();
             Console.WriteLine("Gebruik ↑ en ↓ om te kiezen.");

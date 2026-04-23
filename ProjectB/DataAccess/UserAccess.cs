@@ -25,7 +25,6 @@ public class UserAccess
         return db.Connection.QuerySingle<int>(sql, gebruiker);
     }
 
-    // Voeg dit toe aan UserAccess.cs
     public Gebruiker? GetUserByEmail(string email, string password)
     {
         // We zoeken de gebruiker op basis van email
