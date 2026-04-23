@@ -172,7 +172,6 @@ public static class Menu
                                     }
 
                                     var checkUser = userAccess.GetUserByPhoneNumber(regPhone);
-                                    if (checkUser != null)
                                     if (checkUser != null && checkUser.Rol == 1)
                                     {
 
@@ -215,8 +214,6 @@ public static class Menu
                                 Console.WriteLine("\nDruk op een toets om verder te gaan...");
                                 Console.ReadKey();
 
-
-                                HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
                                 if (userExists)
                                 {
                                     Console.WriteLine("We hebben uw gegevens gevonden van een eerdere reservering.");
