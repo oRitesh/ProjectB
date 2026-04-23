@@ -232,7 +232,7 @@ public class ReserveringUI
         }
     }
 
-    private DateTime? KiesDatum()
+    public DateTime? KiesDatum()
     {
         List<DateTime> datums = ReservationLogic.GetBeschikbareDatums();
         int geselecteerd = 0;
@@ -305,7 +305,7 @@ public class ReserveringUI
         Console.WriteLine($"Geselecteerde datum: {datums[geselecteerd].ToString("dddd dd MMMM yyyy", nl)}");
     }
 
-    private Tijdslot? KiesTijdslot(int aantalPersonen, DateTime datum)
+    public Tijdslot? KiesTijdslot(int aantalPersonen, DateTime datum)
     {
         List<Tijdslot> tijdsloten = ReservationLogic.GetBeschikbareTijdsloten(aantalPersonen, datum);
         int geselecteerd = 0;
