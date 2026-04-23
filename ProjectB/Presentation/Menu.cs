@@ -113,6 +113,8 @@ public static class Menu
                                 string? regPhone = null;
                                 string? regPassword = null;
 
+                                bool userExists = false;
+
                                 while (string.IsNullOrWhiteSpace(regName))
                                 {
                                     Console.Write("Voer uw naam in: ");
@@ -166,12 +168,18 @@ public static class Menu
                                     }
 
                                     var checkUser = userAccess.GetUserByPhoneNumber(regPhone);
-                                    if (checkUser != null)
+                                    if (checkUser != null && checkUser.Rol == 1)
                                     {
+
                                         Console.WriteLine();
                                         Console.WriteLine("Dit telefoonnummer is al gekoppeld aan een account.");
                                         regPhone = null;
                                         Console.ReadKey();
+                                    }
+
+                                    else if (checkUser != null && checkUser.Rol == 0)
+                                    {
+                                        userExists = true;
                                     }
                                 }
 
@@ -202,9 +210,18 @@ public static class Menu
                                 Console.WriteLine("\nDruk op een toets om verder te gaan...");
                                 Console.ReadKey();
 
-
-                                HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
-                                userAccess.AddUser(HuidigeGebruiker);
+                                if (userExists)
+                                {
+                                    Console.WriteLine("We hebben uw gegevens gevonden van een eerdere reservering.");
+                                    Console.WriteLine("Uw gast-account wordt omgezet naar een officieel account...");
+                                    HuidigeGebruiker = userAccess.ChangeRole(regPhone, regName, 1, regEmail, regPassword);
+                                    Console.WriteLine("Account succesvol bijgewerkt!");
+                                }
+                                else
+                                {
+                                    HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
+                                    userAccess.AddUser(HuidigeGebruiker);
+                                }
                             }
                             else if (loginChoice == "0")
                             {
