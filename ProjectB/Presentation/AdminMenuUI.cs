@@ -14,46 +14,54 @@ public class AdminMenuUI
 
     public void ShowAdminMenu()
     {
-        Console.WriteLine("Admin Menu:");
-        Console.WriteLine("1. Wijzig menukaart");
-        Console.WriteLine("2. Bekijk reserveringen");
-        Console.WriteLine("3. Bekijk reserveringen per tijdslot");
-        Console.WriteLine("4. Uitloggen");
+        bool bezig = true;
 
-        Console.Write("Maak een keuze: ");
-        string input = Console.ReadLine();
-
-        switch (input)
+        while (bezig)
         {
-            case "1":
+            Console.Clear();
+            Console.WriteLine("Admin Menu:");
+            Console.WriteLine("1. Wijzig menukaart");
+            Console.WriteLine("2. Bekijk reserveringen");
+            Console.WriteLine("3. Bekijk reserveringen per tijdslot");
+            Console.WriteLine("4. Uitloggen");
 
-                EditMenu();
-                break;
+            Console.Write("Maak een keuze: ");
+            string input = Console.ReadLine();
 
-            case "2":
+            switch (input)
+            {
+                case "1":
+                    EditMenu();
+                    break;
 
-                ViewReservations();
-                break;
+                case "2":
+                    ViewReservations();
+                    break;
 
-            case "3":
+                case "3":
+                    ViewReservationsPerTimeSlot();
+                    break;
 
-                ViewReservationsPerTimeSlot();
-                break;
+                case "4":
+                    bezig = false;   // ❗ Nu pas verlaat je het Admin-menu
+                    break;
 
-            case "4":
-
-                break;
-
-            default:
-
-                Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
-                Console.ReadKey(true);
-                break;
+                default:
+                    Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                    Console.ReadKey(true);
+                    break;
+            }
         }
     }
 
-    public void EditMenu()
+
+public void EditMenu()
+{
+    bool bezig = true;
+
+    while (bezig)
     {
+        Console.Clear();
         Console.WriteLine("Wijzig menukaart:");
         Console.WriteLine("1. Voeg menu item toe");
         Console.WriteLine("2. Werk menu item bij");
@@ -66,82 +74,127 @@ public class AdminMenuUI
         switch (input)
         {
             case "1":
-
-                Console.WriteLine("Naam:");
-                string naam = Console.ReadLine();
-                Console.Clear();
-
-                Console.WriteLine("Prijs:");
-                decimal prijs = decimal.Parse(Console.ReadLine());
-                Console.Clear();
-
-                Console.WriteLine("MenuCategorieID:");
-                int menuCategorieID = int.Parse(Console.ReadLine());
-                Console.Clear();
-
-                menuItemAccess.AddMenuItem(new MenuItem { Naam = naam, Prijs = prijs, MenuCatogorieID = menuCategorieID });
-                
-                Console.WriteLine("Item toegevoegd.");
-                Console.WriteLine($"Naam: {naam}\nPrijs: {prijs}\nMenuCategorieID: {menuCategorieID}");
-                Console.WriteLine("Druk op een toets om verder te gaan...");
-                Console.ReadKey(true);
-
+                VoegMenuItemToe();
                 break;
 
             case "2":
-
-                Console.WriteLine("ID:");
-                int id = int.Parse(Console.ReadLine());
-                Console.Clear();
-
-                Console.WriteLine("Naam:");
-                string updateNaam = Console.ReadLine();
-                Console.Clear();
-
-                Console.WriteLine("Prijs:");
-                decimal updatePrijs = decimal.Parse(Console.ReadLine());
-                Console.Clear();
-
-                Console.WriteLine("MenuCategorieID:");
-                int updateMenuCategorieID = int.Parse(Console.ReadLine());
-                Console.Clear();
-
-                menuItemAccess.UpdateMenuItem(new MenuItem { ID = id, Naam = updateNaam, Prijs = updatePrijs, MenuCatogorieID = updateMenuCategorieID });
-                
-                Console.WriteLine("Item bijgewerkt.");
-                Console.WriteLine($"ID: {id}\nNaam: {updateNaam}\nPrijs: {updatePrijs}\nMenuCategorieID: {updateMenuCategorieID}");
-                Console.WriteLine("Druk op een toets om verder te gaan...");
-                Console.ReadKey(true);
-
+                WerkMenuItemBij();
                 break;
 
             case "3":
-
-                Console.WriteLine("ID:");
-                int deleteId = int.Parse(Console.ReadLine());
-                Console.Clear();
-
-                menuItemAccess.DeleteMenuItem(deleteId);
-
-                Console.WriteLine("Item verwijderd.");
-                Console.WriteLine($"ID: {deleteId}");
-                Console.WriteLine("Druk op een toets om verder te gaan...");
-                Console.ReadKey(true);
-
+                VerwijderMenuItem();
                 break;
 
             case "4":
-
-                ShowAdminMenu();
+                bezig = false;
                 break;
 
             default:
-
                 Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
                 Console.ReadKey(true);
                 break;
         }
     }
+}
+
+private void VoegMenuItemToe()
+{
+    Console.Clear();
+    Console.WriteLine("=== Nieuw menu item ===");
+
+    Console.Write("Naam: ");
+    string naam = Console.ReadLine();
+
+    if (string.IsNullOrWhiteSpace(naam))
+    {
+        Console.WriteLine("Naam mag niet leeg zijn.");
+        Console.ReadKey();
+        return;
+    }
+
+    decimal prijs;
+    Console.Write("Prijs: ");
+    while (!decimal.TryParse(Console.ReadLine(), out prijs))
+    {
+        Console.WriteLine("Ongeldige prijs. Probeer opnieuw:");
+    }
+
+    int categorieID;
+    Console.Write("MenuCategorieID: ");
+    while (!int.TryParse(Console.ReadLine(), out categorieID))
+    {
+        Console.WriteLine("Ongeldige categorie. Probeer opnieuw:");
+    }
+
+    menuItemAccess.AddMenuItem(new MenuItem
+    {
+        Naam = naam,
+        Prijs = prijs,
+        MenuCatogorieID = categorieID
+    });
+
+    Console.WriteLine("Item toegevoegd!");
+    Console.ReadKey();
+}
+
+private void WerkMenuItemBij()
+{
+    Console.Clear();
+    Console.WriteLine("=== Menu item bijwerken ===");
+
+    int id;
+    Console.Write("ID: ");
+    while (!int.TryParse(Console.ReadLine(), out id))
+    {
+        Console.WriteLine("Ongeldig ID. Probeer opnieuw:");
+    }
+
+    Console.Write("Nieuwe naam: ");
+    string naam = Console.ReadLine();
+
+    decimal prijs;
+    Console.Write("Nieuwe prijs: ");
+    while (!decimal.TryParse(Console.ReadLine(), out prijs))
+    {
+        Console.WriteLine("Ongeldige prijs. Probeer opnieuw:");
+    }
+
+    int categorieID;
+    Console.Write("Nieuwe MenuCategorieID: ");
+    while (!int.TryParse(Console.ReadLine(), out categorieID))
+    {
+        Console.WriteLine("Ongeldige categorie. Probeer opnieuw:");
+    }
+
+    menuItemAccess.UpdateMenuItem(new MenuItem
+    {
+        ID = id,
+        Naam = naam,
+        Prijs = prijs,
+        MenuCatogorieID = categorieID
+    });
+
+    Console.WriteLine("Item bijgewerkt!");
+    Console.ReadKey();
+}
+
+private void VerwijderMenuItem()
+{
+    Console.Clear();
+    Console.WriteLine("=== Menu item verwijderen ===");
+
+    int id;
+    Console.Write("ID: ");
+    while (!int.TryParse(Console.ReadLine(), out id))
+    {
+        Console.WriteLine("Ongeldig ID. Probeer opnieuw:");
+    }
+
+    menuItemAccess.DeleteMenuItem(id);
+
+    Console.WriteLine("Item verwijderd!");
+    Console.ReadKey();
+}
 
     public void ViewReservations()
     {
