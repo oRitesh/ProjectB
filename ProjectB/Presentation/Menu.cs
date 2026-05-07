@@ -106,7 +106,7 @@ public static class Menu
                                 {
                                     HuidigeGebruiker = user;
                                     Console.WriteLine($"Succesvol ingelogd! Welkom terug, {user.Naam}.");
-                                    adminLogic.CheckAdminPermission(user.ID);
+                                    adminLogic.ShowAdminMenuIfAuthorized(user.ID);
                                 }
                                 else
                                 {
