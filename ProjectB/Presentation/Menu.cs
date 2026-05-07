@@ -44,16 +44,29 @@ public static class Menu
         while (running)
         {
             Console.Clear();
-            Console.WriteLine("==================================");
-            Console.WriteLine("     WELKOM BIJ RESTAURANT B      ");
-            Console.WriteLine("      Ingelogd als: " + HuidigeGebruiker.Naam);
-            Console.WriteLine("==================================");
-            Console.WriteLine("1. Bekijk informatiepagina");
-            Console.WriteLine("2. Bekijk menukaart");
-            Console.WriteLine("3. Reserveer een tafel");
-            Console.WriteLine("4. Login / registreer");
-            Console.WriteLine("5. overzicht reserveringen/ reservering wijzigen");
-            Console.WriteLine("0. Afsluiten");
+            if (HuidigeGebruiker.Naam != "gast")
+            {
+                Console.WriteLine("==================================");
+                Console.WriteLine("     WELKOM BIJ RESTAURANT B      ");
+                Console.WriteLine("      Ingelogd als: " + HuidigeGebruiker.Naam);
+                Console.WriteLine("==================================");
+                Console.WriteLine("1. Bekijk informatiepagina");
+                Console.WriteLine("2. Bekijk menukaart");
+                Console.WriteLine("3. Reserveer een tafel");
+                Console.WriteLine("4. Overzicht reserveringen/ reservering wijzigen");
+                Console.WriteLine("0. Afsluiten");
+            }
+            else
+            {
+                Console.WriteLine("==================================");
+                Console.WriteLine("     WELKOM BIJ RESTAURANT B      ");
+                Console.WriteLine("==================================");
+                Console.WriteLine("1. Bekijk informatiepagina");
+                Console.WriteLine("2. Bekijk menukaart");
+                Console.WriteLine("3. Reserveer een tafel");
+                Console.WriteLine("4. Login / registreer");
+                Console.WriteLine("0. Afsluiten");
+            }
             Console.WriteLine();
             Console.Write("Maak een keuze: ");
 
@@ -78,7 +91,7 @@ public static class Menu
                     ShowReservationPage();
                     break;
 
-                case "4":
+                case "4" when HuidigeGebruiker.Naam == "gast":
                     {
                         DatabaseContext db = new DatabaseContext();
                         UserAccess userAccess = new UserAccess(db);
@@ -247,29 +260,29 @@ public static class Menu
                         break;
                     }
 
-                case "5":
-                {
-                    if (HuidigeGebruiker.ID == 0)
+                case "4":
                     {
-                        Console.WriteLine("U moet eerst inloggen.");
-                        Console.ReadKey();
+                        if (HuidigeGebruiker.ID == 0)
+                        {
+                            Console.WriteLine("U moet eerst inloggen.");
+                            Console.ReadKey();
+                            break;
+                        }
+
+                        DatabaseContext db = new DatabaseContext();
+                        ReserveringAccess reserveringAccess = new ReserveringAccess(db);
+                        TafelAccess tafelAccess = new TafelAccess(db);
+                        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
+                        UserAccess userAccess = new UserAccess(db);
+
+                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+
+                        ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
+                        overzichtUI.ShowOverzicht();
+
+                        db.Close();
                         break;
                     }
-
-                    DatabaseContext db = new DatabaseContext();
-                    ReserveringAccess reserveringAccess = new ReserveringAccess(db);
-                    TafelAccess tafelAccess = new TafelAccess(db);
-                    TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
-                    UserAccess userAccess = new UserAccess(db);
-
-                    ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
-
-                    ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
-                    overzichtUI.ShowOverzicht();
-
-                    db.Close();
-                    break;
-                }
 
                 case "0":
                     running = false;
