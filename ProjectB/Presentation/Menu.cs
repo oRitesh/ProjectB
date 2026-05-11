@@ -59,12 +59,8 @@ public static class Menu
             Console.WriteLine("2. Bekijk menukaart");
             Console.WriteLine("3. Reserveer een tafel");
             Console.WriteLine("4. Login / registreer");
-<<<<<<< HEAD
             if (HuidigeGebruiker.Rol == 2)
                 Console.WriteLine("5. Admin menu");
-=======
-            Console.WriteLine("5. overzicht reserveringen/ reservering wijzigen");
->>>>>>> 4d049fc5f6569a0bfc0b22c3c8ac440a067965e9
             Console.WriteLine("0. Afsluiten");
             Console.WriteLine();
             Console.Write("Maak een keuze: ");
@@ -260,37 +256,9 @@ public static class Menu
                         }
                         break;
                     }
-<<<<<<< HEAD
                 case "5" when HuidigeGebruiker.Rol == 2:
                     new AdminMenuUI().ShowAdminMenu();
                     break;
-=======
-
-                case "5":
-                {
-                    if (HuidigeGebruiker.ID == 0)
-                    {
-                        Console.WriteLine("U moet eerst inloggen.");
-                        Console.ReadKey();
-                        break;
-                    }
-
-                    DatabaseContext db = new DatabaseContext();
-                    ReserveringAccess reserveringAccess = new ReserveringAccess(db);
-                    TafelAccess tafelAccess = new TafelAccess(db);
-                    TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
-                    UserAccess userAccess = new UserAccess(db);
-
-                    ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
-
-                    ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
-                    overzichtUI.ShowOverzicht();
-
-                    db.Close();
-                    break;
-                }
-
->>>>>>> 4d049fc5f6569a0bfc0b22c3c8ac440a067965e9
                 case "0":
                     running = false;
                     break;
