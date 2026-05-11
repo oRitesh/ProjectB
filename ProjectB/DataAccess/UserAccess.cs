@@ -54,8 +54,7 @@ public class UserAccess
                 Rol           = 2,
                 Naam          = "Admin",
                 Email         = "admin@restaurantb.nl",
-                Telefoonnummer = "0000000000",
-                Wachtwoord    = "admin123"
+                Wachtwoord    = "boot123"
             };
             AddUser(defaultAdmin);
         }
