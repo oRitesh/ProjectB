@@ -60,10 +60,10 @@ public class AdminMenuUI
         string datum     = DateTime.TryParse(r.StartTijd, out DateTime sd) ? sd.ToString("dd MMMM yyyy", nl) : "";
         string opmerking = string.IsNullOrWhiteSpace(r.Opmerking) ? "–" : r.Opmerking;
 
-        Console.WriteLine($"  ┌─ Reservering #{nummer} ─────────────────────┐");
+        Console.WriteLine($"  ┌─ Reservering #{nummer} ──────────────────────────┐");
         Console.WriteLine($"  │  Datum      : {datum,-28}│");
-        Console.WriteLine($"  │  Tijdslot   : {startTijd} – {eindTijd,-22}│");
-        Console.WriteLine($"  │  Tafel      : #{r.TafelID,-28}│");
+        Console.WriteLine($"  │  Tijdslot   : {startTijd} – {eindTijd,-20}│");
+        Console.WriteLine($"  │  Tafel      : #{r.TafelID,-27}│");
         Console.WriteLine($"  │  Gasten     : {r.AantalGasten,-28}│");
         Console.WriteLine($"  │  Opmerking  : {opmerking,-28}│");
         Console.WriteLine($"  │  Geboekt op : {r.GemaaktOp,-28}│");
