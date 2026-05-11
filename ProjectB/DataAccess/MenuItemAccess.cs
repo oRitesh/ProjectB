@@ -22,6 +22,13 @@ public class MenuItemAccess
         return db.Connection.Query<MenuItem>(sql, new { CategoryID = categoryId }).ToList();
     }
 
+    public List<MenuItem> GetAllMenuItems()
+    {
+        string sql = $@"SELECT * FROM {Table} ORDER BY Naam;";
+        return db.Connection.Query<MenuItem>(sql).ToList();
+    }
+
+
     public void AddMenuItem(MenuItem item)
     {
         string sql = $@"
@@ -35,7 +42,8 @@ public class MenuItemAccess
     {
         string sql = $@"
             UPDATE {Table}
-            SET Naam = @Naam, Prijs = @Prijs, MenuCatogorieID = @MenuCatogorieID
+            SET Naam = @Naam, Prijs = @Prijs, MenuCatogorieID = @MenuCatogorieID,
+                Beschrijving = @Beschrijving, Allergeen = @Allergeen
             WHERE ID = @ID;";
 
         db.Connection.Execute(sql, item);

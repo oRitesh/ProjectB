@@ -25,12 +25,9 @@ public class UserAccess
         return db.Connection.QuerySingle<int>(sql, gebruiker);
     }
 
-    // Voeg dit toe aan UserAccess.cs
     public Gebruiker? GetUserByEmail(string email, string password)
     {
-        // We zoeken de gebruiker op basis van email
         string sql = $"SELECT * FROM {table} WHERE Email = @Email";
-
         var user = db.Connection.QuerySingleOrDefault<Gebruiker>(sql, new { Email = email });
 
         if (user != null && user.Wachtwoord == password)
@@ -39,5 +36,28 @@ public class UserAccess
         }
 
         return null;
+    }
+    
+    public Gebruiker? GetAdminAccount()
+    {
+        string sql = $"SELECT * FROM {table} WHERE Rol = 2 LIMIT 1";
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql);
+    }
+
+    public void EnsureAdminExists()
+    {
+        var admin = GetAdminAccount();
+        if (admin == null)
+        {
+            var defaultAdmin = new Gebruiker
+            {
+                Rol           = 2,
+                Naam          = "Admin",
+                Email         = "admin@restaurantb.nl",
+                Telefoonnummer = "0000000000",
+                Wachtwoord    = "admin123"
+            };
+            AddUser(defaultAdmin);
+        }
     }
 }
