@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Dapper;
 
 public class MenuItemAccess
@@ -20,17 +22,11 @@ public class MenuItemAccess
         return db.Connection.Query<MenuItem>(sql, new { CategoryID = categoryId }).ToList();
     }
 
-    public List<MenuItem> GetAllMenuItems()
-    {
-        string sql = $@"SELECT * FROM {Table} ORDER BY Naam;";
-        return db.Connection.Query<MenuItem>(sql).ToList();
-    }
-
     public void AddMenuItem(MenuItem item)
     {
         string sql = $@"
-            INSERT INTO {Table} (Naam, Prijs, MenuCatogorieID, Beschrijving, allergeen)
-            VALUES (@Naam, @Prijs, @MenuCatogorieID, @Beschrijving, @Allergeen);";
+            INSERT INTO {Table} (Naam, Prijs, MenuCatogorieID)
+            VALUES (@Naam, @Prijs, @MenuCatogorieID);";
 
         db.Connection.Execute(sql, item);
     }
@@ -39,8 +35,7 @@ public class MenuItemAccess
     {
         string sql = $@"
             UPDATE {Table}
-            SET Naam = @Naam, Prijs = @Prijs, MenuCatogorieID = @MenuCatogorieID,
-                Beschrijving = @Beschrijving, Allergeen = @Allergeen
+            SET Naam = @Naam, Prijs = @Prijs, MenuCatogorieID = @MenuCatogorieID
             WHERE ID = @ID;";
 
         db.Connection.Execute(sql, item);

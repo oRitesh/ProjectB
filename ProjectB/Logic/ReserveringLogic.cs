@@ -3,27 +3,16 @@ public class ReservationLogic
     private readonly ReserveringAccess reserveringAccess;
     private readonly TafelAccess tafelAccess;
     private readonly TijdslotAccess tijdslotAccess;
+
     private readonly UserAccess userAccess;
 
-    public ReservationLogic(
-        ReserveringAccess reserveringAccess,
-        TafelAccess tafelAccess,
-        TijdslotAccess tijdslotAccess,
-        UserAccess userAccess)
+    public ReservationLogic(ReserveringAccess reserveringAccess, TafelAccess tafelAccess, TijdslotAccess tijdslotAccess, UserAccess userAccess)
     {
         this.reserveringAccess = reserveringAccess;
         this.tafelAccess = tafelAccess;
         this.tijdslotAccess = tijdslotAccess;
         this.userAccess = userAccess;
     }
-
-    //publieke getters voor access van andere classes
-    public ReserveringAccess ReserveringAccess => reserveringAccess;
-    public TafelAccess TafelAccess => tafelAccess;
-    public TijdslotAccess TijdslotAccess => tijdslotAccess;
-    public UserAccess UserAccess => userAccess;
-
-
 
     public List<int> GetAantalPersonenOpties()
     {
@@ -90,28 +79,9 @@ public class ReservationLogic
             );
 
             tijdslotAccess.AddTijdslot(tijdslot);
+
             start = start.AddMinutes(15);
         }
-    }
-
-    public int GetBenodigdeCapaciteit(int aantalPersonen)
-    {
-        if (aantalPersonen >= 1 && aantalPersonen <= 2)
-        {
-            return 2;
-        }
-
-        if (aantalPersonen >= 3 && aantalPersonen <= 4)
-        {
-            return 4;
-        }
-
-        if (aantalPersonen >= 5 && aantalPersonen <= 6)
-        {
-            return 6;
-        }
-
-        throw new ArgumentException("Ongeldig aantal personen.");
     }
 
     public List<Tijdslot> GetBeschikbareTijdsloten(int aantalPersonen, DateTime datum)
@@ -125,8 +95,7 @@ public class ReservationLogic
 
         MaakTijdslotenVoorDatumAlsNietBestaan(datum);
 
-        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
-        List<Tafel> mogelijkeTafels = tafelAccess.GetTafelsByCapaciteit(benodigdeCapaciteit);
+        List<Tafel> mogelijkeTafels = tafelAccess.GetTafelsByMinimaleCapaciteit(aantalPersonen);
         List<Tijdslot> tijdsloten = tijdslotAccess.GetTijdslotenByDatum(datum.ToString("yyyy-MM-dd"));
 
         foreach (Tijdslot tijdslot in tijdsloten)
@@ -157,70 +126,7 @@ public class ReservationLogic
         return beschikbareTijdsloten;
     }
 
-    public List<TafelWeergave> GetTafelWeergaveVoorTijdslot(int aantalPersonen, Tijdslot tijdslot)
-    {
-        List<TafelWeergave> overzicht = new List<TafelWeergave>();
-        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
-        List<Tafel> alleTafels = tafelAccess.GetAllTafels();
-
-        foreach (Tafel tafel in alleTafels.OrderBy(t => t.TafelNummer))
-        {
-            List<Reservering> overlappendeReserveringen = reserveringAccess.GetOverlappendeReserveringen(
-                tafel.ID,
-                tijdslot.StartTijd,
-                tijdslot.EindTijd
-            );
-
-            bool isBeschikbaar = overlappendeReserveringen.Count == 0;
-            bool isToegestaan = tafel.Capaciteit == benodigdeCapaciteit;
-
-            overzicht.Add(new TafelWeergave(
-                tafel.ID,
-                tafel.TafelNummer,
-                tafel.Capaciteit,
-                isBeschikbaar,
-                isToegestaan
-            ));
-        }
-
-        return overzicht;
-    }
-
-    public bool IsTafelBeschikbaarVoorKeuze(int tafelNummer, int aantalPersonen, Tijdslot tijdslot)
-    {
-        Tafel? tafel = tafelAccess.GetTafelByNummer(tafelNummer);
-
-        if (tafel == null)
-        {
-            return false;
-        }
-
-        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
-
-        if (tafel.Capaciteit != benodigdeCapaciteit)
-        {
-            return false;
-        }
-
-        List<Reservering> overlappendeReserveringen = reserveringAccess.GetOverlappendeReserveringen(
-            tafel.ID,
-            tijdslot.StartTijd,
-            tijdslot.EindTijd
-        );
-
-        return overlappendeReserveringen.Count == 0;
-    }
-
-    public List<int> GetBeschikbareTafelNummers(int aantalPersonen, Tijdslot tijdslot)
-    {
-        return GetTafelWeergaveVoorTijdslot(aantalPersonen, tijdslot)
-            .Where(t => t.IsBeschikbaar && t.IsToegestaan)
-            .Select(t => t.TafelNummer)
-            .OrderBy(n => n)
-            .ToList();
-    }
-
-    public bool AddReservering(int gebruikerID, int aantalPersonen, Tijdslot tijdslot, int tafelNummer, string opmerking)
+    public bool AddReservering(int gebruikerID, int aantalPersonen, Tijdslot tijdslot, string opmerking)
     {
         if (!IsGeldigAantalPersonen(aantalPersonen))
         {
@@ -234,27 +140,26 @@ public class ReservationLogic
             return false;
         }
 
-        Tafel? gekozenTafel = tafelAccess.GetTafelByNummer(tafelNummer);
+        List<Tafel> mogelijkeTafels = tafelAccess.GetTafelsByMinimaleCapaciteit(aantalPersonen);
 
-        if (gekozenTafel == null)
+        Tafel? beschikbareTafel = null;
+
+        foreach (Tafel tafel in mogelijkeTafels)
         {
-            return false;
+            List<Reservering> overlappendeReserveringen = reserveringAccess.GetOverlappendeReserveringen(
+                tafel.ID,
+                tijdslot.StartTijd,
+                tijdslot.EindTijd
+            );
+
+            if (overlappendeReserveringen.Count == 0)
+            {
+                beschikbareTafel = tafel;
+                break;
+            }
         }
 
-        int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
-
-        if (gekozenTafel.Capaciteit != benodigdeCapaciteit)
-        {
-            return false;
-        }
-
-        List<Reservering> overlappendeReserveringen = reserveringAccess.GetOverlappendeReserveringen(
-            gekozenTafel.ID,
-            tijdslot.StartTijd,
-            tijdslot.EindTijd
-        );
-
-        if (overlappendeReserveringen.Count > 0)
+        if (beschikbareTafel == null)
         {
             return false;
         }
@@ -262,7 +167,7 @@ public class ReservationLogic
         Reservering reservering = new Reservering(
             0,
             gebruikerID,
-            gekozenTafel.ID,
+            beschikbareTafel.ID,
             tijdslot.StartTijd,
             tijdslot.EindTijd,
             aantalPersonen,

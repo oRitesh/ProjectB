@@ -93,20 +93,4 @@ public class ReserveringAccess
             EindTijd = eindTijd
         }).ToList();
     }
-
-    public List<Reservering> GetOverlappendeReserveringenVoorTijdslot(Tijdslot tijdslot)
-    {
-        string sql = $@"
-            SELECT * FROM {Table}
-            WHERE NOT (
-                datetime(EindTijd) <= datetime(@StartTijd)
-                OR datetime(StartTijd) >= datetime(@EindTijd)
-            );";
-
-        return db.Connection.Query<Reservering>(sql, new
-        {
-            StartTijd = tijdslot.StartTijd,
-            EindTijd = tijdslot.EindTijd
-        }).ToList();
-    }
 }

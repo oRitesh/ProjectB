@@ -1,18 +1,23 @@
-using System.Globalization;
-
 public class AdminMenuUI
 {
     private readonly MenuItemAccess menuItemAccess;
     private readonly ReserveringAccess reserveringAccess;
     private readonly TijdslotAccess tijdslotAccess;
 
+<<<<<<< HEAD
+=======
     private readonly MenuCategorieAccess menuCategorieAccess;
+>>>>>>> parent of 53dfb9f (Merge branch 'Admin-Menu' of https://github.com/oRitesh/ProjectB into Admin-Menu)
 
     public AdminMenuUI()
     {
         this.menuItemAccess = new MenuItemAccess(new DatabaseContext());
         this.tijdslotAccess = new TijdslotAccess(new DatabaseContext());
         this.reserveringAccess = new ReserveringAccess(new DatabaseContext());
+<<<<<<< HEAD
+    }
+
+=======
         this.menuCategorieAccess = new MenuCategorieAccess(new DatabaseContext());
     }
 
@@ -74,190 +79,147 @@ public class AdminMenuUI
     // ─────────────────────────────────────────────
     //  Hoofdmenu
     // ─────────────────────────────────────────────
+>>>>>>> parent of 53dfb9f (Merge branch 'Admin-Menu' of https://github.com/oRitesh/ProjectB into Admin-Menu)
     public void ShowAdminMenu()
     {
-        List<string> opties = new List<string>
-        {
-            "Wijzig menukaart",
-            "Bekijk alle reserveringen",
-            "Bekijk reserveringen per tijdslot",
-            "Terug naar hoofdmenu"
-        };
+        Console.WriteLine("Admin Menu:");
+        Console.WriteLine("1. Wijzig menukaart");
+        Console.WriteLine("2. Bekijk reserveringen");
+        Console.WriteLine("3. Bekijk reserveringen per tijdslot");
+        Console.WriteLine("4. Uitloggen");
 
-        int? keuze = ToonKeuzeMenu("ADMIN MENU", opties);
+        Console.Write("Maak een keuze: ");
+        string input = Console.ReadLine();
 
-        switch (keuze)
+        switch (input)
         {
-            case 0: EditMenu(); break;
-            case 1: ViewReservations(); break;
-            case 2: ViewReservationsPerTimeSlot(); break;
-            case 3: break;   // Uitloggen – terug naar aanroeper
-            case null: break; // Escape
+            case "1":
+
+                EditMenu();
+                break;
+
+            case "2":
+
+                ViewReservations();
+                break;
+
+            case "3":
+
+                ViewReservationsPerTimeSlot();
+                break;
+
+            case "4":
+
+                break;
+
+            default:
+
+                Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                Console.ReadKey(true);
+                break;
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  Menukaart bewerken
-    // ─────────────────────────────────────────────
     public void EditMenu()
     {
+<<<<<<< HEAD
+        Console.WriteLine("Wijzig menukaart:");
+        Console.WriteLine("1. Voeg menu item toe");
+        Console.WriteLine("2. Werk menu item bij");
+        Console.WriteLine("3. Verwijder menu item");
+        Console.WriteLine("4. Terug naar Admin Menu");
+
+        Console.Write("Maak een keuze: ");
+        string input = Console.ReadLine();
+
+        switch (input)
+=======
         List<string> opties = new List<string>
+>>>>>>> parent of 53dfb9f (Merge branch 'Admin-Menu' of https://github.com/oRitesh/ProjectB into Admin-Menu)
         {
-            "Voeg menu-item toe",
-            "Werk menu-item bij",
-            "Verwijder menu-item",
-            "Terug naar Admin Menu"
-        };
+            case "1":
 
-        int? keuze = ToonKeuzeMenu("WIJZIG MENUKAART", opties);
-
-        switch (keuze)
-        {
-            case 0:
-            {
-                // Kies categorie op naam
-                var categorieen = menuCategorieAccess.GetAllCategories();
-                if (categorieen.Count == 0)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Er zijn geen categorieën beschikbaar.");
-                    Console.WriteLine("Druk op een toets om verder te gaan...");
-                    Console.ReadKey(true);
-                    break;
-                }
-                int? catKeuze = ToonKeuzeMenu("KIES CATEGORIE", categorieen.Select(c => c.Naam).ToList());
-                if (catKeuze == null) break;
-                int catID = categorieen[catKeuze.Value].ID;
-                string catNaam = categorieen[catKeuze.Value].Naam;
-
+                Console.WriteLine("Naam:");
+                string naam = Console.ReadLine();
                 Console.Clear();
-                Console.WriteLine("== Voeg menu-item toe ==");
-                Console.Write("Naam         : ");
-                string naam = Console.ReadLine() ?? "";
 
-                Console.Write("Prijs        : ");
-                decimal prijs = decimal.Parse(Console.ReadLine() ?? "0");
-
-                Console.Write("Beschrijving : ");
-                string beschrijving = Console.ReadLine() ?? "";
-
-                Console.Write("Allergenen   : ");
-                string allergeen = Console.ReadLine() ?? "";
-
-                menuItemAccess.AddMenuItem(new MenuItem { Naam = naam, Prijs = prijs, MenuCatogorieID = catID, Beschrijving = beschrijving, Allergeen = allergeen });
-
+                Console.WriteLine("Prijs:");
+                decimal prijs = decimal.Parse(Console.ReadLine());
                 Console.Clear();
+
+                Console.WriteLine("MenuCategorieID:");
+                int menuCategorieID = int.Parse(Console.ReadLine());
+                Console.Clear();
+
+                menuItemAccess.AddMenuItem(new MenuItem { Naam = naam, Prijs = prijs, MenuCatogorieID = menuCategorieID });
+                
                 Console.WriteLine("Item toegevoegd.");
-                Console.WriteLine($"  Naam        : {naam}");
-                Console.WriteLine($"  Prijs       : €{prijs:F2}");
-                Console.WriteLine($"  Categorie   : {catNaam}");
-                Console.WriteLine($"  Beschrijving: {beschrijving}");
-                Console.WriteLine($"  Allergenen  : {allergeen}");
-                Console.WriteLine();
+                Console.WriteLine($"Naam: {naam}\nPrijs: {prijs}\nMenuCategorieID: {menuCategorieID}");
                 Console.WriteLine("Druk op een toets om verder te gaan...");
                 Console.ReadKey(true);
+
                 break;
-            }
 
-            case 1:
-            {
-                // Kies item op naam
-                var items = menuItemAccess.GetAllMenuItems();
-                if (items.Count == 0)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Er zijn geen menu-items beschikbaar.");
-                    Console.WriteLine("Druk op een toets om verder te gaan...");
-                    Console.ReadKey(true);
-                    break;
-                }
-                int? itemKeuze = ToonKeuzeMenu("KIES ITEM OM TE WIJZIGEN", items.Select(i => $"{i.Naam}  (€{i.Prijs:F2})").ToList());
-                if (itemKeuze == null) break;
-                MenuItem gekozenItem = items[itemKeuze.Value];
+            case "2":
 
-                // Kies nieuwe categorie op naam
-                var categorieen = menuCategorieAccess.GetAllCategories();
-                int? catKeuze = ToonKeuzeMenu("KIES NIEUWE CATEGORIE", categorieen.Select(c => c.Naam).ToList());
-                if (catKeuze == null) break;
-                int updateCatID = categorieen[catKeuze.Value].ID;
-                string updateCatNaam = categorieen[catKeuze.Value].Naam;
-
+                Console.WriteLine("ID:");
+                int id = int.Parse(Console.ReadLine());
                 Console.Clear();
-                Console.WriteLine($"== Wijzig: {gekozenItem.Naam} ==");
-                Console.WriteLine("(Laat leeg om de huidige waarde te bewaren)");
-                Console.WriteLine();
 
-                Console.Write($"Naam         [{gekozenItem.Naam}]: ");
-                string input = Console.ReadLine() ?? "";
-                string updateNaam = string.IsNullOrWhiteSpace(input) ? gekozenItem.Naam : input;
-
-                Console.Write($"Prijs        [€{gekozenItem.Prijs:F2}]: ");
-                input = Console.ReadLine() ?? "";
-                decimal updatePrijs = string.IsNullOrWhiteSpace(input) ? gekozenItem.Prijs : decimal.Parse(input);
-
-                Console.Write($"Beschrijving [{gekozenItem.Beschrijving}]: ");
-                input = Console.ReadLine() ?? "";
-                string updateBeschrijving = string.IsNullOrWhiteSpace(input) ? gekozenItem.Beschrijving : input;
-
-                Console.Write($"Allergenen   [{gekozenItem.Allergeen}]: ");
-                input = Console.ReadLine() ?? "";
-                string updateAllergeen = string.IsNullOrWhiteSpace(input) ? gekozenItem.Allergeen : input;
-
-                menuItemAccess.UpdateMenuItem(new MenuItem { ID = gekozenItem.ID, Naam = updateNaam, Prijs = updatePrijs, MenuCatogorieID = updateCatID, Beschrijving = updateBeschrijving, Allergeen = updateAllergeen });
-
+                Console.WriteLine("Naam:");
+                string updateNaam = Console.ReadLine();
                 Console.Clear();
+
+                Console.WriteLine("Prijs:");
+                decimal updatePrijs = decimal.Parse(Console.ReadLine());
+                Console.Clear();
+
+                Console.WriteLine("MenuCategorieID:");
+                int updateMenuCategorieID = int.Parse(Console.ReadLine());
+                Console.Clear();
+
+                menuItemAccess.UpdateMenuItem(new MenuItem { ID = id, Naam = updateNaam, Prijs = updatePrijs, MenuCatogorieID = updateMenuCategorieID });
+                
                 Console.WriteLine("Item bijgewerkt.");
-                Console.WriteLine($"  Naam        : {updateNaam}");
-                Console.WriteLine($"  Prijs       : €{updatePrijs:F2}");
-                Console.WriteLine($"  Categorie   : {updateCatNaam}");
-                Console.WriteLine($"  Beschrijving: {updateBeschrijving}");
-                Console.WriteLine($"  Allergenen  : {updateAllergeen}");
-                Console.WriteLine();
+                Console.WriteLine($"ID: {id}\nNaam: {updateNaam}\nPrijs: {updatePrijs}\nMenuCategorieID: {updateMenuCategorieID}");
                 Console.WriteLine("Druk op een toets om verder te gaan...");
                 Console.ReadKey(true);
+
                 break;
-            }
 
-            case 2:
-            {
-                // Kies item op naam
-                var items = menuItemAccess.GetAllMenuItems();
-                if (items.Count == 0)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Er zijn geen menu-items beschikbaar.");
-                    Console.WriteLine("Druk op een toets om verder te gaan...");
-                    Console.ReadKey(true);
-                    break;
-                }
-                int? itemKeuze = ToonKeuzeMenu("KIES ITEM OM TE VERWIJDEREN", items.Select(i => $"{i.Naam}  (€{i.Prijs:F2})").ToList());
-                if (itemKeuze == null) break;
-                MenuItem teVerwijderen = items[itemKeuze.Value];
+            case "3":
 
-                // Bevestiging
-                int? bevestig = ToonKeuzeMenu($"VERWIJDER '{teVerwijderen.Naam}'?", new List<string> { "Ja, verwijderen", "Nee, annuleren" });
-                if (bevestig != 0) break;
-
-                menuItemAccess.DeleteMenuItem(teVerwijderen.ID);
-
+                Console.WriteLine("ID:");
+                int deleteId = int.Parse(Console.ReadLine());
                 Console.Clear();
-                Console.WriteLine($"'{teVerwijderen.Naam}' verwijderd.");
-                Console.WriteLine();
+
+                menuItemAccess.DeleteMenuItem(deleteId);
+
+                Console.WriteLine("Item verwijderd.");
+                Console.WriteLine($"ID: {deleteId}");
                 Console.WriteLine("Druk op een toets om verder te gaan...");
                 Console.ReadKey(true);
-                break;
-            }
 
-            case 3:
+                break;
+
+            case "4":
+
                 ShowAdminMenu();
                 break;
 
-            case null:
-                ShowAdminMenu();
+            default:
+
+                Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                Console.ReadKey(true);
                 break;
         }
     }
 
+<<<<<<< HEAD
+    public void ViewReservations()
+    {
+        Console.WriteLine("Reserveringen:");
+=======
     // ─────────────────────────────────────────────
     //  Alle reserveringen
     // ─────────────────────────────────────────────
@@ -269,100 +231,56 @@ public class AdminMenuUI
         Console.WriteLine("==================================");
         Console.WriteLine();
 
+>>>>>>> parent of 53dfb9f (Merge branch 'Admin-Menu' of https://github.com/oRitesh/ProjectB into Admin-Menu)
         var reserveringen = reserveringAccess.GetAllReserveringen();
-
-        if (reserveringen.Count == 0)
+        foreach (var reservering in reserveringen)
         {
-            Console.WriteLine("  Er zijn nog geen reserveringen.");
+<<<<<<< HEAD
+            Console.WriteLine($"ID: {reservering.ID}, GebruikerID: {reservering.GebruikerID}, TafelID: {reservering.TafelID}, StartTijd: {reservering.StartTijd}, EindTijd: {reservering.EindTijd}, AantalGasten: {reservering.AantalGasten}, Opmerking: {reservering.Opmerking}, GemaaktOp: {reservering.GemaaktOp}");
         }
-        else
-        {
-            for (int i = 0; i < reserveringen.Count; i++)
-            {
-                ToonReserveringKaart(reserveringen[i], i + 1);
-            }
-        }
-
-        Console.WriteLine("Druk op een toets om terug te gaan...");
+        Console.WriteLine("Druk op een toets om verder te gaan...");
         Console.ReadKey(true);
     }
 
-    // ─────────────────────────────────────────────
-    //  Reserveringen per tijdslot
-    // ─────────────────────────────────────────────
     public void ViewReservationsPerTimeSlot()
     {
-        // Stap 1 – kies datum
-        List<string> datums = tijdslotAccess.GetAllDatums();
-
-        if (datums.Count == 0)
-        {
-            Console.Clear();
-            Console.WriteLine("Er zijn geen datums beschikbaar.");
-            Console.WriteLine("Druk op een toets om terug te gaan...");
-            Console.ReadKey(true);
-            return;
-        }
-
-        int? datumKeuze = ToonKeuzeMenu("KIES DATUM", datums);
-        if (datumKeuze == null) return;
-
-        string gekozenDatum = datums[datumKeuze.Value];
-
-        // Stap 2 – kies tijdslot voor die datum
-        List<Tijdslot> tijdsloten = tijdslotAccess.GetTijdslotenByDatum(gekozenDatum);
-
-        if (tijdsloten.Count == 0)
-        {
-            Console.Clear();
-            Console.WriteLine($"Geen tijdsloten gevonden op {gekozenDatum}.");
-            Console.WriteLine("Druk op een toets om terug te gaan...");
-            Console.ReadKey(true);
-            return;
-        }
-
-        List<string> tijdslotLabels = tijdsloten
-            .Select(ts =>
-            {
-                string start = DateTime.TryParse(ts.StartTijd, out DateTime s) ? s.ToString("HH:mm") : ts.StartTijd;
-                string eind  = DateTime.TryParse(ts.EindTijd,  out DateTime e) ? e.ToString("HH:mm") : ts.EindTijd;
-                return $"{start} – {eind}";
-            })
-            .ToList();
-
-        int? tsKeuze = ToonKeuzeMenu($"TIJDSLOT  ({gekozenDatum})", tijdslotLabels);
-        if (tsKeuze == null) return;
-
-        Tijdslot geselecteerd = tijdsloten[tsKeuze.Value];
-
-        // Stap 3 – toon reserveringen voor dit tijdslot
+        Console.WriteLine("Vul een datum in:");
+        string datum = Console.ReadLine();
         Console.Clear();
-        Console.WriteLine("==================================");
-        Console.WriteLine($"  RESERVERINGEN  {tijdslotLabels[tsKeuze.Value],-18}");
-        Console.WriteLine($"  Datum: {geselecteerd.Datum,-27}");
-        Console.WriteLine("==================================");
-        Console.WriteLine();
 
-        var reserveringen = reserveringAccess.GetReserveringenVoorDatum(geselecteerd.Datum);
-
-        if (reserveringen.Count == 0)
+        tijdslotAccess.GetTijdslotenByDatum(datum).ForEach(ts =>
         {
-            Console.WriteLine("  Geen reserveringen voor dit tijdslot.");
+            Console.WriteLine($"Tijdslot ID: {ts.ID}, Datum: {ts.Datum}, StartTijd: {ts.StartTijd}, EindTijd: {ts.EindTijd}");
+            var reserveringen = reserveringAccess.GetReserveringenVoorDatum(ts.Datum);
+            foreach (var reservering in reserveringen)
+            {
+                Console.WriteLine($"\tReservering ID: {reservering.ID}, GebruikerID: {reservering.GebruikerID}, TafelID: {reservering.TafelID}, StartTijd: {reservering.StartTijd}, EindTijd: {reservering.EindTijd}, AantalGasten: {reservering.AantalGasten}, Opmerking: {reservering.Opmerking}, GemaaktOp: {reservering.GemaaktOp}");
+            }
+        });
+
+        Console.WriteLine("Selecteer een tijdslot:");
+        int tijdslotId = int.Parse(Console.ReadLine());
+        Console.Clear();
+
+        var geselecteerdTijdslot = tijdslotAccess.GetTijdslotByID(tijdslotId);
+        if (geselecteerdTijdslot != null)
+        {
+            Console.WriteLine($"Geselecteerd Tijdslot ID: {geselecteerdTijdslot.ID}, Datum: {geselecteerdTijdslot.Datum}, StartTijd: {geselecteerdTijdslot.StartTijd}, EindTijd: {geselecteerdTijdslot.EindTijd}");
+            var reserveringen = reserveringAccess.GetReserveringenVoorDatum(geselecteerdTijdslot.Datum);
+            foreach (var reservering in reserveringen)
+            {
+                Console.WriteLine($"\tReservering ID: {reservering.ID}, GebruikerID: {reservering.GebruikerID}, TafelID: {reservering.TafelID}, StartTijd: {reservering.StartTijd}, EindTijd: {reservering.EindTijd}, AantalGasten: {reservering.AantalGasten}, Opmerking: {reservering.Opmerking}, GemaaktOp: {reservering.GemaaktOp}");
+            }
+=======
+            Console.WriteLine("  Er zijn nog geen reserveringen.");
+>>>>>>> parent of 53dfb9f (Merge branch 'Admin-Menu' of https://github.com/oRitesh/ProjectB into Admin-Menu)
         }
         else
         {
-            for (int i = 0; i < reserveringen.Count; i++)
-            {
-                ToonReserveringKaart(reserveringen[i], i + 1);
-            }
+            Console.WriteLine("Ongeldig tijdslot ID.");
         }
 
-        Console.WriteLine("Druk op een toets om terug te gaan...");
+        Console.WriteLine("Druk op een toets om verder te gaan...");
         Console.ReadKey(true);
-    }
-
-    private void PrintReservering(Reservering reservering)
-    {
-        Console.WriteLine($"ID: {reservering.ID}, GebruikerID: {reservering.GebruikerID}, TafelID: {reservering.TafelID}, StartTijd: {reservering.StartTijd}, EindTijd: {reservering.EindTijd}, AantalGasten: {reservering.AantalGasten}, Opmerking: {reservering.Opmerking}, GemaaktOp: {reservering.GemaaktOp}");
     }
 }
