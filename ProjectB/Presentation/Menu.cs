@@ -39,6 +39,11 @@ public static class Menu
 
     public static void Show()
     {
+        // Zorg dat het admin-account altijd bestaat bij opstarten
+        DatabaseContext startDb = new DatabaseContext();
+        new UserAccess(startDb).EnsureAdminExists();
+        startDb.Close();
+
         bool running = true;
 
         while (running)
@@ -52,6 +57,8 @@ public static class Menu
             Console.WriteLine("2. Bekijk menukaart");
             Console.WriteLine("3. Reserveer een tafel");
             Console.WriteLine("4. Login / registreer");
+            if (HuidigeGebruiker.Rol == 2)
+                Console.WriteLine("5. Admin menu");
             Console.WriteLine("0. Afsluiten");
             Console.WriteLine();
             Console.Write("Maak een keuze: ");
@@ -200,6 +207,9 @@ public static class Menu
                         }
                         break;
                     }
+                case "5" when HuidigeGebruiker.Rol == 2:
+                    new AdminMenuUI().ShowAdminMenu();
+                    break;
                 case "0":
                     running = false;
                     break;
