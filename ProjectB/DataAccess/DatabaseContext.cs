@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System.IO;
 
 public class DatabaseContext
 {
@@ -6,7 +7,7 @@ public class DatabaseContext
 
     public DatabaseContext()
     {
-        string dbPath = @"DataSource\restaurant.db";
+        string dbPath = Path.Combine("DataSource", "restaurant.db");
         Connection = new SqliteConnection($"Data Source={dbPath}");
         Connection.Open();
     }

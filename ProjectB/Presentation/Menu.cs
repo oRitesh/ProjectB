@@ -48,6 +48,8 @@ public static class Menu
 
         while (running)
         {
+            AdminAccess adminAccess = new AdminAccess(new DatabaseContext());
+            adminAccess.CheckAdminAccountExistence();
             Console.Clear();
             Console.WriteLine("==================================");
             Console.WriteLine("     WELKOM BIJ RESTAURANT B      ");
@@ -57,8 +59,12 @@ public static class Menu
             Console.WriteLine("2. Bekijk menukaart");
             Console.WriteLine("3. Reserveer een tafel");
             Console.WriteLine("4. Login / registreer");
+<<<<<<< HEAD
             if (HuidigeGebruiker.Rol == 2)
                 Console.WriteLine("5. Admin menu");
+=======
+            Console.WriteLine("5. overzicht reserveringen/ reservering wijzigen");
+>>>>>>> 4d049fc5f6569a0bfc0b22c3c8ac440a067965e9
             Console.WriteLine("0. Afsluiten");
             Console.WriteLine();
             Console.Write("Maak een keuze: ");
@@ -70,6 +76,7 @@ public static class Menu
                 case "1":
                     ShowInformationPage();
                     break;
+
                 case "2":
                     {
                         DatabaseContext db = new DatabaseContext();
@@ -78,13 +85,16 @@ public static class Menu
                         db.Close();
                         break;
                     }
+
                 case "3":
                     ShowReservationPage();
                     break;
+
                 case "4":
                     {
                         DatabaseContext db = new DatabaseContext();
                         UserAccess userAccess = new UserAccess(db);
+                        AdminLogic adminLogic = new AdminLogic(db);
                         if (HuidigeGebruiker.ID == 0)
                         {
                             Console.WriteLine("1. Inloggen");
@@ -106,6 +116,7 @@ public static class Menu
                                 {
                                     HuidigeGebruiker = user;
                                     Console.WriteLine($"Succesvol ingelogd! Welkom terug, {user.Naam}.");
+                                    adminLogic.ShowAdminMenuIfAuthorized(user.ID);
                                 }
                                 else
                                 {
@@ -119,6 +130,8 @@ public static class Menu
                                 string? regEmail = null;
                                 string? regPhone = null;
                                 string? regPassword = null;
+
+                                bool userExists = false;
 
                                 while (string.IsNullOrWhiteSpace(regName))
                                 {
@@ -138,14 +151,26 @@ public static class Menu
                                     regEmail = Console.ReadLine();
                                     if (string.IsNullOrWhiteSpace(regEmail))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("E-mailadres mag niet leeg zijn. Probeer het opnieuw.");
                                         Console.ReadKey();
                                     }
 
                                     else if (!regEmail.Contains("@") || !regEmail.Contains("."))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Ongeldig e-mailadres. Probeer het opnieuw.");
-                                        regEmail = null; // Reset zodat de loop doorgaat
+                                        regEmail = null;
+                                        Console.ReadKey();
+                                    }
+
+                                    var checkUser = userAccess.GetUserByEmail(regEmail);
+                                    if (checkUser != null)
+                                    {
+                                        Console.WriteLine();
+                                        Console.WriteLine("E-mailadres is al in gebruik. Probeer het opnieuw.");
+                                        regEmail = null;
+                                        Console.ReadKey();
                                     }
                                 }
 
@@ -155,8 +180,24 @@ public static class Menu
                                     regPhone = Console.ReadLine();
                                     if (string.IsNullOrWhiteSpace(regPhone))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Telefoonnummer mag niet leeg zijn. Probeer het opnieuw.");
                                         Console.ReadKey();
+                                    }
+
+                                    var checkUser = userAccess.GetUserByPhoneNumber(regPhone);
+                                    if (checkUser != null && checkUser.Rol == 1)
+                                    {
+
+                                        Console.WriteLine();
+                                        Console.WriteLine("Dit telefoonnummer is al gekoppeld aan een account.");
+                                        regPhone = null;
+                                        Console.ReadKey();
+                                    }
+
+                                    else if (checkUser != null && checkUser.Rol == 0)
+                                    {
+                                        userExists = true;
                                     }
                                 }
 
@@ -166,13 +207,16 @@ public static class Menu
                                     regPassword = Console.ReadLine();
                                     if (string.IsNullOrWhiteSpace(regPassword))
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Wachtwoord mag niet leeg zijn. Probeer het opnieuw.");
                                         Console.ReadKey();
                                     }
 
                                     else if (regPassword.Length < 6)
                                     {
+                                        Console.WriteLine();
                                         Console.WriteLine("Wachtwoord moet minimaal 6 tekens bevatten. Probeer het opnieuw.");
+                                        Console.ReadKey();
                                         regPassword = null; // Reset zodat de loop doorgaat
                                     }
 
@@ -184,9 +228,18 @@ public static class Menu
                                 Console.WriteLine("\nDruk op een toets om verder te gaan...");
                                 Console.ReadKey();
 
-
-                                HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
-                                userAccess.AddUser(HuidigeGebruiker);
+                                if (userExists)
+                                {
+                                    Console.WriteLine("We hebben uw gegevens gevonden van een eerdere reservering.");
+                                    Console.WriteLine("Uw gast-account wordt omgezet naar een officieel account...");
+                                    HuidigeGebruiker = userAccess.ChangeRole(regPhone, regName, 1, regEmail, regPassword);
+                                    Console.WriteLine("Account succesvol bijgewerkt!");
+                                }
+                                else
+                                {
+                                    HuidigeGebruiker = new Gebruiker(1, 1, regName, regEmail, regPhone, regPassword);
+                                    userAccess.AddUser(HuidigeGebruiker);
+                                }
                             }
                             else if (loginChoice == "0")
                             {
@@ -207,9 +260,37 @@ public static class Menu
                         }
                         break;
                     }
+<<<<<<< HEAD
                 case "5" when HuidigeGebruiker.Rol == 2:
                     new AdminMenuUI().ShowAdminMenu();
                     break;
+=======
+
+                case "5":
+                {
+                    if (HuidigeGebruiker.ID == 0)
+                    {
+                        Console.WriteLine("U moet eerst inloggen.");
+                        Console.ReadKey();
+                        break;
+                    }
+
+                    DatabaseContext db = new DatabaseContext();
+                    ReserveringAccess reserveringAccess = new ReserveringAccess(db);
+                    TafelAccess tafelAccess = new TafelAccess(db);
+                    TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
+                    UserAccess userAccess = new UserAccess(db);
+
+                    ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+
+                    ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
+                    overzichtUI.ShowOverzicht();
+
+                    db.Close();
+                    break;
+                }
+
+>>>>>>> 4d049fc5f6569a0bfc0b22c3c8ac440a067965e9
                 case "0":
                     running = false;
                     break;

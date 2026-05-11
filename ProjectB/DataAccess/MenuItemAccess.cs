@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Dapper;
 
 public class MenuItemAccess
@@ -31,8 +29,8 @@ public class MenuItemAccess
     public void AddMenuItem(MenuItem item)
     {
         string sql = $@"
-            INSERT INTO {Table} (Naam, Prijs, MenuCatogorieID)
-            VALUES (@Naam, @Prijs, @MenuCatogorieID);";
+            INSERT INTO {Table} (Naam, Prijs, MenuCatogorieID, Beschrijving, allergeen)
+            VALUES (@Naam, @Prijs, @MenuCatogorieID, @Beschrijving, @Allergeen);";
 
         db.Connection.Execute(sql, item);
     }
