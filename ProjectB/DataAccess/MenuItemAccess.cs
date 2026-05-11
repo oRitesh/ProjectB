@@ -32,8 +32,8 @@ public class MenuItemAccess
     public void AddMenuItem(MenuItem item)
     {
         string sql = $@"
-            INSERT INTO {Table} (Naam, Prijs, MenuCatogorieID)
-            VALUES (@Naam, @Prijs, @MenuCatogorieID);";
+            INSERT INTO {Table} (Naam, Prijs, MenuCatogorieID, Beschrijving, Allergeen)
+            VALUES (@Naam, @Prijs, @MenuCatogorieID, @Beschrijving, @Allergeen);";
 
         db.Connection.Execute(sql, item);
     }
