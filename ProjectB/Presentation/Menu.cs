@@ -45,8 +45,10 @@ public static class Menu
 
         while (running)
         {
-            AdminAccess adminAccess = new AdminAccess(new DatabaseContext());
+            DatabaseContext adminDb = new DatabaseContext();
+            AdminAccess adminAccess = new AdminAccess(adminDb);
             adminAccess.CheckAdminAccountExistence();
+            adminDb.Close();
             Console.Clear();
 
             // ===== MENU OPTIES (gast vs user) =====
