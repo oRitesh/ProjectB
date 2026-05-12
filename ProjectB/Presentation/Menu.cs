@@ -132,7 +132,7 @@ public static class Menu
                             Console.ReadKey(true);
                         }
 
-                        List<LoginOption> loginOpties = new()
+                        List<LoginOption?> loginOpties = new()
                         {
                             LoginOption.Inloggen,
                             LoginOption.Registreren,

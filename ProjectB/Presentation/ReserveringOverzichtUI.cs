@@ -130,36 +130,43 @@ public class ReserveringOverzichtUI
     {
         var opties = logic.GetAantalPersonenOpties();
         int geselecteerd = opties.IndexOf(huidigAantal);
-
-        while (true)
+        Console.CursorVisible = false;
+        try
         {
-            Console.Clear();
-            Console.WriteLine("=== Nieuw aantal personen kiezen ===");
-            Console.WriteLine("Gebruik ↑ en ↓ om te kiezen.");
-            Console.WriteLine("Enter = bevestigen, Escape = terug");
-            Console.WriteLine();
-
-            for (int i = 0; i < opties.Count; i++)
+            while (true)
             {
-                if (i == geselecteerd)
-                    Console.WriteLine($"> {opties[i]} personen");
-                else
-                    Console.WriteLine($"  {opties[i]} personen");
+                Console.Clear();
+                Console.WriteLine("=== Nieuw aantal personen kiezen ===");
+                Console.WriteLine("Gebruik ↑ en ↓ om te kiezen.");
+                Console.WriteLine("Enter = bevestigen, Escape = terug");
+                Console.WriteLine();
+
+                for (int i = 0; i < opties.Count; i++)
+                {
+                    if (i == geselecteerd)
+                        Console.WriteLine($"> {opties[i]} personen");
+                    else
+                        Console.WriteLine($"  {opties[i]} personen");
+                }
+
+                ConsoleKeyInfo key = Console.ReadKey(true);
+
+                if (key.Key == ConsoleKey.UpArrow && geselecteerd > 0)
+                    geselecteerd--;
+
+                else if (key.Key == ConsoleKey.DownArrow && geselecteerd < opties.Count - 1)
+                    geselecteerd++;
+
+                else if (key.Key == ConsoleKey.Enter)
+                    return opties[geselecteerd];
+
+                else if (key.Key == ConsoleKey.Escape)
+                    return null;
             }
-
-            ConsoleKeyInfo key = Console.ReadKey(true);
-
-            if (key.Key == ConsoleKey.UpArrow && geselecteerd > 0)
-                geselecteerd--;
-
-            else if (key.Key == ConsoleKey.DownArrow && geselecteerd < opties.Count - 1)
-                geselecteerd++;
-
-            else if (key.Key == ConsoleKey.Enter)
-                return opties[geselecteerd];
-
-            else if (key.Key == ConsoleKey.Escape)
-                return null;
+        }
+        finally
+        {
+            Console.CursorVisible = true;
         }
     }
 

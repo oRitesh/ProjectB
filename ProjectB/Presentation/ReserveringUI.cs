@@ -214,21 +214,21 @@ public class ReserveringUI
 
                 ConsoleKeyInfo key = Console.ReadKey(true);
 
-                if (key.Key == ConsoleKey.LeftArrow && geselecteerd > 0)
+                switch (key.Key)
                 {
-                    geselecteerd--;
-                }
-                else if (key.Key == ConsoleKey.RightArrow && geselecteerd < datums.Count - 1)
-                {
-                    geselecteerd++;
-                }
-                else if (key.Key == ConsoleKey.Enter)
-                {
-                    return datums[geselecteerd];
-                }
-                else if (key.Key == ConsoleKey.Escape)
-                {
-                    return null;
+                    case ConsoleKey.LeftArrow when geselecteerd > 0:
+                        geselecteerd--;
+                        break;
+                    case ConsoleKey.RightArrow when geselecteerd < datums.Count - 1:
+                        geselecteerd++;
+                        break;
+                    case ConsoleKey.Enter:
+                        return datums[geselecteerd];
+                    case ConsoleKey.Escape:
+                        return null;
+                    default:
+                        break;
+                        //ignore all other keys
                 }
             }
         }
