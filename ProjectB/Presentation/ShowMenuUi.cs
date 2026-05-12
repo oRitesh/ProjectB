@@ -12,7 +12,7 @@ public class ShowMenuUI
 
         while (viewingMenu)
         {
-            List<MenuKaartOption> opties = new()
+            List<MenuKaartOption?> opties = new()
             {
                 MenuKaartOption.Voorgerechten,
                 MenuKaartOption.Hoofdgerechten,

@@ -48,7 +48,7 @@ public static class Menu
             Console.Clear();
 
             // ===== MENU OPTIES (gast vs user) =====
-            List<MainMenuOption> opties = new();
+            List<MainMenuOption?> opties = new();
 
             opties.Add(MainMenuOption.Info);
             opties.Add(MainMenuOption.Menu);

@@ -24,13 +24,14 @@ public static class ArrowMenu
                 );
 
                 Console.WriteLine(lijn);
+                Console.WriteLine();
             }
-            else
+            else if (!string.IsNullOrEmpty(title))
             {
                 Console.WriteLine(title);
             }
 
-            Console.WriteLine();
+
 
             extraInfo?.Invoke();
 
