@@ -124,68 +124,54 @@ public class ReserveringOverzichtUI
 
     private int? KiesNieuweTafelVoorWijziging(int aantalPersonen, Tijdslot tijdslot)
     {
-        List<int?> opties = logic.GetAantalPersonenOpties().Cast<int?>().ToList();
-        Console.CursorVisible = false;
-        try
+        while (true)
         {
-            return ArrowMenu.ShowMenu(
-             "NIEUW AANTAL PERSONEN",
-             opties,
-             x => x == huidigAantal ? $"{x} personen (huidig)" : $"{x} personen"
-         );
-        }
-        finally
-        {
-            Console.CursorVisible = true;
-        }
-    }
+            Console.Clear();
+            Console.WriteLine("=== Kies een nieuwe tafel ===");
 
-    //datum en tijdslot wijzigen
+            var tafels = logic.GetTafelWeergaveVoorTijdslot(aantalPersonen, tijdslot);
 
-    private void WijzigDatumEnTijdslot(Reservering r)
-    {
-        var ui = new ReserveringUI(logic, gebruiker);
+            Console.WriteLine();
+            Console.WriteLine("Legenda:");
+            Console.WriteLine("[2] = beschikbaar");
+            Console.WriteLine("(2) = gereserveerd");
+            Console.WriteLine("-2- = verkeerde capaciteit");
+            Console.WriteLine();
 
-        DateTime? nieuweDatum = ui.KiesDatum();
-        if (nieuweDatum == null) return;
-
-        Tijdslot? nieuwTijdslot = ui.KiesTijdslot(r.AantalGasten, nieuweDatum.Value);
-        if (nieuwTijdslot == null) return;
-
-        var tafels = logic.TafelAccess.GetTafelsByMinimaleCapaciteit(r.AantalGasten);
-
-        Tafel? beschikbareTafel = null;
-
-        foreach (var tafel in tafels)
-        {
-            var overlappende = logic.ReserveringAccess.GetOverlappendeReserveringen(
-                tafel.ID,
-                nieuwTijdslot.StartTijd,
-                nieuwTijdslot.EindTijd
-            );
-
-            if (overlappende.Count == 0)
+            foreach (var t in tafels.OrderBy(t => t.TafelNummer))
             {
-                beschikbareTafel = tafel;
-                break;
+                string vak =
+                    !t.IsToegestaan ? $"-{t.TafelNummer}-" :
+                    !t.IsBeschikbaar ? $"({t.TafelNummer})" :
+                    $"[{t.TafelNummer}]";
+
+                Console.Write(vak + " ");
             }
+
+            Console.WriteLine();
+            Console.WriteLine("\nTyp het tafelnummer of druk op Escape om terug te gaan:");
+            Console.Write("> ");
+
+            string? input = Console.ReadLine();
+
+            if (input == null) return null;
+
+            if (!int.TryParse(input, out int tafelNummer))
+            {
+                Console.WriteLine("Ongeldige invoer.");
+                Console.ReadKey();
+                continue;
+            }
+
+            if (!logic.IsTafelBeschikbaarVoorKeuze(tafelNummer, aantalPersonen, tijdslot))
+            {
+                Console.WriteLine("Deze tafel is niet beschikbaar of niet toegestaan.");
+                Console.ReadKey();
+                continue;
+            }
+
+            return tafelNummer;
         }
-
-        if (beschikbareTafel == null)
-        {
-            Console.WriteLine("Geen tafels beschikbaar op dit nieuwe tijdslot.");
-            Console.ReadKey();
-            return;
-        }
-
-        r.StartTijd = nieuwTijdslot.StartTijd;
-        r.EindTijd = nieuwTijdslot.EindTijd;
-        r.TafelID = beschikbareTafel.ID;
-
-        logic.ReserveringAccess.UpdateReservering(r);
-
-        Console.WriteLine("Reservering succesvol bijgewerkt!");
-        Console.ReadKey();
     }
 
     //opmerking wijzigen

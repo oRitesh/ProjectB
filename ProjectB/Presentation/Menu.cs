@@ -144,6 +144,7 @@ public static class Menu
                             Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
                             Console.WriteLine("Druk op een toets om verder te gaan...");
                             Console.ReadKey(true);
+                            break;
                         }
 
                         List<LoginOption?> loginOpties = new()
@@ -171,11 +172,6 @@ public static class Menu
                             false
                         );
 
-                        if (loginChoice == null)
-                        {
-                            break;
-                        }
-
                         if (loginChoice == LoginOption.Inloggen)
                         {
                             var user = inlogUI.Login();
@@ -186,63 +182,48 @@ public static class Menu
                             var user = registratieUI.Registreer();
                             if (user != null) HuidigeGebruiker = user;
                         }
-                        else if (loginChoice == "0")
-                        {
-                            // Do nothing, just return to the main menu
-                        }
-                        else
-                        {
-                            Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
-                            Console.ReadKey(true);
-                        }
 
-                    }
-                        else
-                    {
-                        Console.WriteLine("U bent al ingelogd als: " + HuidigeGebruiker.Naam);
-                        Console.WriteLine("Druk op een toets om verder te gaan...");
-                        Console.ReadKey(true);
-                    }
-                    break;
-            }
-
-                case MainMenuOption.Admin:
-                AdminMenuUI adminMenuUI = new AdminMenuUI();
-                adminMenuUI.ShowAdminMenu();
-                break;
-
-            case MainMenuOption.Overzicht:
-                {
-                    if (HuidigeGebruiker.ID == 0)
-                    {
-                        Console.WriteLine("U moet eerst inloggen.");
-                        Console.ReadKey();
+                        db.Close();
                         break;
                     }
 
-                    DatabaseContext db = new DatabaseContext();
-                    ReserveringAccess reserveringAccess = new ReserveringAccess(db);
-                    TafelAccess tafelAccess = new TafelAccess(db);
-                    TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
-                    UserAccess userAccess = new UserAccess(db);
-
-                    ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
-
-                    ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
-                    overzichtUI.ShowOverzicht();
-
-                    db.Close();
+                case MainMenuOption.Admin:
+                    AdminMenuUI adminMenuUI = new AdminMenuUI();
+                    adminMenuUI.ShowAdminMenu();
                     break;
-                }
 
-            case MainMenuOption.Exit:
-                running = false;
-                break;
+                case MainMenuOption.Overzicht:
+                    {
+                        if (HuidigeGebruiker.ID == 0)
+                        {
+                            Console.WriteLine("U moet eerst inloggen.");
+                            Console.ReadKey();
+                            break;
+                        }
 
-            default:
-                Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
-                Console.ReadKey(true);
-                break;
+                        DatabaseContext db = new DatabaseContext();
+                        ReserveringAccess reserveringAccess = new ReserveringAccess(db);
+                        TafelAccess tafelAccess = new TafelAccess(db);
+                        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
+                        UserAccess userAccess = new UserAccess(db);
+
+                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+
+                        ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
+                        overzichtUI.ShowOverzicht();
+
+                        db.Close();
+                        break;
+                    }
+
+                case MainMenuOption.Exit:
+                    running = false;
+                    break;
+
+                default:
+                    Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");
+                    Console.ReadKey(true);
+                    break;
             }
         }
     }
