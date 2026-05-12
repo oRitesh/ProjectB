@@ -43,6 +43,8 @@ public static class Menu
 
         while (running)
         {
+            AdminAccess adminAccess = new AdminAccess(new DatabaseContext());
+            adminAccess.CheckAdminAccountExistence();
             Console.Clear();
             if (HuidigeGebruiker.Naam != "gast")
             {
@@ -95,6 +97,7 @@ public static class Menu
                     {
                         DatabaseContext db = new DatabaseContext();
                         UserAccess userAccess = new UserAccess(db);
+                        AdminLogic adminLogic = new AdminLogic(db);
                         if (HuidigeGebruiker.ID == 0)
                         {
                             Console.WriteLine("1. Inloggen");
@@ -116,6 +119,7 @@ public static class Menu
                                 {
                                     HuidigeGebruiker = user;
                                     Console.WriteLine($"Succesvol ingelogd! Welkom terug, {user.Naam}.");
+                                    adminLogic.ShowAdminMenuIfAuthorized(user.ID);
                                 }
                                 else
                                 {
