@@ -56,6 +56,10 @@ public static class Menu
                 Console.WriteLine("2. Bekijk menukaart");
                 Console.WriteLine("3. Reserveer een tafel");
                 Console.WriteLine("4. Overzicht reserveringen/ reservering wijzigen");
+                if (HuidigeGebruiker.Rol == 2)
+                {
+                    Console.WriteLine("5. Admin menu");
+                }
                 Console.WriteLine("0. Afsluiten");
             }
             else
@@ -287,7 +291,10 @@ public static class Menu
                         db.Close();
                         break;
                     }
-
+                case "5" when HuidigeGebruiker.Rol == 2:
+                    AdminMenuUI adminMenuUI = new AdminMenuUI();
+                    adminMenuUI.ShowAdminMenu();
+                    break;
                 case "0":
                     running = false;
                     break;
