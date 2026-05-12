@@ -15,89 +15,81 @@ public class ReserveringOverzichtUI
     {
         while (true)
         {
-            Console.Clear();
-            Console.WriteLine("=== Mijn reserveringen ===");
-
             var reserveringen = logic.ReserveringAccess.GetReserveringenByGebruikerID(gebruiker.ID);
 
             if (reserveringen.Count == 0)
             {
+                Console.Clear();
+                Console.WriteLine("==================================");
+                Console.WriteLine("        MIJN RESERVERINGEN        ");
+                Console.WriteLine("==================================");
+                Console.WriteLine();
                 Console.WriteLine("U heeft nog geen reserveringen.");
                 Console.ReadKey();
                 return;
             }
 
-            for (int i = 0; i < reserveringen.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. {reserveringen[i].StartTijd} - {reserveringen[i].AantalGasten} personen");
-            }
+            var keuze = ArrowMenu.ShowMenu(
+                "MIJN RESERVERINGEN",
+                reserveringen,
+                r => $"{r.StartTijd} - {r.AantalGasten} personen"
+            );
 
-            Console.WriteLine("\n0. Terug");
-            Console.Write("\nKies een reservering: ");
+            if (keuze == null) return;
 
-            string? input = Console.ReadLine();
-            if (input == "0") return;
-
-            if (!int.TryParse(input, out int keuze) || keuze < 1 || keuze > reserveringen.Count)
-            {
-                Console.WriteLine("Ongeldige keuze.");
-                Console.ReadKey();
-                continue;
-            }
-
-            ShowDetails(reserveringen[keuze - 1]);
+            ShowDetails(keuze);
         }
     }
 
     private void ShowDetails(Reservering r)
     {
-        bool bezig = true;
-
-        while (bezig)
+        List<string> opties = new()
         {
-            Console.Clear();
-            Console.WriteLine("=== Reserveringsdetails ===");
-            Console.WriteLine($"Datum: {r.StartTijd}");
-            Console.WriteLine($"Tafel: {r.TafelID}");
-            Console.WriteLine($"Aantal gasten: {r.AantalGasten}");
-            Console.WriteLine($"Opmerking: {r.Opmerking}");
-            Console.WriteLine();
+            "Aantal gasten wijzigen",
+            "Datum + tijdslot wijzigen",
+            "Opmerking wijzigen",
+            "Verwijderen"
+        };
 
-            Console.WriteLine("1. Aantal gasten wijzigen");
-            Console.WriteLine("2. Datum + tijdslot wijzigen");
-            Console.WriteLine("3. Opmerking wijzigen");
-            Console.WriteLine("4. Verwijderen");
-            Console.WriteLine("0. Terug");
-            Console.Write("Maak een keuze: ");
+        while (true)
+        {
+            string? keuze = ArrowMenu.ShowMenu(
+                "RESERVERINGSDETAILS",
+                opties,
+                x => x,
+                () =>
+                {
+                    Console.WriteLine($"Datum:         {r.StartTijd}");
+                    Console.WriteLine($"Tafel:         {r.TafelID}");
+                    Console.WriteLine($"Aantal gasten: {r.AantalGasten}");
+                    Console.WriteLine($"Opmerking:     {r.Opmerking}");
+                    Console.WriteLine();
+                }
+            );
 
-            string? keuze = Console.ReadLine();
+            if (keuze == null) return;
 
             switch (keuze)
             {
-                case "1":
+                case "Aantal gasten wijzigen":
                     WijzigAantalGasten(r);
                     break;
 
-                case "2":
+                case "Datum + tijdslot wijzigen":
                     WijzigDatumEnTijdslot(r);
                     break;
 
-                case "3":
+                case "Opmerking wijzigen":
                     WijzigOpmerking(r);
                     break;
 
-                case "4":
+                case "Verwijderen":
                     VerwijderReservering(r);
                     return;
 
-                case "0":
-                    bezig = false;
-                    break;
-
                 default:
-                    Console.WriteLine("Ongeldige keuze.");
-                    Console.ReadKey();
                     break;
+                    //Niks hoort te gebeuren
             }
         }
     }
@@ -128,38 +120,19 @@ public class ReserveringOverzichtUI
 
     private int? KiesAantalPersonenVoorWijziging(int huidigAantal)
     {
-        var opties = logic.GetAantalPersonenOpties();
-        int geselecteerd = opties.IndexOf(huidigAantal);
-
-        while (true)
+        List<int?> opties = logic.GetAantalPersonenOpties().Cast<int?>().ToList();
+        Console.CursorVisible = false;
+        try
         {
-            Console.Clear();
-            Console.WriteLine("=== Nieuw aantal personen kiezen ===");
-            Console.WriteLine("Gebruik ↑ en ↓ om te kiezen.");
-            Console.WriteLine("Enter = bevestigen, Escape = terug");
-            Console.WriteLine();
-
-            for (int i = 0; i < opties.Count; i++)
-            {
-                if (i == geselecteerd)
-                    Console.WriteLine($"> {opties[i]} personen");
-                else
-                    Console.WriteLine($"  {opties[i]} personen");
-            }
-
-            ConsoleKeyInfo key = Console.ReadKey(true);
-
-            if (key.Key == ConsoleKey.UpArrow && geselecteerd > 0)
-                geselecteerd--;
-
-            else if (key.Key == ConsoleKey.DownArrow && geselecteerd < opties.Count - 1)
-                geselecteerd++;
-
-            else if (key.Key == ConsoleKey.Enter)
-                return opties[geselecteerd];
-
-            else if (key.Key == ConsoleKey.Escape)
-                return null;
+            return ArrowMenu.ShowMenu(
+             "NIEUW AANTAL PERSONEN",
+             opties,
+             x => x == huidigAantal ? $"{x} personen (huidig)" : $"{x} personen"
+         );
+        }
+        finally
+        {
+            Console.CursorVisible = true;
         }
     }
 
