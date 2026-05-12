@@ -5,5 +5,7 @@ public enum MainMenuOption
     Reserveren,
     Overzicht,
     Login,
+
+    Admin,
     Exit
 }
