@@ -5,9 +5,7 @@ public class AdminMenuUI
     private readonly MenuItemAccess menuItemAccess;
     private readonly ReserveringAccess reserveringAccess;
     private readonly TijdslotAccess tijdslotAccess;
-
     private readonly MenuCategorieAccess menuCategorieAccess;
-
     public AdminMenuUI()
     {
         this.menuItemAccess = new MenuItemAccess(new DatabaseContext());
@@ -265,7 +263,7 @@ public class AdminMenuUI
     {
         Console.Clear();
         Console.WriteLine("==================================");
-        Console.WriteLine("     ALLE RESERVERINGEN           ");
+        Console.WriteLine("        ALLE RESERVERINGEN        ");
         Console.WriteLine("==================================");
         Console.WriteLine();
 
@@ -286,7 +284,7 @@ public class AdminMenuUI
         Console.WriteLine("Druk op een toets om terug te gaan...");
         Console.ReadKey(true);
     }
-
+    
     // ─────────────────────────────────────────────
     //  Reserveringen per tijdslot
     // ─────────────────────────────────────────────

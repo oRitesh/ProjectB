@@ -6,7 +6,6 @@ public class MenuItemAccess
 {
     private readonly DatabaseContext db;
     public const string Table = "MenuItem";
-
     public MenuItemAccess(DatabaseContext db)
     {
         this.db = db;
@@ -27,7 +26,6 @@ public class MenuItemAccess
         string sql = $@"SELECT * FROM {Table} ORDER BY Naam;";
         return db.Connection.Query<MenuItem>(sql).ToList();
     }
-
 
     public void AddMenuItem(MenuItem item)
     {
