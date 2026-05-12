@@ -25,7 +25,6 @@ public class UserAccess
         return db.Connection.QuerySingle<int>(sql, gebruiker);
     }
 
-    // Voeg dit toe aan UserAccess.cs
     public Gebruiker? GetUserByEmail(string email, string password)
     {
         // We zoeken de gebruiker op basis van email
@@ -53,5 +52,40 @@ public class UserAccess
         string sql = "SELECT * FROM Gebruiker WHERE Telefoonnummer = @Phone";
 
         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { Phone = phoneNumber });
+    }
+
+    public Gebruiker? ChangeRole(string telefoonnummer, string newName, int newRole, string email, string password)
+    {
+        string sql = $"UPDATE {table} SET Rol = @NewRole, Naam = @NewName, Email = @Email, Wachtwoord = @Password WHERE Telefoonnummer = @PhoneNumber";
+
+        int rowsAffected = db.Connection.Execute(sql, new
+        {
+            NewRole = newRole,
+            NewName = newName,
+            Email = email,
+            Password = password,
+            PhoneNumber = telefoonnummer
+        });
+
+        if (rowsAffected > 0)
+        {
+            // Als de update succesvol was, haal dan de bijgewerkte gebruiker op
+            return GetUserByPhoneNumber(telefoonnummer);
+        }
+
+        return null;
+    }
+
+    public Gebruiker? GetRoleByUser(int userId)
+    {
+        string sql = "SELECT Rol FROM Gebruiker WHERE Id = @UserId";
+
+         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
+    }
+
+    public Gebruiker? GetAdminAccount()
+    {
+        string sql = $"SELECT * FROM {table} WHERE Rol = 2 LIMIT 1";
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql);
     }
 }

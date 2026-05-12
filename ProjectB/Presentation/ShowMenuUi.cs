@@ -12,44 +12,51 @@ public class ShowMenuUI
 
         while (viewingMenu)
         {
-            Console.Clear();
-            Console.WriteLine("==================================");
-            Console.WriteLine("            MENUKAART             ");
-            Console.WriteLine("==================================");
-            Console.WriteLine("1. Voorgerechten");
-            Console.WriteLine("2. Hoofdgerechten");
-            Console.WriteLine("3. Desserts");
-            Console.WriteLine("4. Dranken");
-            Console.WriteLine("5. Wijnkaart");
-            Console.WriteLine("0. Terug");
-            Console.WriteLine();
-            Console.Write("Maak een keuze: ");
-
-            string? choice = Console.ReadLine();
-
-            switch (choice)
+            List<MenuKaartOption?> opties = new()
             {
-                case "1":
+                MenuKaartOption.Voorgerechten,
+                MenuKaartOption.Hoofdgerechten,
+                MenuKaartOption.Desserts,
+                MenuKaartOption.Dranken,
+                MenuKaartOption.Wijnkaart
+            };
+
+            MenuKaartOption? keuze = ArrowMenu.ShowMenu(
+                "MENUKAART",
+                opties,
+                x => x switch
+                {
+                    MenuKaartOption.Voorgerechten => "Voorgerechten",
+                    MenuKaartOption.Hoofdgerechten => "Hoofdgerechten",
+                    MenuKaartOption.Desserts => "Desserts",
+                    MenuKaartOption.Dranken => "Dranken",
+                    MenuKaartOption.Wijnkaart => "Wijnkaart",
+                    _ => ""
+                }
+            );
+
+            if (keuze == null)
+            {
+                viewingMenu = false;
+                continue;
+            }
+
+            switch (keuze)
+            {
+                case MenuKaartOption.Voorgerechten:
                     ShowCategory("VOORGERECHTEN", menuService.Starters);
                     break;
-                case "2":
+                case MenuKaartOption.Hoofdgerechten:
                     ShowCategory("HOOFDGERECHTEN", menuService.Mains);
                     break;
-                case "3":
+                case MenuKaartOption.Desserts:
                     ShowCategory("DESSERTS", menuService.Desserts);
                     break;
-                case "4":
+                case MenuKaartOption.Dranken:
                     ShowCategory("DRANKEN", menuService.Drinks);
                     break;
-                case "5":
+                case MenuKaartOption.Wijnkaart:
                     ShowCategory("WIJNKAART", menuService.Wines);
-                    break;
-                case "0":
-                    viewingMenu = false;
-                    break;
-                default:
-                    Console.WriteLine("Ongeldige keuze. Druk op enter toets om verder te gaan...");
-                    Console.ReadKey(true);
                     break;
             }
         }

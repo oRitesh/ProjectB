@@ -3,16 +3,27 @@ public class ReservationLogic
     private readonly ReserveringAccess reserveringAccess;
     private readonly TafelAccess tafelAccess;
     private readonly TijdslotAccess tijdslotAccess;
-
     private readonly UserAccess userAccess;
 
-    public ReservationLogic(ReserveringAccess reserveringAccess, TafelAccess tafelAccess, TijdslotAccess tijdslotAccess, UserAccess userAccess)
+    public ReservationLogic(
+        ReserveringAccess reserveringAccess,
+        TafelAccess tafelAccess,
+        TijdslotAccess tijdslotAccess,
+        UserAccess userAccess)
     {
         this.reserveringAccess = reserveringAccess;
         this.tafelAccess = tafelAccess;
         this.tijdslotAccess = tijdslotAccess;
         this.userAccess = userAccess;
     }
+
+    //publieke getters voor access van andere classes
+    public ReserveringAccess ReserveringAccess => reserveringAccess;
+    public TafelAccess TafelAccess => tafelAccess;
+    public TijdslotAccess TijdslotAccess => tijdslotAccess;
+    public UserAccess UserAccess => userAccess;
+
+
 
     public List<int> GetAantalPersonenOpties()
     {

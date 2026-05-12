@@ -62,4 +62,10 @@ public class TijdslotAccess
         string sql = $@"SELECT * FROM {Table} WHERE ID = @ID;";
         return db.Connection.QueryFirstOrDefault<Tijdslot>(sql, new { ID = id });
     }
+
+    public List<string> GetAllDatums()
+    {
+        string sql = $@"SELECT DISTINCT Datum FROM {Table} ORDER BY Datum;";
+        return db.Connection.Query<string>(sql).ToList();
+    }
 }
