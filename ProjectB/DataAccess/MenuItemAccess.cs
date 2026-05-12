@@ -46,7 +46,8 @@ public class MenuItemAccess
     {
         string sql = $@"
             UPDATE {Table}
-            SET Naam = @Naam, Prijs = @Prijs, MenuCatogorieID = @MenuCatogorieID
+            SET Naam = @Naam, Prijs = @Prijs, MenuCatogorieID = @MenuCatogorieID,
+                Beschrijving = @Beschrijving, Allergeen = @Allergeen
             WHERE ID = @ID;";
 
         db.Connection.Execute(sql, item);
@@ -59,5 +60,11 @@ public class MenuItemAccess
             WHERE ID = @ID;";
 
         db.Connection.Execute(sql, new { ID = id });
+    }
+
+    public List<MenuItem> GetAllMenuItems()
+    {
+        string sql = $@"SELECT * FROM {Table} ORDER BY Naam;";
+        return db.Connection.Query<MenuItem>(sql).ToList();
     }
 }

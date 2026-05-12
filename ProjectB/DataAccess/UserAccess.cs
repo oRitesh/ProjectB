@@ -82,4 +82,10 @@ public class UserAccess
 
          return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
     }
+
+    public Gebruiker? GetAdminAccount()
+    {
+        string sql = $"SELECT * FROM {table} WHERE Rol = 2 LIMIT 1";
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql);
+    }
 }

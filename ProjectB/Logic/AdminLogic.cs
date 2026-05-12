@@ -7,7 +7,7 @@ public class AdminLogic
     public AdminLogic(DatabaseContext db)
     {
         this.db = db;
-        this.adminMenuUI = new AdminMenuUI(db);
+        this.adminMenuUI = new AdminMenuUI();
         this.userAccess = new UserAccess(db);
     }
 
