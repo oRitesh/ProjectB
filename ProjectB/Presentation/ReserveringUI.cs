@@ -194,39 +194,47 @@ public class ReserveringUI
     {
         List<DateTime> datums = ReservationLogic.GetBeschikbareDatums();
         int geselecteerd = 0;
+        Console.CursorVisible = false;
 
-        while (true)
+        try
         {
-            Console.Clear();
-            Console.WriteLine("==================================");
-            Console.WriteLine("            KIES DATUM            ");
-            Console.WriteLine("==================================");
-            Console.WriteLine();
-            Console.WriteLine("Gebruik ← en → om te bewegen.");
-            Console.WriteLine("Druk op Enter om te bevestigen.");
-            Console.WriteLine("Druk op Escape om terug te gaan.");
-            Console.WriteLine();
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("==================================");
+                Console.WriteLine("            KIES DATUM            ");
+                Console.WriteLine("==================================");
+                Console.WriteLine();
+                Console.WriteLine("Gebruik ← en → om te bewegen.");
+                Console.WriteLine("Druk op Enter om te bevestigen.");
+                Console.WriteLine("Druk op Escape om terug te gaan.");
+                Console.WriteLine();
 
-            ToonDatums(datums, geselecteerd);
+                ToonDatums(datums, geselecteerd);
 
-            ConsoleKeyInfo key = Console.ReadKey(true);
+                ConsoleKeyInfo key = Console.ReadKey(true);
 
-            if (key.Key == ConsoleKey.LeftArrow && geselecteerd > 0)
-            {
-                geselecteerd--;
+                if (key.Key == ConsoleKey.LeftArrow && geselecteerd > 0)
+                {
+                    geselecteerd--;
+                }
+                else if (key.Key == ConsoleKey.RightArrow && geselecteerd < datums.Count - 1)
+                {
+                    geselecteerd++;
+                }
+                else if (key.Key == ConsoleKey.Enter)
+                {
+                    return datums[geselecteerd];
+                }
+                else if (key.Key == ConsoleKey.Escape)
+                {
+                    return null;
+                }
             }
-            else if (key.Key == ConsoleKey.RightArrow && geselecteerd < datums.Count - 1)
-            {
-                geselecteerd++;
-            }
-            else if (key.Key == ConsoleKey.Enter)
-            {
-                return datums[geselecteerd];
-            }
-            else if (key.Key == ConsoleKey.Escape)
-            {
-                return null;
-            }
+        }
+        finally
+        {
+            Console.CursorVisible = true;
         }
     }
 
