@@ -45,8 +45,7 @@ public class ReserveringOverzichtUI
     {
         List<string> opties = new()
         {
-            "Aantal gasten wijzigen",
-            "Datum + tijdslot wijzigen",
+            "Reservering wijzigen",
             "Opmerking wijzigen",
             "Verwijderen"
         };
@@ -71,12 +70,8 @@ public class ReserveringOverzichtUI
 
             switch (keuze)
             {
-                case "Aantal gasten wijzigen":
-                    WijzigAantalGasten(r);
-                    break;
-
-                case "Datum + tijdslot wijzigen":
-                    WijzigDatumEnTijdslot(r);
+                case "Reservering wijzigen":
+                    WijzigVolledigeReservering(r);
                     break;
 
                 case "Opmerking wijzigen":
@@ -94,31 +89,40 @@ public class ReserveringOverzichtUI
         }
     }
 
-    //aantal gasten wijzigen
+    // reservering wijzigen
 
-    private void WijzigAantalGasten(Reservering r)
+    private void WijzigVolledigeReservering(Reservering r)
     {
-        int? nieuwAantal = KiesAantalPersonenVoorWijziging(r.AantalGasten);
+        var ui = new ReserveringUI(logic, gebruiker);
 
-        if (nieuwAantal == null)
-            return;
+        // aantal personen
+        int? nieuwAantal = ui.KiesAantalPersonen();
+        if (nieuwAantal == null) return;
 
-        if (nieuwAantal.Value == r.AantalGasten)
-        {
-            Console.WriteLine("Je hebt hetzelfde aantal personen gekozen. Geen wijzigingen doorgevoerd.");
-            Console.ReadKey();
-            return;
-        }
+        // datum
+        DateTime? nieuweDatum = ui.KiesDatum();
+        if (nieuweDatum == null) return;
+
+        // tijdslot
+        Tijdslot? nieuwTijdslot = ui.KiesTijdslot(nieuwAantal.Value, nieuweDatum.Value);
+        if (nieuwTijdslot == null) return;
+
+        // tafel
+        int? nieuweTafel = KiesNieuweTafelVoorWijziging(nieuwAantal.Value, nieuwTijdslot);
+        if (nieuweTafel == null) return;
 
         r.AantalGasten = nieuwAantal.Value;
+        r.StartTijd = nieuwTijdslot.StartTijd;
+        r.EindTijd = nieuwTijdslot.EindTijd;
+        r.TafelID = nieuweTafel.Value;
 
         logic.ReserveringAccess.UpdateReservering(r);
 
-        Console.WriteLine("Aantal gasten succesvol bijgewerkt!");
+        Console.WriteLine("Reservering succesvol bijgewerkt!");
         Console.ReadKey();
     }
 
-    private int? KiesAantalPersonenVoorWijziging(int huidigAantal)
+    private int? KiesNieuweTafelVoorWijziging(int aantalPersonen, Tijdslot tijdslot)
     {
         List<int?> opties = logic.GetAantalPersonenOpties().Cast<int?>().ToList();
         Console.CursorVisible = false;
@@ -201,8 +205,7 @@ public class ReserveringOverzichtUI
         Console.ReadKey();
     }
 
-    //verwijderen
-
+    // 3. VERWIJDEREN
     private void VerwijderReservering(Reservering r)
     {
         Console.Write("Weet u zeker dat u deze reservering wilt verwijderen (j/n): ");
