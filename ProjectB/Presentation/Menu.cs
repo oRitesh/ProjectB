@@ -62,6 +62,10 @@ public static class Menu
             {
                 opties.Add(MainMenuOption.Login);
             }
+            else if (HuidigeGebruiker.Naam == "Admin")
+            {
+                opties.Add(MainMenuOption.Admin);
+            }
             else
             {
                 opties.Add(MainMenuOption.Overzicht);
@@ -80,6 +84,7 @@ public static class Menu
                     MainMenuOption.Reserveren => "Reserveer een tafel",
                     MainMenuOption.Overzicht => "Overzicht reserveringen",
                     MainMenuOption.Login => "Login / registreer",
+                    MainMenuOption.Admin => "Open Admin menu",
                     MainMenuOption.Exit => "Afsluiten",
                     _ => ""
                 },
@@ -309,6 +314,11 @@ public static class Menu
                         break;
                     }
 
+                case MainMenuOption.Admin:
+                    AdminMenuUI adminMenuUI = new AdminMenuUI();
+                    adminMenuUI.ShowAdminMenu();
+                    break;
+
                 case MainMenuOption.Overzicht:
                     {
                         if (HuidigeGebruiker.ID == 0)
@@ -332,10 +342,6 @@ public static class Menu
                         db.Close();
                         break;
                     }
-                // case "5" when HuidigeGebruiker.Rol == 2:
-                //     AdminMenuUI adminMenuUI = new AdminMenuUI();
-                //     adminMenuUI.ShowAdminMenu();
-                //     break;
 
                 case MainMenuOption.Exit:
                     running = false;
