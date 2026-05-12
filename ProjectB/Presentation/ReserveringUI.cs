@@ -447,59 +447,25 @@ public class ReserveringUI
         string tel)
     {
         List<string> opties = new List<string> { "Bevestigen", "Terug" };
-        int geselecteerd = 0;
+        string? keuze = ArrowMenu.ShowMenu(
+           "BEVESTIG RESERVERING",
+           opties,
+           x => x,
+           () =>
+           {
+               Console.WriteLine($"Naam: {naam}");
+               Console.WriteLine($"Telefoon: {tel}");
+               Console.WriteLine();
+               Console.WriteLine($"Aantal personen: {aantalPersonen}");
+               Console.WriteLine($"Datum: {datum:dd-MM-yyyy}");
+               Console.WriteLine($"Tijdslot: {DateTime.Parse(tijdslot.StartTijd):HH:mm} - {DateTime.Parse(tijdslot.EindTijd):HH:mm}");
+               Console.WriteLine($"Tafelnummer: {tafelNummer}");
+               Console.WriteLine($"Opmerking: {opmerking}");
+               Console.WriteLine();
+           }
+       );
 
-        while (true)
-        {
-            Console.Clear();
-            Console.WriteLine("==================================");
-            Console.WriteLine("       BEVESTIG RESERVERING       ");
-            Console.WriteLine("==================================");
-            Console.WriteLine();
-            Console.WriteLine($"Naam: {naam}");
-            Console.WriteLine($"Telefoon: {tel}");
-            Console.WriteLine();
-            Console.WriteLine($"Aantal personen: {aantalPersonen}");
-            Console.WriteLine($"Datum: {datum:dd-MM-yyyy}");
-            Console.WriteLine($"Tijdslot: {DateTime.Parse(tijdslot.StartTijd):HH:mm} - {DateTime.Parse(tijdslot.EindTijd):HH:mm}");
-            Console.WriteLine($"Tafelnummer: {tafelNummer}");
-            Console.WriteLine($"Opmerking: {opmerking}");
-            Console.WriteLine();
-            Console.WriteLine("Gebruik ↑ en ↓ om te kiezen.");
-            Console.WriteLine("Druk op Enter om te bevestigen.");
-            Console.WriteLine("Druk op Escape om terug te gaan.");
-            Console.WriteLine();
-
-            for (int i = 0; i < opties.Count; i++)
-            {
-                if (i == geselecteerd)
-                {
-                    Console.WriteLine($"> {opties[i]}");
-                }
-                else
-                {
-                    Console.WriteLine($"  {opties[i]}");
-                }
-            }
-
-            ConsoleKeyInfo key = Console.ReadKey(true);
-
-            if (key.Key == ConsoleKey.UpArrow && geselecteerd > 0)
-            {
-                geselecteerd--;
-            }
-            else if (key.Key == ConsoleKey.DownArrow && geselecteerd < opties.Count - 1)
-            {
-                geselecteerd++;
-            }
-            else if (key.Key == ConsoleKey.Enter)
-            {
-                return geselecteerd == 0;
-            }
-            else if (key.Key == ConsoleKey.Escape)
-            {
-                return null;
-            }
-        }
+        if (keuze == null) return null;
+        return keuze == "Bevestigen";
     }
 }
