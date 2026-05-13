@@ -342,9 +342,32 @@ public class ReserveringUI
         }
     }
 
+    private readonly string[] plattegrondMap =
+    {
+        "┌──────────────────────────────────────────────────┐",
+        "│                                                  │",
+        "│○ ■1■ ○                   ○ ■4■ ○         ○       │",
+        "│             ○ ■7■ ○                   ○ ■12■ ○   │",
+        "\\             ○ ■■■ ○      ○ ■5■ ○      ○ ■■■■ ○   │",
+        " \\                                         ○       │",
+        "  \\                        ○ ■6■ ○                 │",
+        "│                                                  │",
+        "│             ○ ■8■ ○         ○  ○        ○  ○     │",
+        "│ ■2■ ○       ○ ■■■ ○         ■9■■        ■10■     │",
+        "│ ○                           ○  ○        ○  ○     │",
+        "│                ○  ○                              │",
+        "│ ■3■ ○        ○ ■11■ ○      ┌──────────┐          │",
+        "│  ○             ○  ○        │  KEUKEN  │          │",
+        "│                            └──────────┘          │",
+        "└──────────────────────────────────────────────────┘"
+    };
+
+
     private void ToonPlattegrond(int aantalPersonen, Tijdslot tijdslot)
     {
-        List<TafelWeergave> tafels = ReservationLogic.GetTafelWeergaveVoorTijdslot(aantalPersonen, tijdslot);
+        List<TafelWeergave> tafels =
+            ReservationLogic.GetTafelWeergaveVoorTijdslot(aantalPersonen, tijdslot);
+
         int benodigdeCapaciteit = ReservationLogic.GetBenodigdeCapaciteit(aantalPersonen);
 
         Console.WriteLine("==================================");
@@ -359,33 +382,15 @@ public class ReserveringUI
         Console.WriteLine($"Jouw gezelschap: {aantalPersonen} personen");
         Console.WriteLine($"Toegestane tafels: capaciteit {benodigdeCapaciteit}");
         Console.WriteLine();
-        Console.WriteLine("              INGANG");
+        Console.WriteLine("INGANG");
         Console.WriteLine();
 
-        List<TafelWeergave> gesorteerd = tafels.OrderBy(t => t.TafelNummer).ToList();
+        ToonAsciiPlattegrond(tafels);
 
-        for (int i = 0; i < gesorteerd.Count; i++)
-        {
-            string vak = MaakTafelVak(gesorteerd[i]);
-            Console.Write(vak.PadRight(10));
-
-            if ((i + 1) % 3 == 0)
-            {
-                Console.WriteLine();
-                Console.WriteLine();
-            }
-        }
-
-        if (gesorteerd.Count % 3 != 0)
-        {
-            Console.WriteLine();
-            Console.WriteLine();
-        }
-
-        Console.WriteLine("              KEUKEN");
         Console.WriteLine();
 
-        List<int> beschikbareTafels = ReservationLogic.GetBeschikbareTafelNummers(aantalPersonen, tijdslot);
+        List<int> beschikbareTafels =
+            ReservationLogic.GetBeschikbareTafelNummers(aantalPersonen, tijdslot);
 
         if (beschikbareTafels.Count == 0)
         {
@@ -394,6 +399,32 @@ public class ReserveringUI
         else
         {
             Console.WriteLine($"Beschikbare tafelnummers: {string.Join(", ", beschikbareTafels)}");
+        }
+    }
+
+    private void ToonAsciiPlattegrond(List<TafelWeergave> tafels)
+    {
+        Dictionary<int, TafelWeergave> tafelPerNummer = tafels
+            .ToDictionary(t => t.TafelNummer);
+
+        foreach (string origineleRegel in plattegrondMap)
+        {
+            string regel = origineleRegel;
+
+            foreach (TafelWeergave tafel in tafels)
+            {
+                string vak = MaakTafelVak(tafel);
+
+                string token = tafel.TafelNummer switch
+                {
+                    9 => "■9■■",
+                    _ => $"■{tafel.TafelNummer}■"
+                };
+
+                regel = regel.Replace(token, vak.PadRight(token.Length));
+            }
+
+            Console.WriteLine(regel);
         }
     }
 
@@ -468,4 +499,26 @@ public class ReserveringUI
         if (keuze == null) return null;
         return keuze == "Bevestigen";
     }
+
+
+// string[] map =
+// {
+//     "┌──────────────────────────────────────────────────┐",
+//     "│                                                  │",
+//     "│○ ■1■ ○                   ○ ■4■ ○         ○       │",
+//     "│             ○ ■7■ ○                   ○ ■12■ ○   │",
+//     "\             ○ ■■■ ○      ○ ■5■ ○      ○ ■■■■ ○   │",
+//     " \                                         ○       │",
+//     "  \                        ○ ■6■ ○                 │",
+//     "│                                                  │",
+//     "│             ○ ■8■ ○         ○  ○        ○  ○     │",
+//     "│ ■2■ ○       ○ ■■■ ○         ■9■■        ■10■     │",
+//     "│ ○                           ○  ○        ○  ○     │",
+//     "│                ○  ○                              │",
+//     "│ ■3■ ○        ○ ■11■ ○      ┌──────────┐          │",
+//     "│  ○             ○  ○        │  KEUKEN  │          │",
+//     "│                            └──────────┘          │",
+//     "└──────────────────────────────────────────────────┘"
+// };
+
 }
