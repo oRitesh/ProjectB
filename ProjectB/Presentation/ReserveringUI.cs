@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 public class ReserveringUI
 {
@@ -77,7 +80,20 @@ public class ReserveringUI
                     else
                     {
                         gekozenTafelNummer = tafelKeuze.Value;
-                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 5;
+                        stap = (huidigeGebruiker.Rol == 0) ? 44 : 5;
+                    }
+                    break;
+
+                case 44: // keuze: inloggen / registreren / als gast
+                    if (VraagLoginOfGast())
+                    {
+                        // succesvol ingelogd of geregistreerd
+                        stap = 5;
+                    }
+                    else
+                    {
+                        // doorgaan als gast
+                        stap = 45;
                     }
                     break;
 
@@ -96,7 +112,7 @@ public class ReserveringUI
                     string? opmerkingKeuze = KiesOpmerking();
                     if (opmerkingKeuze == null)
                     {
-                        stap = (huidigeGebruiker.Rol == 0) ? 45 : 4;
+                        stap = (huidigeGebruiker.Rol == 0 && huidigeGebruiker.ID == 0) ? 45 : 4;
                     }
                     else
                     {
@@ -171,6 +187,77 @@ public class ReserveringUI
         }
     }
 
+    private bool VraagLoginOfGast()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("==================================");
+            Console.WriteLine("  INLOGGEN OF ALS GAST Doorgaan?  ");
+            Console.WriteLine("==================================");
+            Console.WriteLine();
+            Console.WriteLine("1. Inloggen");
+            Console.WriteLine("2. Registreren");
+            Console.WriteLine("3. Doorgaan als gast");
+            Console.WriteLine("0. Terug");
+            Console.WriteLine();
+            Console.Write("Maak een keuze: ");
+
+            string? keuze = Console.ReadLine();
+
+            if (keuze == "1" || keuze == "2")
+            {
+                DatabaseContext db = new DatabaseContext();
+                UserAccess userAccess = new UserAccess(db);
+                InlogUI inlogUI = new InlogUI(userAccess);
+                RegistratieUI registratieUI = new RegistratieUI(userAccess);
+
+                if (keuze == "1")
+                {
+                    var user = inlogUI.Login();
+                    if (user != null)
+                    {
+                        huidigeGebruiker.ID = user.ID;
+                        huidigeGebruiker.Naam = user.Naam;
+                        huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
+                        huidigeGebruiker.Rol = user.Rol;
+                        db.Close();
+                        return true;
+                    }
+                }
+                else if (keuze == "2")
+                {
+                    var user = registratieUI.Registreer();
+                    if (user != null)
+                    {
+                        huidigeGebruiker.ID = user.ID;
+                        huidigeGebruiker.Naam = user.Naam;
+                        huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
+                        huidigeGebruiker.Rol = user.Rol;
+                        db.Close();
+                        return true;
+                    }
+                }
+
+                db.Close();
+                // opnieuw vragen als inloggen/registreren mislukt
+            }
+            else if (keuze == "3")
+            {
+                return false; // doorgaan als gast
+            }
+            else if (keuze == "0")
+            {
+                return false; // terug naar vorige stap (keuze tafel)
+            }
+            else
+            {
+                Console.WriteLine("Ongeldige keuze. Druk op een toets om opnieuw te proberen...");
+                Console.ReadKey(true);
+            }
+        }
+    }
+
     private bool VulGastGegevensIn()
     {
         Console.Clear();
@@ -182,7 +269,7 @@ public class ReserveringUI
         return true;
     }
 
-    private int? KiesAantalPersonen()
+    public int? KiesAantalPersonen()
     {
         return ArrowMenu.ShowMenu(
        "KIES AANTAL PERSONEN",
@@ -501,24 +588,24 @@ public class ReserveringUI
     }
 
 
-// string[] map =
-// {
-//     "┌──────────────────────────────────────────────────┐",
-//     "│                                                  │",
-//     "│○ ■1■ ○                   ○ ■4■ ○         ○       │",
-//     "│             ○ ■7■ ○                   ○ ■12■ ○   │",
-//     "\             ○ ■■■ ○      ○ ■5■ ○      ○ ■■■■ ○   │",
-//     " \                                         ○       │",
-//     "  \                        ○ ■6■ ○                 │",
-//     "│                                                  │",
-//     "│             ○ ■8■ ○         ○  ○        ○  ○     │",
-//     "│ ■2■ ○       ○ ■■■ ○         ■9■■        ■10■     │",
-//     "│ ○                           ○  ○        ○  ○     │",
-//     "│                ○  ○                              │",
-//     "│ ■3■ ○        ○ ■11■ ○      ┌──────────┐          │",
-//     "│  ○             ○  ○        │  KEUKEN  │          │",
-//     "│                            └──────────┘          │",
-//     "└──────────────────────────────────────────────────┘"
-// };
+    // string[] map =
+    // {
+    //     "┌──────────────────────────────────────────────────┐",
+    //     "│                                                  │",
+    //     "│○ ■1■ ○                   ○ ■4■ ○         ○       │",
+    //     "│             ○ ■7■ ○                   ○ ■12■ ○   │",
+    //     "\             ○ ■■■ ○      ○ ■5■ ○      ○ ■■■■ ○   │",
+    //     " \                                         ○       │",
+    //     "  \                        ○ ■6■ ○                 │",
+    //     "│                                                  │",
+    //     "│             ○ ■8■ ○         ○  ○        ○  ○     │",
+    //     "│ ■2■ ○       ○ ■■■ ○         ■9■■        ■10■     │",
+    //     "│ ○                           ○  ○        ○  ○     │",
+    //     "│                ○  ○                              │",
+    //     "│ ■3■ ○        ○ ■11■ ○      ┌──────────┐          │",
+    //     "│  ○             ○  ○        │  KEUKEN  │          │",
+    //     "│                            └──────────┘          │",
+    //     "└──────────────────────────────────────────────────┘"
+    // };
 
 }
