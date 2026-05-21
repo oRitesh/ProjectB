@@ -58,6 +58,7 @@ public static class Menu
             opties.Add(MainMenuOption.Info);
             opties.Add(MainMenuOption.Menu);
             opties.Add(MainMenuOption.Reserveren);
+            opties.Add(MainMenuOption.Afhalen);
 
             if (HuidigeGebruiker.Naam == "gast")
             {
@@ -83,6 +84,7 @@ public static class Menu
                     MainMenuOption.Info => "Bekijk informatiepagina",
                     MainMenuOption.Menu => "Bekijk menukaart",
                     MainMenuOption.Reserveren => "Reserveer een tafel",
+                    MainMenuOption.Afhalen => "Plaats afhaalbestelling",
                     MainMenuOption.Overzicht => "Overzicht reserveringen",
                     MainMenuOption.Login => "Login / registreer",
                     MainMenuOption.Admin => "Open Admin menu",
@@ -128,6 +130,9 @@ public static class Menu
 
                 case MainMenuOption.Reserveren:
                     ShowReservationPage();
+                    break;
+
+                case MainMenuOption.Afhalen:
                     break;
 
                 case MainMenuOption.Login:
