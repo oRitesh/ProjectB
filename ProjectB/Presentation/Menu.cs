@@ -133,7 +133,13 @@ public static class Menu
                     break;
 
                 case MainMenuOption.Afhalen:
-                    break;
+                    {
+                        DatabaseContext db = new DatabaseContext();
+                        AfhaalSysteemUI afhaalUI = new AfhaalSysteemUI(db);
+                        afhaalUI.Start();
+                        db.Close();
+                        break;
+                    }
 
                 case MainMenuOption.Login:
                     {
