@@ -21,8 +21,8 @@ public class bestellingAccess
     public void AddBestelling(Bestelling bestelling)
     {
         string sql = $@"
-            INSERT INTO {Table} (GebruikerID, MenuItemID, Aantal, TafelNummer, BestelTijd, Status)
-            VALUES (@GebruikerID, @MenuItemID, @Aantal, @TafelNummer, @BestelTijd, @Status);";
+            INSERT INTO {Table} (GebruikerID, GemaaktOp, TotaalPrijs, OphaalTijd, Status)
+            VALUES (@GebruikerID, @GemaaktOp, @TotaalPrijs, @OphaalTijd, @Status);";
 
         db.Connection.Execute(sql, bestelling);
     }
