@@ -21,8 +21,8 @@ public class bestellingAccess
     public void AddBestelling(Bestelling bestelling)
     {
         string sql = $@"
-            INSERT INTO {Table} (GebruikerID, MenuItemID, Aantal, TafelNummer, BestelTijd)
-            VALUES (@GebruikerID, @MenuItemID, @Aantal, @TafelNummer, @BestelTijd);";
+            INSERT INTO {Table} (GebruikerID, MenuItemID, Aantal, TafelNummer, BestelTijd, Status)
+            VALUES (@GebruikerID, @MenuItemID, @Aantal, @TafelNummer, @BestelTijd, @Status);";
 
         db.Connection.Execute(sql, bestelling);
     }
@@ -32,8 +32,15 @@ public class bestellingAccess
         string sql = $@"
             UPDATE {Table}
             SET Status = @NieuweStatus
-            WHERE ID = @BestellingID;";
+            WHERE ID = @ID;";
 
-        db.Connection.Execute(sql, new { NieuweStatus = nieuweStatus, BestellingID = bestellingId });
+        db.Connection.Execute(sql, new { NieuweStatus = nieuweStatus, ID = bestellingId });
     }
+
+    public void DeleteBestelling(int bestellingId)
+    {
+        string sql = $@"DELETE FROM {Table} WHERE ID = @ID;";
+        db.Connection.Execute(sql, new { ID = bestellingId });
+    }
+
 }

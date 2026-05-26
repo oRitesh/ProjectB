@@ -17,4 +17,10 @@ public class BestellingMenuItemAccess
         string sql = $@"SELECT * FROM {Table};";
         return db.Connection.Query<BestellingMenuItem>(sql).ToList();
     }
+
+    public List<BestellingMenuItem> GetBestellingMenuItemsByBestellingId(int bestellingId)
+    {
+        string sql = $@"SELECT * FROM {Table} WHERE BestellingID = @BestellingID;";
+        return db.Connection.Query<BestellingMenuItem>(sql, new { BestellingID = bestellingId }).ToList();
+    }
 }
