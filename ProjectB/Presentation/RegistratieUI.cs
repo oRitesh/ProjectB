@@ -24,17 +24,9 @@ public class RegistratieUI
             "Naam mag niet leeg zijn."
         );
 
-        string email = InputValidatie.ValideerInput(
-            "E-mailadres",
-            x => x.Contains("@") && x.Contains("."),
-            "Ongeldig e-mailadres."
-        );
+        string email = VraagUniekEmail();
 
-        string telefoon = InputValidatie.ValideerInput(
-            "Telefoonnummer",
-            x => x.Length >= 8 && x.All(char.IsDigit),
-            "Telefoonnummer moet minimaal 8 cijfers bevatten en mag geen letters bevatten."
-        );
+        string telefoon = VraagTelefoonMetCheck(ref userExists);
 
         string wachtwoord = InputValidatie.ValideerInput(
             "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
@@ -57,7 +49,8 @@ public class RegistratieUI
         else
         {
             nieuweGebruiker = new Gebruiker(0, 1, naam, email, telefoon, wachtwoord);
-            userAccess.AddUser(nieuweGebruiker);
+            int id = userAccess.AddUser(nieuweGebruiker);
+            nieuweGebruiker.ID = id;
         }
 
         Console.WriteLine();
