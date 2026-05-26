@@ -6,12 +6,12 @@ public class MenuItem
     public decimal Prijs { get; set; }
     public string Beschrijving { get; set; }
     public string Allergeen { get; set; }
-    public string BereidingsTijd { get; set; }
+    public int BereidingsTijd { get; set; }
 
     public MenuItem()
     {
     }
-    public MenuItem(int id, int menuCatogorieID, string naam, int prijs, string beschrijving, string allergeen, string bereidingsTijd)
+    public MenuItem(int id, int menuCatogorieID, string naam, int prijs, string beschrijving, string allergeen, int bereidingsTijd)
     {
         ID = id;
         MenuCatogorieID = menuCatogorieID;
