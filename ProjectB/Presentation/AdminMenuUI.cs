@@ -47,6 +47,8 @@ public class AdminMenuUI
             "Wijzig menukaart",
             "Bekijk alle reserveringen",
             "Bekijk reserveringen per tijdslot",
+            "Bekijk alle bestellingen",
+            "Wijzig bestelling status",
             "Terug naar hoofdmenu"
         };
 
@@ -59,6 +61,8 @@ public class AdminMenuUI
                 case "Wijzig menukaart": EditMenu(); break;
                 case "Bekijk alle reserveringen": ViewReservations(); break;
                 case "Bekijk reserveringen per tijdslot": ViewReservationsPerTimeSlot(); break;
+                case "Bekijk alle bestellingen": BekijkBestellingen(); break;
+                case "Wijzig bestelling status": AanpassenBestellingStatus(); break;
                 case "Terug naar hoofdmenu": return;
                 case null: return;
             }
@@ -128,13 +132,17 @@ public class AdminMenuUI
         Console.Write("Allergenen   : ");
         string allergeen = Console.ReadLine() ?? "";
 
+        Console.Write("Bereidingstijd: ");
+        int bereidingsTijd = int.Parse(Console.ReadLine() ?? "0");
+
         menuItemAccess.AddMenuItem(new MenuItem
         {
             Naam = naam,
             Prijs = prijs,
             MenuCatogorieID = gekozenCat.ID,
             Beschrijving = beschrijving,
-            Allergeen = allergeen
+            Allergeen = allergeen,
+            BereidingsTijd = bereidingsTijd
         });
 
         Console.Clear();
@@ -144,6 +152,7 @@ public class AdminMenuUI
         Console.WriteLine($"  Categorie   : {gekozenCat.Naam}");
         Console.WriteLine($"  Beschrijving: {beschrijving}");
         Console.WriteLine($"  Allergenen  : {allergeen}");
+        Console.WriteLine($"  Bereidingstijd: {bereidingsTijd} minuten");
         Console.WriteLine();
         Console.WriteLine("Druk op een toets om verder te gaan...");
         Console.ReadKey(true);
@@ -201,6 +210,10 @@ public class AdminMenuUI
         input = Console.ReadLine() ?? "";
         string updateAllergeen = string.IsNullOrWhiteSpace(input) ? gekozenItem.Allergeen : input;
 
+        Console.Write($"Bereidingstijd [{gekozenItem.BereidingsTijd}]: ");
+        input = Console.ReadLine() ?? "";
+        int updateBereidingsTijd = string.IsNullOrWhiteSpace(input) ? gekozenItem.BereidingsTijd : int.Parse(input);
+
         menuItemAccess.UpdateMenuItem(new MenuItem
         {
             ID = gekozenItem.ID,
@@ -208,7 +221,8 @@ public class AdminMenuUI
             Prijs = updatePrijs,
             MenuCatogorieID = gekozenCat.ID,
             Beschrijving = updateBeschrijving,
-            Allergeen = updateAllergeen
+            Allergeen = updateAllergeen,
+            BereidingsTijd = updateBereidingsTijd
         });
 
         Console.Clear();
@@ -218,6 +232,7 @@ public class AdminMenuUI
         Console.WriteLine($"  Categorie   : {gekozenCat.Naam}");
         Console.WriteLine($"  Beschrijving: {updateBeschrijving}");
         Console.WriteLine($"  Allergenen  : {updateAllergeen}");
+        Console.WriteLine($"  Bereidingstijd: {updateBereidingsTijd} minuten");
         Console.WriteLine();
         Console.WriteLine("Druk op een toets om verder te gaan...");
         Console.ReadKey(true);
@@ -361,5 +376,13 @@ public class AdminMenuUI
 
         Console.WriteLine("Druk op een toets om terug te gaan...");
         Console.ReadKey(true);
+    }
+
+    public void BekijkBestellingen()
+    {
+    }
+
+    public void AanpassenBestellingStatus()
+    {
     }
 }
