@@ -11,7 +11,7 @@ public class MenuItem
     public MenuItem()
     {
     }
-    public MenuItem(int id, int menuCatogorieID, string naam, int prijs, string beschrijving, string allergeen, int bereidingsTijd)
+    public MenuItem(int id, int menuCatogorieID, string naam, decimal prijs, string beschrijving, string allergeen, int bereidingsTijd)
     {
         ID = id;
         MenuCatogorieID = menuCatogorieID;

@@ -6,12 +6,14 @@ public class Bestelling
     public decimal TotaalPrijs { get; set; }
     public string OphaalTijd { get; set; }
 
-    public Bestelling(int id, int gebruikerID, int gemaaktOp, decimal totaalPrijs, string ophaalTijd)
+    public string Status { get; set; } = "Ontvangen";
+    public Bestelling(int id, int gebruikerID, int gemaaktOp, decimal totaalPrijs, string ophaalTijd, string status)
     {
         ID = id;
         GebruikerID = gebruikerID;
         GemaaktOp = gemaaktOp;
         TotaalPrijs = totaalPrijs;
         OphaalTijd = ophaalTijd;
+        Status = status;
     }
 }
