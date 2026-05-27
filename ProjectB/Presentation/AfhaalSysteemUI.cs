@@ -3,11 +3,15 @@ public class AfhaalSysteemUI
     private readonly AfhaalSysteemLogic logic;
     private readonly MenuService menuService;
     private readonly DatabaseContext db;
-    private readonly int gebruikerID;
+    private int gebruikerID;
+
+    // Gastgegevens
+    private string gastNaam = "";
+    private string gastTelefoon = "";
 
     public AfhaalSysteemUI(DatabaseContext db, Gebruiker gebruiker)
     {
-        logic = new AfhaalSysteemLogic();
+        logic = new AfhaalSysteemLogic(db);
         menuService = new MenuService(db);
         this.db = db;
         this.gebruikerID = gebruiker.ID;
@@ -19,7 +23,6 @@ public class AfhaalSysteemUI
 
         while (bezig)
         {
-            // Toon winkelwagen samenvatting als extraInfo boven het menu
             var categorieen = new List<string>
             {
                 "Voorgerechten",
@@ -100,7 +103,6 @@ public class AfhaalSysteemUI
 
         if (gekozen == null) return;
 
-        // item detail
         Console.Clear();
         Console.WriteLine("==================================");
         Console.WriteLine($"  {gekozen.Naam}");
@@ -111,12 +113,7 @@ public class AfhaalSysteemUI
         Console.WriteLine();
 
         var bevestig = new List<string> { "Toevoegen aan bestelling", "Terug" };
-        string? actie = ArrowMenu.ShowMenu(
-            "",
-            bevestig,
-            x => x,
-            showHeader: false
-        );
+        string? actie = ArrowMenu.ShowMenu("", bevestig, x => x, showHeader: false);
 
         if (actie == "Toevoegen aan bestelling")
         {
@@ -124,7 +121,6 @@ public class AfhaalSysteemUI
         }
     }
 
-    //  true als bestelling is geplaatst (dan stoppen)
     private bool ToonOverzichtEnAfronden()
     {
         if (logic.Winkelwagen.Count == 0)
@@ -136,7 +132,6 @@ public class AfhaalSysteemUI
             return false;
         }
 
-        // Overzicht tonen met optie om item te verwijderen
         while (true)
         {
             var regels = new List<string>();
@@ -166,10 +161,9 @@ public class AfhaalSysteemUI
             if (keuze == "Doorgaan naar afrekenen")
                 break;
 
-            // Item verwijderen
-            int itemBestaat = regels.IndexOf(keuze);
-            if (itemBestaat >= 0 && itemBestaat < logic.Winkelwagen.Count)
-                logic.VerwijderItem(itemBestaat);
+            int index = regels.IndexOf(keuze);
+            if (index >= 0 && index < logic.Winkelwagen.Count)
+                logic.VerwijderItem(index);
 
             if (logic.Winkelwagen.Count == 0)
             {
@@ -181,30 +175,33 @@ public class AfhaalSysteemUI
             }
         }
 
-        // Ophaal tijd kiezen
+        // ⭐ LOGIN / REGISTRATIE / GAST-FLOW TOEGEVOEGD
+        if (gebruikerID == 0)
+        {
+            if (!VraagLoginOfGast())
+                return false;
+        }
+
+        // Ophaaltijd kiezen
         var tijdOpties = logic.GetOphaalTijdOpties();
-        string? ophaalTijd = ArrowMenu.ShowMenu(
-            "OPHAALTIJD KIEZEN",
-            tijdOpties,
-            x => x
-        );
+        string? ophaalTijd = ArrowMenu.ShowMenu("OPHAALTIJD KIEZEN", tijdOpties, x => x);
 
         if (ophaalTijd == null) return false;
 
-        // Opmerking / allergie invoer
+        // Opmerking
         Console.Clear();
         Console.WriteLine("==================================");
         Console.WriteLine("  OPMERKING / ALLERGIEËN");
         Console.WriteLine("==================================");
         Console.WriteLine("Laat een opmerking achter (bijv. allergieën).");
-        Console.WriteLine("Druk gewoon op Enter om over te slaan.");
+        Console.WriteLine("Druk op Enter om over te slaan.");
         Console.WriteLine();
         Console.Write("Opmerking: ");
         Console.CursorVisible = true;
         string opmerking = Console.ReadLine() ?? "";
         Console.CursorVisible = false;
 
-        // Bevestiging tonen
+        // Bevestiging
         Console.Clear();
         Console.WriteLine("==================================");
         Console.WriteLine("  BESTELLINGSOVERZICHT");
@@ -223,17 +220,19 @@ public class AfhaalSysteemUI
         Console.WriteLine();
 
         var bevestig = new List<string> { "Bestelling plaatsen", "Terug" };
-        string? beslissing = ArrowMenu.ShowMenu(
-            "",
-            bevestig,
-            x => x,
-            showHeader: false
-        );
+        string? beslissing = ArrowMenu.ShowMenu("", bevestig, x => x, showHeader: false);
 
         if (beslissing != "Bestelling plaatsen") return false;
 
-        // Bevestiging
-        logic.SlaBestellingOp(db, gebruikerID, ophaalTijd, opmerking);
+        // ⭐ GAST-ID TOEVOEGEN
+        int definitiefID = gebruikerID;
+
+        if (gebruikerID == 0)
+        {
+            definitiefID = logic.VoegGastToe(gastNaam, gastTelefoon);
+        }
+
+        logic.SlaBestellingOp(db, definitiefID, ophaalTijd, opmerking);
 
         Console.Clear();
         Console.WriteLine("==================================");
@@ -247,5 +246,75 @@ public class AfhaalSysteemUI
         Console.ReadKey(true);
 
         return true;
+    }
+
+    // ⭐ LOGIN / REGISTRATIE / GAST
+    private bool VraagLoginOfGast()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("==================================");
+            Console.WriteLine("  INLOGGEN OF ALS GAST Doorgaan?  ");
+            Console.WriteLine("==================================");
+            Console.WriteLine();
+            Console.WriteLine("1. Inloggen");
+            Console.WriteLine("2. Registreren");
+            Console.WriteLine("3. Doorgaan als gast");
+            Console.WriteLine("0. Terug");
+            Console.WriteLine();
+            Console.Write("Maak een keuze: ");
+
+            string? keuze = Console.ReadLine();
+
+            if (keuze == "1" || keuze == "2")
+            {
+                DatabaseContext db2 = new DatabaseContext();
+                UserAccess userAccess = new UserAccess(db2);
+                InlogUI inlogUI = new InlogUI(userAccess);
+                RegistratieUI registratieUI = new RegistratieUI(userAccess);
+
+                Gebruiker? user = null;
+
+                if (keuze == "1")
+                    user = inlogUI.Login();
+                else
+                    user = registratieUI.Registreer();
+
+                if (user != null)
+                {
+                    gebruikerID = user.ID;
+                    db2.Close();
+                    return true;
+                }
+
+                db2.Close();
+            }
+            else if (keuze == "3")
+            {
+                VulGastGegevensIn();
+                return true;
+            }
+            else if (keuze == "0")
+            {
+                return false;
+            }
+            else
+            {
+                Console.WriteLine("Ongeldige keuze. Druk op een toets om opnieuw te proberen...");
+                Console.ReadKey(true);
+            }
+        }
+    }
+
+    private void VulGastGegevensIn()
+    {
+        Console.Clear();
+        Console.WriteLine("=== Gastgegevens ===");
+        Console.Write("Naam: ");
+        gastNaam = Console.ReadLine() ?? "Gast";
+
+        Console.Write("Telefoonnummer: ");
+        gastTelefoon = Console.ReadLine() ?? "Onbekend";
     }
 }
