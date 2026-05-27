@@ -18,13 +18,14 @@ public class bestellingAccess
         return db.Connection.Query<Bestelling>(sql).ToList();
     }
 
-    public void AddBestelling(Bestelling bestelling)
+    public int AddBestelling(Bestelling bestelling)
     {
         string sql = $@"
             INSERT INTO {Table} (GebruikerID, GemaaktOp, TotaalPrijs, OphaalTijd, Status)
-            VALUES (@GebruikerID, @GemaaktOp, @TotaalPrijs, @OphaalTijd, @Status);";
+            VALUES (@GebruikerID, @GemaaktOp, @TotaalPrijs, @OphaalTijd, @Status);
+            SELECT last_insert_rowid();";
 
-        db.Connection.Execute(sql, bestelling);
+        return db.Connection.ExecuteScalar<int>(sql, bestelling);
     }
 
     public void UpdateStatus(int bestellingId, string nieuweStatus)

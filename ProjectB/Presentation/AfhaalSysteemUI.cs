@@ -2,11 +2,15 @@ public class AfhaalSysteemUI
 {
     private readonly AfhaalSysteemLogic logic;
     private readonly MenuService menuService;
+    private readonly DatabaseContext db;
+    private readonly int gebruikerID;
 
-    public AfhaalSysteemUI(DatabaseContext db)
+    public AfhaalSysteemUI(DatabaseContext db, Gebruiker gebruiker)
     {
         logic = new AfhaalSysteemLogic();
         menuService = new MenuService(db);
+        this.db = db;
+        this.gebruikerID = gebruiker.ID;
     }
 
     public void Start()
@@ -229,6 +233,8 @@ public class AfhaalSysteemUI
         if (beslissing != "Bestelling plaatsen") return false;
 
         // Bevestiging
+        logic.SlaBestellingOp(db, gebruikerID, ophaalTijd, opmerking);
+
         Console.Clear();
         Console.WriteLine("==================================");
         Console.WriteLine("  BESTELLING GEPLAATST!");
