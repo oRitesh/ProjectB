@@ -135,7 +135,7 @@ public static class Menu
                 case MainMenuOption.Afhalen:
                     {
                         DatabaseContext db = new DatabaseContext();
-                        AfhaalSysteemUI afhaalUI = new AfhaalSysteemUI(db);
+                        AfhaalSysteemUI afhaalUI = new AfhaalSysteemUI(db, HuidigeGebruiker);
                         afhaalUI.Start();
                         db.Close();
                         break;
