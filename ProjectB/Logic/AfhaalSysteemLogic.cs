@@ -70,7 +70,7 @@ public class AfhaalSysteemLogic
 
         if (snelsteOphaalTijd > laatsteOphaalTijd)
         {
-            return opties; // empty list = no valid pickup options
+            return opties;
         }
 
         if (snelsteOphaalTijd < openingstijd)
