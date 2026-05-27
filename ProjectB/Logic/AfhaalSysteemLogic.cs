@@ -14,6 +14,11 @@ public class AfhaalSysteemLogic
         var bestellingAccess = new bestellingAccess(db);
         var bestellingMenuItemAccess = new BestellingMenuItemAccess(db);
 
+        if (ophaalTijd.StartsWith("Zo snel mogelijk"))
+        {
+            ophaalTijd = BerekenOphaalTijd();
+        }
+
         //maak de bestelling aan en haal het nieuwe ID op
         string status = opmerking.Length > 0 ? $"Ontvangen - {opmerking}" : "Ontvangen";
         var bestelling = new Bestelling(0, gebruikerID, DateTime.Now.ToString("HH:mm"), BerekenTotaal(), ophaalTijd, status);
@@ -26,6 +31,7 @@ public class AfhaalSysteemLogic
             bestellingMenuItemAccess.AddBestellingMenuItem(bestellingMenuItem);
         }
     }
+
 
     public void VoegToe(MenuItem item)
     {
@@ -55,11 +61,28 @@ public class AfhaalSysteemLogic
     public List<string> GetOphaalTijdOpties()
     {
         var opties = new List<string>();
-        opties.Add("Zo snel mogelijk");
 
-        var tijd = DateTime.Now.AddMinutes(15);
+        DateTime vandaag = DateTime.Today;
+        DateTime openingstijd = vandaag.AddHours(17);      // 17:00
+        DateTime laatsteOphaalTijd = vandaag.AddHours(23); // 23:00
 
-        for (int i = 0; i < 16; i++)
+        DateTime snelsteOphaalTijd = DateTime.Parse(BerekenOphaalTijd());
+
+        if (snelsteOphaalTijd > laatsteOphaalTijd)
+        {
+            return opties; // empty list = no valid pickup options
+        }
+
+        if (snelsteOphaalTijd < openingstijd)
+        {
+            snelsteOphaalTijd = openingstijd;
+        }
+
+        opties.Add($"Zo snel mogelijk ({snelsteOphaalTijd:HH:mm})");
+
+        DateTime tijd = snelsteOphaalTijd.AddMinutes(15);
+
+        while (tijd <= laatsteOphaalTijd)
         {
             opties.Add(tijd.ToString("HH:mm"));
             tijd = tijd.AddMinutes(15);
@@ -67,6 +90,7 @@ public class AfhaalSysteemLogic
 
         return opties;
     }
+
     public int VoegGastToe(string naam, string telefoon)
     {
         // Rol 0 = gast (zelfde als bij reserveringen)
@@ -74,4 +98,15 @@ public class AfhaalSysteemLogic
         userAccess.AddUser(gast);
         return gast.ID;
     }   
+
+    public string BerekenOphaalTijd()
+    {
+        int langsteBereidingsTijd = Winkelwagen.Count > 0
+            ? Winkelwagen.Max(x => x.Item.BereidingsTijd)
+            : 0;
+
+        return DateTime.Now
+            .AddMinutes(langsteBereidingsTijd + 15)
+            .ToString("HH:mm");
+    }
 }
