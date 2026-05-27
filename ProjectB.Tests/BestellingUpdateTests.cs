@@ -56,7 +56,7 @@ public sealed class BestellingUpdateTesting
     /// <summary>
     /// Happy Path H2: Gerecht "Pasta Bolognese", Bereidingstijd 20 min, Admin superuser
     /// Expected: Bereidingstijd opgeslagen; gerecht toont 20 min in overzicht
-    /// Test type: System test (integratietest met database)
+    /// Test type: Unit test
     ///
     /// Scenario: Admin voegt bereidingstijd 20 min toe aan bestaand gerecht
     /// Verwacht: Waarde wordt opgeslagen en is later opvraagbaar
