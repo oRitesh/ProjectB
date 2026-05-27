@@ -1,5 +1,5 @@
 using System.Globalization;
-
+using Dapper;
 public class AdminMenuUI
 {
     private readonly MenuItemAccess menuItemAccess;
@@ -7,12 +7,15 @@ public class AdminMenuUI
     private readonly TijdslotAccess tijdslotAccess;
     private readonly MenuCategorieAccess menuCategorieAccess;
 
+    private readonly bestellingAccess BestellingAccess;
+
     public AdminMenuUI()
     {
         this.menuItemAccess = new MenuItemAccess(new DatabaseContext());
         this.tijdslotAccess = new TijdslotAccess(new DatabaseContext());
         this.reserveringAccess = new ReserveringAccess(new DatabaseContext());
         this.menuCategorieAccess = new MenuCategorieAccess(new DatabaseContext());
+        this.BestellingAccess = new bestellingAccess(new DatabaseContext());
     }
 
     // ─────────────────────────────────────────────
@@ -380,9 +383,159 @@ public class AdminMenuUI
 
     public void BekijkBestellingen()
     {
+        Console.Clear();
+        Console.WriteLine("=== ALLE BESTELLINGEN ===\n");
+
+        var bestellingen = BestellingAccess.GetAllBestellingen();
+
+        if (bestellingen.Count == 0)
+        {
+            Console.WriteLine("Er zijn nog geen bestellingen.");
+            Console.ReadKey(true);
+            return;
+        }
+
+        for (int i = 0; i < bestellingen.Count; i++)
+        {
+            var b = bestellingen[i];
+            Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
+        }
+
+        Console.WriteLine("\nKies een bestelling (nummer): ");
+        string? input = Console.ReadLine();
+
+        if (!int.TryParse(input, out int keuze))
+        {
+            Console.WriteLine("Ongeldige invoer.");
+            return;
+        }
+        else if (keuze < 1)
+        {
+            Console.WriteLine("Nummer moet minimaal 1 zijn.");
+            return;
+        }
+        else if (keuze > bestellingen.Count)
+        {
+            Console.WriteLine("Nummer bestaat niet in de lijst.");
+            return;
+        }
+
+
+        var gekozen = bestellingen[keuze - 1];
+
+        var itemAccess = new BestellingMenuItemAccess(new DatabaseContext());
+        var items = itemAccess.GetBestellingMenuItemsByBestellingId(gekozen.ID);
+
+        Console.Clear();
+        Console.WriteLine($"=== BESTELLING {gekozen.ID} ===\n");
+        Console.WriteLine($"Gebruiker ID : {gekozen.GebruikerID}");
+        Console.WriteLine($"Status       : {gekozen.Status}");
+        Console.WriteLine($"Ophaaltijd   : {gekozen.OphaalTijd}");
+        Console.WriteLine($"Prijs  : €{gekozen.TotaalPrijs}\n");
+
+        Console.WriteLine("Bestelde items:");
+        Console.WriteLine("----------------------------------");
+
+        if (items.Count == 0)
+        {
+            Console.WriteLine("Geen items gevonden.");
+        }
+        else
+        {
+            foreach (var item in items)
+            {
+                Console.WriteLine($"ItemID: {item.MenuItemID}\nAantal: {item.Aantal}\nPrijs: €{item.PrijsPerStuk}\n");
+            }
+        }
+
+        Console.WriteLine("\nDruk op een toets om terug te gaan...");
+        Console.ReadKey(true);
     }
 
+
     public void AanpassenBestellingStatus()
+{
+    Console.Clear();
+    Console.WriteLine("=== BESTELLING STATUS WIJZIGEN ===\n");
+
+    var bestellingen = BestellingAccess.GetAllBestellingen();
+
+    if (bestellingen.Count == 0)
     {
+        Console.WriteLine("Er zijn geen bestellingen.");
+        Console.ReadKey(true);
+        return;
     }
+
+    for (int i = 0; i < bestellingen.Count; i++)
+    {
+        var b = bestellingen[i];
+        Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
+    }
+
+    Console.WriteLine("\nKies een bestelling (nummer): ");
+    string? input = Console.ReadLine();
+
+    if (!int.TryParse(input, out int keuze))
+    {
+        Console.WriteLine("Ongeldige invoer.");
+        return;
+    }
+    else if (keuze < 1)
+    {
+        Console.WriteLine("Nummer moet minimaal 1 zijn.");
+        return;
+    }
+    else if (keuze > bestellingen.Count)
+    {
+        Console.WriteLine("Nummer bestaat niet in de lijst.");
+        return;
+    }
+
+    var gekozen = bestellingen[keuze - 1];
+
+    Console.Clear();
+    Console.WriteLine($"=== STATUS WIJZIGEN VOOR BESTELLING #{gekozen.ID} ===\n");
+
+    Console.WriteLine("1. Bezig met bereiden");
+    Console.WriteLine("2. Bestelling bereid");
+    Console.WriteLine("3. Bestelling afgerond (verwijderen)");
+    Console.WriteLine("4. Annuleren\n");
+
+    Console.Write("Kies een optie: ");
+    string? statusInput = Console.ReadLine();
+
+    if (!int.TryParse(statusInput, out int statusKeuze))
+    {
+        Console.WriteLine("Ongeldige invoer.");
+        return;
+    }
+
+    switch (statusKeuze)
+    {
+        case 1:
+            BestellingAccess.UpdateStatus(gekozen.ID, "Bezig met bereiden");
+            break;
+
+        case 2:
+            BestellingAccess.UpdateStatus(gekozen.ID, "Bestelling bereid");
+            break;
+
+        case 3:
+            BestellingAccess.DeleteBestelling(gekozen.ID);
+
+            Console.Clear();
+            Console.WriteLine($"Bestelling #{gekozen.ID} is verwijderd.");
+            Console.ReadKey(true);
+            return;
+
+        default:
+            return;
+    }
+
+    Console.Clear();
+    Console.WriteLine($"Status van bestelling #{gekozen.ID} is bijgewerkt.");
+    Console.ReadKey(true);
+}
+
 }

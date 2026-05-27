@@ -5,6 +5,9 @@ public class BestellingMenuItem
     public int Aantal { get; set; }
     public decimal PrijsPerStuk { get; set; }
 
+    public BestellingMenuItem()
+    {
+    }
     public BestellingMenuItem(int menuItemID, int bestellingID, int aantal, decimal prijsPerStuk)
     {
         MenuItemID = menuItemID;

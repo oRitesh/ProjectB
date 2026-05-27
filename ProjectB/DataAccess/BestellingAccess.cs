@@ -18,13 +18,14 @@ public class bestellingAccess
         return db.Connection.Query<Bestelling>(sql).ToList();
     }
 
-    public void AddBestelling(Bestelling bestelling)
+    public int AddBestelling(Bestelling bestelling)
     {
         string sql = $@"
-            INSERT INTO {Table} (GebruikerID, MenuItemID, Aantal, TafelNummer, BestelTijd)
-            VALUES (@GebruikerID, @MenuItemID, @Aantal, @TafelNummer, @BestelTijd);";
+            INSERT INTO {Table} (GebruikerID, GemaaktOp, TotaalPrijs, OphaalTijd, Status)
+            VALUES (@GebruikerID, @GemaaktOp, @TotaalPrijs, @OphaalTijd, @Status);
+            SELECT last_insert_rowid();";
 
-        db.Connection.Execute(sql, bestelling);
+        return db.Connection.ExecuteScalar<int>(sql, bestelling);
     }
 
     public void UpdateStatus(int bestellingId, string nieuweStatus)
@@ -32,8 +33,18 @@ public class bestellingAccess
         string sql = $@"
             UPDATE {Table}
             SET Status = @NieuweStatus
-            WHERE ID = @BestellingID;";
+            WHERE ID = @ID;";
 
-        db.Connection.Execute(sql, new { NieuweStatus = nieuweStatus, BestellingID = bestellingId });
+        db.Connection.Execute(sql, new { NieuweStatus = nieuweStatus, ID = bestellingId });
     }
+
+    public void DeleteBestelling(int bestellingId)
+    {
+        string sqlMenuItems = @"DELETE FROM BestellingMenuItem WHERE BestellingID = @ID;";
+        db.Connection.Execute(sqlMenuItems, new { ID = bestellingId });
+
+        string sql = $@"DELETE FROM {Table} WHERE ID = @ID;";
+        db.Connection.Execute(sql, new { ID = bestellingId });
+    }
+
 }
