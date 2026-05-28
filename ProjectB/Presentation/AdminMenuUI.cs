@@ -9,13 +9,34 @@ public class AdminMenuUI
 
     private readonly bestellingAccess BestellingAccess;
 
+    private readonly DatabaseContext menuItemDb;
+    private readonly DatabaseContext tijdslotDb;
+    private readonly DatabaseContext reserveringDb;
+    private readonly DatabaseContext menuCategorieDb;
+    private readonly DatabaseContext bestellingDb;
+
     public AdminMenuUI()
     {
-        this.menuItemAccess = new MenuItemAccess(new DatabaseContext());
-        this.tijdslotAccess = new TijdslotAccess(new DatabaseContext());
-        this.reserveringAccess = new ReserveringAccess(new DatabaseContext());
-        this.menuCategorieAccess = new MenuCategorieAccess(new DatabaseContext());
-        this.BestellingAccess = new bestellingAccess(new DatabaseContext());
+        this.menuItemDb = new DatabaseContext();
+        this.tijdslotDb = new DatabaseContext();
+        this.reserveringDb = new DatabaseContext();
+        this.menuCategorieDb = new DatabaseContext();
+        this.bestellingDb = new DatabaseContext();
+
+        this.menuItemAccess = new MenuItemAccess(menuItemDb);
+        this.tijdslotAccess = new TijdslotAccess(tijdslotDb);
+        this.reserveringAccess = new ReserveringAccess(reserveringDb);
+        this.menuCategorieAccess = new MenuCategorieAccess(menuCategorieDb);
+        this.BestellingAccess = new bestellingAccess(bestellingDb);
+    }
+
+    ~AdminMenuUI()
+    {
+        menuItemDb?.Close();
+        tijdslotDb?.Close();
+        reserveringDb?.Close();
+        menuCategorieDb?.Close();
+        bestellingDb?.Close();
     }
 
     // ─────────────────────────────────────────────

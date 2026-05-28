@@ -37,9 +37,17 @@ public class MenuItemAccess
     {
         string sql = $@"
             INSERT INTO {Table} (Naam, Prijs, MenuCatogorieID, Beschrijving, allergeen, Bereidingstijd)
-            VALUES (@Naam, @Prijs, @MenuCatogorieID, @Beschrijving, @Allergeen, @Bereidingstijd);";
+            VALUES (@Naam, @Prijs, @MenuCatogorieID, @Beschrijving, @Allergeen, @BereidingsTijd);";
 
-        db.Connection.Execute(sql, item);
+        db.Connection.Execute(sql, new 
+        { 
+            item.Naam, 
+            item.Prijs, 
+            item.MenuCatogorieID, 
+            item.Beschrijving, 
+            item.Allergeen, 
+            item.BereidingsTijd 
+        });
     }
 
     public void UpdateMenuItem(MenuItem item)
@@ -47,10 +55,19 @@ public class MenuItemAccess
         string sql = $@"
             UPDATE {Table}
             SET Naam = @Naam, Prijs = @Prijs, MenuCatogorieID = @MenuCatogorieID,
-                Beschrijving = @Beschrijving, Allergeen = @Allergeen, Bereidingstijd = @Bereidingstijd
+                Beschrijving = @Beschrijving, Allergeen = @Allergeen, Bereidingstijd = @BereidingsTijd
             WHERE ID = @ID;";
 
-        db.Connection.Execute(sql, item);
+        db.Connection.Execute(sql, new 
+        { 
+            item.Naam, 
+            item.Prijs, 
+            item.MenuCatogorieID, 
+            item.Beschrijving, 
+            item.Allergeen, 
+            item.BereidingsTijd, 
+            item.ID 
+        });
     }
 
     public void DeleteMenuItem(int id)
