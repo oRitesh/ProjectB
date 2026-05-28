@@ -95,8 +95,8 @@ public class AfhaalSysteemLogic
     {
         // Rol 0 = gast (zelfde als bij reserveringen)
         var gast = new Gebruiker(0, naam, telefoon);
-        userAccess.AddUser(gast);
-        return gast.ID;
+        int nieuweGebruikerID = userAccess.AddUser(gast);
+        return nieuweGebruikerID;
     }   
 
     public string BerekenOphaalTijd()
