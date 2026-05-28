@@ -7,7 +7,7 @@ public static class InputValidatie
     {
         while (true)
         {
-            if (label is not "Wachtwoord" || label is not "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)")
+            if (label is not ("Wachtwoord" or "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)"))
             {
                 Console.Write($"{label}: ");
                 string? input = Console.ReadLine();
