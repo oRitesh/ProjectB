@@ -90,7 +90,7 @@ public class AfhaalSysteemUI
         MenuItem? gekozen = ArrowMenu.ShowMenu(
             titel,
             items,
-            x => $"{x.Naam}  -  €{x.Prijs:0.00}",
+            x => $"{x.Naam}  -  €{x.Prijs:0.00}  -  {x.BereidingsTijd} min",
             () =>
             {
                 if (logic.Winkelwagen.Count > 0)
