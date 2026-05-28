@@ -40,6 +40,9 @@ public class bestellingAccess
 
     public void DeleteBestelling(int bestellingId)
     {
+        string sqlMenuItems = @"DELETE FROM BestellingMenuItem WHERE BestellingID = @ID;";
+        db.Connection.Execute(sqlMenuItems, new { ID = bestellingId });
+
         string sql = $@"DELETE FROM {Table} WHERE ID = @ID;";
         db.Connection.Execute(sql, new { ID = bestellingId });
     }

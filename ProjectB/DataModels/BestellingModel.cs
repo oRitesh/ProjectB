@@ -7,6 +7,10 @@ public class Bestelling
     public string OphaalTijd { get; set; }
 
     public string Status { get; set; } = "Ontvangen";
+
+    public Bestelling()
+    {
+    }
     public Bestelling(int id, int gebruikerID, string gemaaktOp, decimal totaalPrijs, string ophaalTijd, string status)
     {
         ID = id;

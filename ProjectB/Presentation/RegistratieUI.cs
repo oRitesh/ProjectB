@@ -24,17 +24,9 @@ public class RegistratieUI
             "Naam mag niet leeg zijn."
         );
 
-        string email = InputValidatie.ValideerInput(
-            "E-mailadres",
-            x => x.Contains("@") && x.Contains("."),
-            "Ongeldig e-mailadres."
-        );
+        string email = VraagUniekEmail();
 
-        string telefoon = InputValidatie.ValideerInput(
-            "Telefoonnummer",
-            x => x.Length >= 8 && x.All(char.IsDigit),
-            "Telefoonnummer moet minimaal 8 cijfers bevatten en mag geen letters bevatten."
-        );
+        string telefoon = VraagTelefoonMetCheck(ref userExists);
 
         string wachtwoord = InputValidatie.ValideerInput(
             "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
@@ -51,7 +43,18 @@ public class RegistratieUI
             Console.WriteLine();
             Console.WriteLine("We hebben uw gegevens gevonden van een eerdere reservering.");
             Console.WriteLine("Uw gast-account wordt omgezet naar een officieel account...");
-            nieuweGebruiker = userAccess.ChangeRole(telefoon, naam, 1, email, wachtwoord);
+
+            var result = userAccess.ChangeRole(telefoon, naam, 1, email, wachtwoord);
+
+            if (result == null)
+            {
+                Console.WriteLine("Kon gast-account niet omzetten naar een echt account.");
+                return null;
+            }
+
+            nieuweGebruiker = result;
+
+
             Console.WriteLine("Account succesvol bijgewerkt!");
         }
         else
@@ -103,6 +106,7 @@ public class RegistratieUI
             );
 
             var checkUser = userAccess.GetUserByPhoneNumber(telefoon);
+
             if (checkUser != null && checkUser.Rol == 1)
             {
                 Console.WriteLine();

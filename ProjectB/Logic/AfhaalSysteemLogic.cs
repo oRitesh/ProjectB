@@ -1,5 +1,12 @@
 public class AfhaalSysteemLogic
 {
+    private readonly UserAccess userAccess;
+    public AfhaalSysteemLogic(DatabaseContext db)
+    {
+        userAccess = new UserAccess(db);
+    }
+
+
     public List<(MenuItem Item, int Aantal)> Winkelwagen { get; private set; } = new();
 
     public void SlaBestellingOp(DatabaseContext db, int gebruikerID, string ophaalTijd, string opmerking)
@@ -60,4 +67,11 @@ public class AfhaalSysteemLogic
 
         return opties;
     }
+    public int VoegGastToe(string naam, string telefoon)
+    {
+        // Rol 0 = gast (zelfde als bij reserveringen)
+        var gast = new Gebruiker(0, naam, telefoon);
+        userAccess.AddUser(gast);
+        return gast.ID;
+    }   
 }
