@@ -219,13 +219,13 @@ public class AdminMenuUI
 
         menuItemAccess.UpdateMenuItem(new MenuItem
         {
-            ID = gekozenItem.ID,
             Naam = updateNaam,
             Prijs = updatePrijs,
             MenuCatogorieID = gekozenCat.ID,
             Beschrijving = updateBeschrijving,
             Allergeen = updateAllergeen,
-            BereidingsTijd = updateBereidingsTijd
+            BereidingsTijd = updateBereidingsTijd,
+            ID = gekozenItem.ID
         });
 
         Console.Clear();
