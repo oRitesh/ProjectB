@@ -24,10 +24,8 @@ public class RegistratieUI
             "Naam mag niet leeg zijn."
         );
 
-        // ✔ Gebruik unieke e-mail check
         string email = VraagUniekEmail();
 
-        // ✔ Gebruik telefoon check + gast-detectie
         string telefoon = VraagTelefoonMetCheck(ref userExists);
 
         string wachtwoord = InputValidatie.ValideerInput(
@@ -119,7 +117,6 @@ public class RegistratieUI
             }
             else if (checkUser != null && checkUser.Rol == 0)
             {
-                // ✔ Gast gevonden → omzetten naar echt account
                 userExists = true;
             }
 
