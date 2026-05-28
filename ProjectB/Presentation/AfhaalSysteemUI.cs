@@ -175,7 +175,6 @@ public class AfhaalSysteemUI
             }
         }
 
-        // ⭐ LOGIN / REGISTRATIE / GAST-FLOW TOEGEVOEGD
         if (gebruikerID == 0)
         {
             if (!VraagLoginOfGast())
@@ -224,7 +223,6 @@ public class AfhaalSysteemUI
 
         if (beslissing != "Bestelling plaatsen") return false;
 
-        // ⭐ GAST-ID TOEVOEGEN
         int definitiefID = gebruikerID;
 
         if (gebruikerID == 0)
@@ -248,7 +246,6 @@ public class AfhaalSysteemUI
         return true;
     }
 
-    // ⭐ LOGIN / REGISTRATIE / GAST
     private bool VraagLoginOfGast()
     {
         while (true)
