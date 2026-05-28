@@ -10,13 +10,13 @@ public static class Menu
         Console.WriteLine("==================================");
         Console.WriteLine("         INFORMATIEPAGINA         ");
         Console.WriteLine("==================================");
-        Console.WriteLine("Restaurantnaam : Restaurant B");
+        Console.WriteLine("Restaurantnaam : Het Culinaire Bootje");
         Console.WriteLine("Telefoonnummer : 0612345678");
         Console.WriteLine("Adres          : Witte de Withstraat 12, Rotterdam");
         Console.WriteLine("Openingstijden : Dinsdag t/m zaterdag");
         Console.WriteLine("                  17:00 - 00:00");
         Console.WriteLine();
-        Console.WriteLine("Welkom bij Restaurant B!");
+        Console.WriteLine("Welkom bij Het Culinaire Bootje!");
         Console.WriteLine("Hier kunt u genieten van heerlijk eten");
         Console.WriteLine("en binnenkort eenvoudig reserveren.");
         Console.WriteLine();
@@ -93,15 +93,15 @@ public static class Menu
                 },
                 () =>
                 {
-                    Console.WriteLine("==================================");
-                    Console.WriteLine("     WELKOM BIJ RESTAURANT B      ");
+                    Console.WriteLine("===================================");
+                    Console.WriteLine("  WELKOM BIJ HET CULINAIRE BOOTJE     ");
 
                     if (HuidigeGebruiker.Naam != "gast")
                     {
                         Console.WriteLine($"     Ingelogd als: {HuidigeGebruiker.Naam}");
                     }
 
-                    Console.WriteLine("==================================");
+                    Console.WriteLine("===================================");
                     Console.WriteLine();
                 },
                 false
