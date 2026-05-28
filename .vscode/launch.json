@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug ProjectB",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/ProjectB/bin/Debug/net10.0/ProjectB.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/ProjectB",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}
