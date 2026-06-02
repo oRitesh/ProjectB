@@ -3,42 +3,27 @@ using System.Linq;
 
 public static class InputValidatie
 {
-    public static string ValideerInput(string label, Func<string, bool> validator, string foutmelding)
+    public static string? ValideerInput(string label, Func<string, bool> validator, string foutmelding)
     {
         while (true)
         {
+            string? input;
+
             if (label is not ("Wachtwoord" or "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)"))
-            {
-                Console.Write($"{label}: ");
-                string? input = Console.ReadLine();
-
-                if (!string.IsNullOrWhiteSpace(input) && validator(input))
-                {
-                    return input;
-                }
-
-                Console.WriteLine();
-                Console.WriteLine($"❌ {foutmelding}");
-                Console.WriteLine("Druk op een toets om opnieuw te proberen...");
-                Console.ReadKey(true);
-                Console.Clear();
-            }
+                input = LeesInvoer.LeesInvoerMetEscape($"{label}: ");
             else
-            {
-                Console.Write($"{label}: ");
-                string? input = RandomLogicTools.ReadPassword();
+                input = RandomLogicTools.ReadPassword($"{label}: ");
 
-                if (!string.IsNullOrWhiteSpace(input) && validator(input))
-                {
-                    return input;
-                }
+            if (input == null) return null;
 
-                Console.WriteLine();
-                Console.WriteLine($"❌ {foutmelding}");
-                Console.WriteLine("Druk op een toets om opnieuw te proberen...");
-                Console.ReadKey(true);
-                Console.Clear();
-            }
+            if (!string.IsNullOrWhiteSpace(input) && validator(input))
+                return input;
+
+            Console.WriteLine();
+            Console.WriteLine($"❌ {foutmelding}");
+            Console.WriteLine("Druk op een toets om opnieuw te proberen...");
+            Console.ReadKey(true);
+            Console.Clear();
         }
     }
 }
