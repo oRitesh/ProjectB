@@ -47,4 +47,13 @@ public class bestellingAccess
         db.Connection.Execute(sql, new { ID = bestellingId });
     }
 
+    public void DeleteAllBestellingen()
+    {
+        string sqlMenuItems = @"DELETE FROM BestellingMenuItem;";
+        db.Connection.Execute(sqlMenuItems);
+
+        string sql = $@"DELETE FROM {Table};";
+        db.Connection.Execute(sql);
+    }
+
 }

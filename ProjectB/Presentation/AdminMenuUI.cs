@@ -71,6 +71,7 @@ public class AdminMenuUI
             "Wijzig menukaart",
             "Bekijk alle reserveringen",
             "Bekijk reserveringen per tijdslot",
+            "Wis bestelling geheugen",
             "Bekijk alle bestellingen",
             "Wijzig bestelling status",
             "Terug naar hoofdmenu"
@@ -85,6 +86,7 @@ public class AdminMenuUI
                 case "Wijzig menukaart": EditMenu(); break;
                 case "Bekijk alle reserveringen": ViewReservations(); break;
                 case "Bekijk reserveringen per tijdslot": ViewReservationsPerTimeSlot(); break;
+                case "Wis bestelling geheugen": WisBestellingGeheugen(); break;
                 case "Bekijk alle bestellingen": BekijkBestellingen(); break;
                 case "Wijzig bestelling status": AanpassenBestellingStatus(); break;
                 case "Terug naar hoofdmenu": return;
@@ -465,7 +467,7 @@ public class AdminMenuUI
         {
             foreach (var item in items)
             {
-                Console.WriteLine($"ItemID: {item.MenuItemID}\nAantal: {item.Aantal}\nPrijs: €{item.PrijsPerStuk}\n");
+                Console.WriteLine($"Item naam: {menuItemAccess.GetMenuItemNameById(item.MenuItemID)}\nAantal: {item.Aantal}\nPrijs: €{item.PrijsPerStuk}\n");
             }
         }
 
@@ -475,88 +477,107 @@ public class AdminMenuUI
 
 
     public void AanpassenBestellingStatus()
-{
-    Console.Clear();
-    Console.WriteLine("=== BESTELLING STATUS WIJZIGEN ===\n");
-
-    var bestellingen = BestellingAccess.GetAllBestellingen();
-
-    if (bestellingen.Count == 0)
     {
-        Console.WriteLine("Er zijn geen bestellingen.");
-        Console.ReadKey(true);
-        return;
-    }
+        Console.Clear();
+        Console.WriteLine("=== BESTELLING STATUS WIJZIGEN ===\n");
 
-    for (int i = 0; i < bestellingen.Count; i++)
-    {
-        var b = bestellingen[i];
-        Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
-    }
+        var bestellingen = BestellingAccess.GetAllBestellingen();
 
-    Console.WriteLine("\nKies een bestelling (nummer): ");
-    string? input = Console.ReadLine();
-
-    if (!int.TryParse(input, out int keuze))
-    {
-        Console.WriteLine("Ongeldige invoer.");
-        return;
-    }
-    else if (keuze < 1)
-    {
-        Console.WriteLine("Nummer moet minimaal 1 zijn.");
-        return;
-    }
-    else if (keuze > bestellingen.Count)
-    {
-        Console.WriteLine("Nummer bestaat niet in de lijst.");
-        return;
-    }
-
-    var gekozen = bestellingen[keuze - 1];
-
-    Console.Clear();
-    Console.WriteLine($"=== STATUS WIJZIGEN VOOR BESTELLING #{gekozen.ID} ===\n");
-
-    Console.WriteLine("1. Bezig met bereiden");
-    Console.WriteLine("2. Bestelling bereid");
-    Console.WriteLine("3. Bestelling afgerond (verwijderen)");
-    Console.WriteLine("4. Annuleren\n");
-
-    Console.Write("Kies een optie: ");
-    string? statusInput = Console.ReadLine();
-
-    if (!int.TryParse(statusInput, out int statusKeuze))
-    {
-        Console.WriteLine("Ongeldige invoer.");
-        return;
-    }
-
-    switch (statusKeuze)
-    {
-        case 1:
-            BestellingAccess.UpdateStatus(gekozen.ID, "Bezig met bereiden");
-            break;
-
-        case 2:
-            BestellingAccess.UpdateStatus(gekozen.ID, "Bestelling bereid");
-            break;
-
-        case 3:
-            BestellingAccess.DeleteBestelling(gekozen.ID);
-
-            Console.Clear();
-            Console.WriteLine($"Bestelling #{gekozen.ID} is verwijderd.");
+        if (bestellingen.Count == 0)
+        {
+            Console.WriteLine("Er zijn geen bestellingen.");
             Console.ReadKey(true);
             return;
+        }
 
-        default:
+        for (int i = 0; i < bestellingen.Count; i++)
+        {
+            var b = bestellingen[i];
+            Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
+        }
+
+        Console.WriteLine("\nKies een bestelling (nummer): ");
+        string? input = Console.ReadLine();
+
+        if (!int.TryParse(input, out int keuze))
+        {
+            Console.WriteLine("Ongeldige invoer.");
             return;
+        }
+        else if (keuze < 1)
+        {
+            Console.WriteLine("Nummer moet minimaal 1 zijn.");
+            return;
+        }
+        else if (keuze > bestellingen.Count)
+        {
+            Console.WriteLine("Nummer bestaat niet in de lijst.");
+            return;
+        }
+
+        var gekozen = bestellingen[keuze - 1];
+
+        Console.Clear();
+        Console.WriteLine($"=== STATUS WIJZIGEN VOOR BESTELLING #{gekozen.ID} ===\n");
+
+        Console.WriteLine("1. Bezig met bereiden");
+        Console.WriteLine("2. Bestelling bereid");
+        Console.WriteLine("3. Bestelling afgerond (verwijderen)");
+        Console.WriteLine("4. Annuleren\n");
+
+        Console.Write("Kies een optie: ");
+        string? statusInput = Console.ReadLine();
+
+        if (!int.TryParse(statusInput, out int statusKeuze))
+        {
+            Console.WriteLine("Ongeldige invoer.");
+            return;
+        }
+
+        switch (statusKeuze)
+        {
+            case 1:
+                BestellingAccess.UpdateStatus(gekozen.ID, "Bezig met bereiden");
+                break;
+
+            case 2:
+                BestellingAccess.UpdateStatus(gekozen.ID, "Bestelling bereid");
+                break;
+
+            case 3:
+                BestellingAccess.DeleteBestelling(gekozen.ID);
+
+                Console.Clear();
+                Console.WriteLine($"Bestelling #{gekozen.ID} is verwijderd.");
+                Console.ReadKey(true);
+                return;
+
+            default:
+                return;
+        }
+
+        Console.Clear();
+        Console.WriteLine($"Status van bestelling #{gekozen.ID} is bijgewerkt.");
+        Console.ReadKey(true);
     }
 
-    Console.Clear();
-    Console.WriteLine($"Status van bestelling #{gekozen.ID} is bijgewerkt.");
-    Console.ReadKey(true);
-}
+    public void WisBestellingGeheugen()
+    {
+        Console.Clear();
+        Console.WriteLine("=== BESTELLINGSGEHEUGEN WISSEN ===\n");
+        Console.WriteLine("Weet je zeker dat je alle bestellingen wilt verwijderen?");
+        Console.WriteLine("Deze actie kan niet ongedaan worden gemaakt.\n");
+        Console.WriteLine("1. Ja, wis alle bestellingen");
+        Console.WriteLine("2. Nee, annuleer\n");
+        Console.Write("Kies een optie: ");
+        string? input = Console.ReadLine();
 
+        if (input == "1")
+        {
+            BestellingAccess.DeleteAllBestellingen();
+            Console.Clear();
+            Console.WriteLine("Alle bestellingen zijn verwijderd.");
+            Console.ReadKey(true);
+        }
+    }
 }
