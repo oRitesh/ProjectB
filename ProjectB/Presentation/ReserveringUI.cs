@@ -406,12 +406,11 @@ public class ReserveringUI
 
             Console.WriteLine();
             Console.WriteLine("Typ het tafelnummer en druk op Enter.");
-            Console.WriteLine("Typ /back om terug te gaan.");
-            Console.Write("> ");
+            Console.WriteLine("Druk op Escape om terug te gaan.");
 
-            string? input = Console.ReadLine();
+            string? input = LeesInvoer.LeesInvoerMetEscape("> ");
 
-            if (input == "/back")
+            if (input == null)
             {
                 return null;
             }
