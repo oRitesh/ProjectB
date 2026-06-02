@@ -85,7 +85,12 @@ public class ReserveringUI
                     break;
 
                 case 44: // keuze: inloggen / registreren / als gast
-                    if (VraagLoginOfGast())
+                    bool? loginResultaat = VraagLoginOfGast();
+                    if (loginResultaat == null)
+                    {
+                        stap = 4;
+                    }
+                    else if (loginResultaat == true)
                     {
                         // succesvol ingelogd of geregistreerd
                         stap = 5;
@@ -104,7 +109,7 @@ public class ReserveringUI
                     }
                     else
                     {
-                        stap = 4;
+                        stap = 44;
                     }
                     break;
 
@@ -187,74 +192,56 @@ public class ReserveringUI
         }
     }
 
-    private bool VraagLoginOfGast()
+    private bool? VraagLoginOfGast()
     {
         while (true)
         {
-            Console.Clear();
-            Console.WriteLine("==================================");
-            Console.WriteLine("  INLOGGEN OF ALS GAST Doorgaan?  ");
-            Console.WriteLine("==================================");
-            Console.WriteLine();
-            Console.WriteLine("1. Inloggen");
-            Console.WriteLine("2. Registreren");
-            Console.WriteLine("3. Doorgaan als gast");
-            Console.WriteLine("0. Terug");
-            Console.WriteLine();
-            Console.Write("Maak een keuze: ");
+            var opties = new List<string> { "Inloggen", "Registreren", "Doorgaan als gast" };
 
-            string? keuze = Console.ReadLine();
+            string? keuze = ArrowMenu.ShowMenu(
+                "INLOGGEN OF ALS GAST DOORGAAN?",
+                opties,
+                x => x
+            );
 
-            if (keuze == "1" || keuze == "2")
+            if (keuze == null) return null;
+
+            DatabaseContext db = new DatabaseContext();
+            UserAccess userAccess = new UserAccess(db);
+
+            if (keuze == "Inloggen")
             {
-                DatabaseContext db = new DatabaseContext();
-                UserAccess userAccess = new UserAccess(db);
-                InlogUI inlogUI = new InlogUI(userAccess);
-                RegistratieUI registratieUI = new RegistratieUI(userAccess);
-
-                if (keuze == "1")
+                var user = new InlogUI(userAccess).Login();
+                if (user != null)
                 {
-                    var user = inlogUI.Login();
-                    if (user != null)
-                    {
-                        huidigeGebruiker.ID = user.ID;
-                        huidigeGebruiker.Naam = user.Naam;
-                        huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
-                        huidigeGebruiker.Rol = user.Rol;
-                        db.Close();
-                        return true;
-                    }
+                    huidigeGebruiker.ID = user.ID;
+                    huidigeGebruiker.Naam = user.Naam;
+                    huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
+                    huidigeGebruiker.Rol = user.Rol;
+                    db.Close();
+                    return true;
                 }
-                else if (keuze == "2")
+            }
+            else if (keuze == "Registreren")
+            {
+                var user = new RegistratieUI(userAccess).Registreer();
+                if (user != null)
                 {
-                    var user = registratieUI.Registreer();
-                    if (user != null)
-                    {
-                        huidigeGebruiker.ID = user.ID;
-                        huidigeGebruiker.Naam = user.Naam;
-                        huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
-                        huidigeGebruiker.Rol = user.Rol;
-                        db.Close();
-                        return true;
-                    }
+                    huidigeGebruiker.ID = user.ID;
+                    huidigeGebruiker.Naam = user.Naam;
+                    huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
+                    huidigeGebruiker.Rol = user.Rol;
+                    db.Close();
+                    return true;
                 }
-
+            }
+            else if (keuze == "Doorgaan als gast")
+            {
                 db.Close();
-                // opnieuw vragen als inloggen/registreren mislukt
+                return false;
             }
-            else if (keuze == "3")
-            {
-                return false; // doorgaan als gast
-            }
-            else if (keuze == "0")
-            {
-                return false; // terug naar vorige stap (keuze tafel)
-            }
-            else
-            {
-                Console.WriteLine("Ongeldige keuze. Druk op een toets om opnieuw te proberen...");
-                Console.ReadKey(true);
-            }
+
+            db.Close();
         }
     }
 
