@@ -25,13 +25,9 @@ public class RegistratieUI
         );
         if (naam == null) return null;
 
-        // ✔ Gebruik unieke e-mail check
-        string? email = VraagUniekEmail();
-        if (email == null) return null;
+        string email = VraagUniekEmail();
 
-        // ✔ Gebruik telefoon check + gast-detectie
-        string? telefoon = VraagTelefoonMetCheck(ref userExists);
-        if (telefoon == null) return null;
+        string telefoon = VraagTelefoonMetCheck(ref userExists);
 
         string? wachtwoord = InputValidatie.ValideerInput(
             "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
@@ -126,7 +122,6 @@ public class RegistratieUI
             }
             else if (checkUser != null && checkUser.Rol == 0)
             {
-                // ✔ Gast gevonden → omzetten naar echt account
                 userExists = true;
             }
 
