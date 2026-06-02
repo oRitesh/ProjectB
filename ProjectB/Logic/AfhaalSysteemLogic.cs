@@ -50,7 +50,13 @@ public class AfhaalSysteemLogic
     public void VerwijderItem(int index)
     {
         if (index >= 0 && index < Winkelwagen.Count)
-            Winkelwagen.RemoveAt(index);
+        {
+            var entry = Winkelwagen[index];
+            if (entry.Aantal > 1)
+                Winkelwagen[index] = (entry.Item, entry.Aantal - 1); // verlaag met 1
+            else
+                Winkelwagen.RemoveAt(index); // verwijder helemaal als het de laatste is
+        }
     }
 
     public decimal BerekenTotaal()
@@ -97,7 +103,7 @@ public class AfhaalSysteemLogic
         var gast = new Gebruiker(0, naam, telefoon);
         int nieuweGebruikerID = userAccess.AddUser(gast);
         return nieuweGebruikerID;
-    }   
+    }
 
     public string BerekenOphaalTijd()
     {
