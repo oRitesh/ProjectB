@@ -40,9 +40,15 @@ public class AfhaalSysteemUI
                 x => x,
                 () =>
                 {
+                    int total = 0;
+                    foreach (var (item, aantal) in logic.Winkelwagen)
+                    {
+                        total = total + aantal;
+                    }
+
                     if (logic.Winkelwagen.Count > 0)
                     {
-                        Console.WriteLine($"Winkelwagen: {logic.Winkelwagen.Count} item(s)  |  Totaal: €{logic.BerekenTotaal():0.00}");
+                        Console.WriteLine($"Winkelwagen: {total} item(s)  |  Totaal: €{logic.BerekenTotaal():0.00}");
                         Console.WriteLine();
                     }
                 }
@@ -95,7 +101,13 @@ public class AfhaalSysteemUI
             {
                 if (logic.Winkelwagen.Count > 0)
                 {
-                    Console.WriteLine($"Winkelwagen: {logic.Winkelwagen.Count} item(s)  |  Totaal: €{logic.BerekenTotaal():0.00}");
+                    int total = 0;
+                    foreach (var (item, aantal) in logic.Winkelwagen)
+                    {
+                        total = total + aantal;
+                    }
+
+                    Console.WriteLine($"Winkelwagen: {total} item(s)  |  Totaal: €{logic.BerekenTotaal():0.00}");
                     Console.WriteLine();
                 }
             }
