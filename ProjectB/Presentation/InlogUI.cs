@@ -13,19 +13,22 @@ public class InlogUI
     {
         Console.Clear();
         Console.WriteLine("=== Inloggen ===");
+        Console.WriteLine("Druk op Escape om terug te gaan.");
         Console.WriteLine();
 
-        string email = InputValidatie.ValideerInput(
+        string? email = InputValidatie.ValideerInput(
             "E-mailadres",
             x => x.Contains("@") && x.Contains("."),
             "Ongeldig e-mailadres."
         );
+        if (email == null) return null;
 
-        string wachtwoord = InputValidatie.ValideerInput(
+        string? wachtwoord = InputValidatie.ValideerInput(
             "Wachtwoord",
             x => x.Length > 0,
             "Wachtwoord mag niet leeg zijn."
         );
+        if (wachtwoord == null) return null;
 
         var user = userAccess.GetUserByEmail(email, wachtwoord);
 

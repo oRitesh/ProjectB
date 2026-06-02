@@ -18,25 +18,29 @@ public class RegistratieUI
 
         bool userExists = false;
 
-        string naam = InputValidatie.ValideerInput(
+        string? naam = InputValidatie.ValideerInput(
             "Naam",
             x => x.Length > 0,
             "Naam mag niet leeg zijn."
         );
+        if (naam == null) return null;
 
         // ✔ Gebruik unieke e-mail check
-        string email = VraagUniekEmail();
+        string? email = VraagUniekEmail();
+        if (email == null) return null;
 
         // ✔ Gebruik telefoon check + gast-detectie
-        string telefoon = VraagTelefoonMetCheck(ref userExists);
+        string? telefoon = VraagTelefoonMetCheck(ref userExists);
+        if (telefoon == null) return null;
 
-        string wachtwoord = InputValidatie.ValideerInput(
+        string? wachtwoord = InputValidatie.ValideerInput(
             "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
             x => x.Length >= 8
                  && x.Any(char.IsUpper)
                  && x.Any(char.IsLower),
             "Wachtwoord moet minimaal 8 tekens bevatten, én minstens 1 hoofdletter en 1 kleine letter."
         );
+        if (wachtwoord == null) return null;
 
         Gebruiker nieuweGebruiker;
 

@@ -262,13 +262,35 @@ public class ReserveringUI
     {
         Console.Clear();
         Console.WriteLine("=== Gastgegevens ===");
-        Console.Write("Voer uw naam in: ");
-        gastNaam = Console.ReadLine() ?? "Anoniem";
-        Console.Write("Voer uw telefoonnummer in: ");
-        gastTelefoon = Console.ReadLine() ?? "Onbekend";
+        Console.WriteLine("Druk op Escape om terug te gaan.");
+        Console.WriteLine();
+
+        // Naam validatie
+        string? naam = LeesInvoer.LeesInvoerMetEscape("Voer uw naam in: ");
+        if (naam == null) return false;
+
+        while (string.IsNullOrEmpty(naam))
+        {
+            Console.WriteLine("Naam mag niet leeg zijn. Probeer opnieuw.");
+            naam = LeesInvoer.LeesInvoerMetEscape("Voer uw naam in: ");
+            if (naam == null) return false;
+        }
+
+        // Telefoonnummer validatie
+        string? telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");
+        if (telefoon == null) return false;
+
+        while (string.IsNullOrEmpty(telefoon) || !telefoon.All(char.IsDigit) || telefoon.Length != 10)
+        {
+            Console.WriteLine("Ongeldig telefoonnummer. Voer precies 10 cijfers in.");
+            telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");
+            if (telefoon == null) return false;
+        }
+
+        gastNaam = naam;
+        gastTelefoon = telefoon;
         return true;
     }
-
     public int? KiesAantalPersonen()
     {
         return ArrowMenu.ShowMenu(
