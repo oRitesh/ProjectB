@@ -90,7 +90,7 @@ public class AfhaalSysteemUI
         MenuItem? gekozen = ArrowMenu.ShowMenu(
             titel,
             items,
-            x => $"{x.Naam}  -  €{x.Prijs:0.00}",
+            x => $"{x.Naam}  -  €{x.Prijs:0.00}  -  {x.BereidingsTijd} min",
             () =>
             {
                 if (logic.Winkelwagen.Count > 0)
@@ -182,7 +182,24 @@ public class AfhaalSysteemUI
         }
 
         // Ophaaltijd kiezen
+        // Ophaaltijd kiezen
         var tijdOpties = logic.GetOphaalTijdOpties();
+
+        if (tijdOpties.Count == 0)
+        {
+            Console.Clear();
+            Console.WriteLine("==================================");
+            Console.WriteLine("  RESTAURANT GESLOTEN");
+            Console.WriteLine("==================================");
+            Console.WriteLine();
+            Console.WriteLine("Het restaurant is gesloten voor afhaalbestellingen.");
+            Console.WriteLine();
+            Console.WriteLine("Druk op een toets om terug te gaan...");
+            Console.ReadKey(true);
+
+            return false;
+        }
+
         string? ophaalTijd = ArrowMenu.ShowMenu("OPHAALTIJD KIEZEN", tijdOpties, x => x);
 
         if (ophaalTijd == null) return false;

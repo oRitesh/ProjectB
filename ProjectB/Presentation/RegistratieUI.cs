@@ -60,7 +60,8 @@ public class RegistratieUI
         else
         {
             nieuweGebruiker = new Gebruiker(0, 1, naam, email, telefoon, wachtwoord);
-            userAccess.AddUser(nieuweGebruiker);
+            int id = userAccess.AddUser(nieuweGebruiker);
+            nieuweGebruiker.ID = id;
         }
 
         Console.WriteLine();
