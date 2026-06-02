@@ -84,4 +84,10 @@ public class MenuItemAccess
         string sql = $@"SELECT * FROM {Table} ORDER BY Naam;";
         return db.Connection.Query<MenuItem>(sql).ToList();
     }
+
+    public string GetMenuItemNameById(int id)
+    {
+        string sql = $@"SELECT Naam FROM {Table} WHERE ID = @ID;";
+        return db.Connection.QuerySingleOrDefault<string>(sql, new { ID = id }) ?? "Onbekend";
+    }
 }
