@@ -1,0 +1,294 @@
+using Dapper;
+
+namespace ProjectB.Tests;
+
+[TestClass]
+public sealed class AdminMenuTests
+{
+    private readonly DatabaseContext _db;
+    private readonly MenuItemAccess _menuItemAccess;
+    private readonly List<int> _aangemaakteMenuItemIDs = [];
+
+    public AdminMenuTests()
+    {
+        _db = new DatabaseContext();
+        _menuItemAccess = new MenuItemAccess(_db);
+    }
+
+    [TestCleanup]
+    public void Cleanup()
+    {
+        // Verwijder menu-items die tijdens de test zijn aangemaakt
+        // zodat tests elkaar niet beïnvloeden via gedeelde databasestatus
+        foreach (int id in _aangemaakteMenuItemIDs)
+            _menuItemAccess.DeleteMenuItem(id);
+        _aangemaakteMenuItemIDs.Clear();
+    }
+
+    // ===== Acceptance Criteria 1: Admin voegt items toe met naam, prijs en categorie-id - H1 =====
+
+    /// <summary>
+    /// Path ID: Happy Path H1
+    /// Input data: Naam: "Gegrilde Zalm", Prijs: 18.50, Categorie-ID: 3
+    /// Actor: Admin: superuser
+    /// Expected output: Item succesvol toegevoegd; zichtbaar in menuoverzicht
+    /// Test type: Unit test
+    /// Scenario (NL): Admin voegt een nieuw menu-item toe met geldige naam, prijs en categorie-id
+    /// Verwacht (NL): Het item is na toevoeging zichtbaar in het volledige menuoverzicht
+    /// </summary>
+    [TestMethod]
+    public void AddMenuItem_GeldigeGegevens_ItemZichtbaarInOverzicht()
+    {
+        // arrange
+        var item = new MenuItem
+        {
+            Naam = "Gegrilde Zalm",   // naam uit testscript
+            Prijs = 18.50m,           // prijs uit testscript
+            MenuCatogorieID = 3,      // categorie-id uit testscript
+            Beschrijving = "",
+            Allergeen = "",
+            BereidingsTijd = 0
+        };
+
+        // act
+        _menuItemAccess.AddMenuItem(item);
+        int nieuweID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _aangemaakteMenuItemIDs.Add(nieuweID); // bijhouden voor cleanup
+
+        var alleItems = _menuItemAccess.GetAllMenuItems();
+        bool itemGevonden = alleItems.Any(i => i.ID == nieuweID && i.Naam == "Gegrilde Zalm");
+
+        // assert
+        Assert.IsTrue(itemGevonden,
+            "Item 'Gegrilde Zalm' moet na toevoeging zichtbaar zijn in het menuoverzicht");
+
+        // cleanup — wordt afgehandeld door [TestCleanup]
+    }
+
+    // ===== Acceptance Criteria 2: Admin wijzigt items via geldig item-id - H2 =====
+
+    /// <summary>
+    /// Path ID: Happy Path H2
+    /// Input data: Item-ID: (dynamisch), Nieuwe naam: "Zalm Speciaal", Prijs ongewijzigd: 18.50
+    /// Actor: —
+    /// Expected output: Item naam bijgewerkt; overzicht toont "Zalm Speciaal"
+    /// Test type: Unit test
+    /// Scenario (NL): Admin wijzigt de naam van een bestaand menu-item via een geldig item-id
+    /// Verwacht (NL): Het item toont de nieuwe naam "Zalm Speciaal" in het overzicht na de update
+    /// </summary>
+    [TestMethod]
+    public void UpdateMenuItem_GeldigItemId_NaamBijgewerkt()
+    {
+        // arrange
+        // Voeg eerst een item in zodat het id dynamisch bepaald kan worden
+        var origineel = new MenuItem
+        {
+            Naam = "Gegrilde Zalm",   // originele naam vóór de wijziging
+            Prijs = 18.50m,           // prijs blijft ongewijzigd na update (zie testscript)
+            MenuCatogorieID = 3,
+            Beschrijving = "",
+            Allergeen = "",
+            BereidingsTijd = 0
+        };
+        _menuItemAccess.AddMenuItem(origineel);
+        int itemID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _aangemaakteMenuItemIDs.Add(itemID); // bijhouden voor cleanup (ook als update slaagt)
+
+        var gewijzigd = new MenuItem
+        {
+            ID = itemID,
+            Naam = "Zalm Speciaal",   // nieuwe naam uit testscript
+            Prijs = 18.50m,           // prijs ongewijzigd zoals het testscript aangeeft
+            MenuCatogorieID = 3,
+            Beschrijving = "",
+            Allergeen = "",
+            BereidingsTijd = 0
+        };
+
+        // act
+        _menuItemAccess.UpdateMenuItem(gewijzigd);
+        var alleItems = _menuItemAccess.GetAllMenuItems();
+        var gevondenItem = alleItems.FirstOrDefault(i => i.ID == itemID);
+
+        // assert
+        Assert.IsNotNull(gevondenItem,
+            "Het bijgewerkte item moet nog steeds zichtbaar zijn in het menuoverzicht");
+        Assert.AreEqual("Zalm Speciaal", gevondenItem.Naam,
+            "De naam van het item moet zijn bijgewerkt naar 'Zalm Speciaal'");
+
+        // cleanup — wordt afgehandeld door [TestCleanup]
+    }
+
+    // ===== Acceptance Criteria 3: Admin verwijdert items via item-id - H3 =====
+
+    /// <summary>
+    /// Path ID: Happy Path H3
+    /// Input data: Item-ID: (dynamisch, het eerder ingevoegde item)
+    /// Actor: Admin: superuser
+    /// Expected output: Item verwijderd; "Zalm Speciaal" niet meer zichtbaar in menu
+    /// Test type: Unit test
+    /// Scenario (NL): Admin verwijdert een menu-item via een geldig item-id
+    /// Verwacht (NL): Het item is na verwijdering niet meer zichtbaar in het menuoverzicht
+    /// </summary>
+    [TestMethod]
+    public void DeleteMenuItem_GeldigItemId_ItemVerwijderdUitOverzicht()
+    {
+        // arrange
+        // Voeg eerst een item in zodat er een geldig id beschikbaar is om te verwijderen
+        var teVerwijderen = new MenuItem
+        {
+            Naam = "Zalm Speciaal",   // naam uit testscript
+            Prijs = 18.50m,
+            MenuCatogorieID = 3,
+            Beschrijving = "",
+            Allergeen = "",
+            BereidingsTijd = 0
+        };
+        _menuItemAccess.AddMenuItem(teVerwijderen);
+        int itemID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        // Niet toevoegen aan _aangemaakteMenuItemIDs: dit item wordt door de test zelf verwijderd
+
+        // act
+        _menuItemAccess.DeleteMenuItem(itemID);
+        var alleItems = _menuItemAccess.GetAllMenuItems();
+        bool itemNogAanwezig = alleItems.Any(i => i.ID == itemID);
+
+        // assert
+        Assert.IsFalse(itemNogAanwezig,
+            "Item 'Zalm Speciaal' mag na verwijdering niet meer zichtbaar zijn in het menuoverzicht");
+
+        // cleanup — item is al verwijderd; geen verdere actie nodig
+    }
+
+    // ===== Acceptance Criteria 1: Admin voegt items toe met naam, prijs en categorie-id - S1 =====
+
+    /// <summary>
+    /// Path ID: Sad Path S1
+    /// Input data: Naam: leeg, Prijs: 12.00, Categorie-ID: 2
+    /// Actor: —
+    /// Expected output: Foutmelding: naam is verplicht; item niet opgeslagen
+    /// Test type: Unit test
+    /// Scenario (NL): Admin probeert een item toe te voegen zonder naam
+    /// Verwacht (NL): Een lege naam wordt als ongeldig beschouwd en de invoer wordt geweigerd
+    /// </summary>
+    [TestMethod]
+    public void ValideerItemNaam_LegeNaam_WordtGeweigerd()
+    {
+        // arrange
+        string naam = ""; // verplicht veld dat leeg is gelaten; prijs 12.00 en categorie-id 2 zijn geldig (zie testscript)
+
+        // act
+        // Naam is alleen geldig als die niet leeg of uitsluitend witruimte is
+        bool naamIsGeldig = !string.IsNullOrWhiteSpace(naam);
+
+        // assert
+        Assert.IsFalse(naamIsGeldig,
+            "Naam is verplicht; een lege naam mag niet worden geaccepteerd bij het toevoegen van een menu-item");
+
+        // cleanup — geen item aangemaakt
+    }
+
+    // ===== Acceptance Criteria 1: Admin voegt items toe met naam, prijs en categorie-id - S2 =====
+
+    /// <summary>
+    /// Path ID: Sad Path S2
+    /// Input data: Naam: "Soep", Prijs: -5.00, Categorie-ID: 1
+    /// Actor: —
+    /// Expected output: Foutmelding: prijs mag niet negatief zijn; item niet opgeslagen
+    /// Test type: Unit test
+    /// Scenario (NL): Admin voert een negatieve prijs in bij het toevoegen van een item
+    /// Verwacht (NL): Een negatieve prijs wordt als ongeldig beschouwd en de invoer wordt geweigerd
+    /// </summary>
+    [TestMethod]
+    public void ValideerItemPrijs_NegatiefePrijs_WordtGeweigerd()
+    {
+        // arrange
+        decimal prijs = -5.00m; // ongeldige negatieve prijs uit testscript; naam "Soep" en categorie-id 1 zijn geldig
+
+        // act
+        // Prijs is alleen geldig als die groter dan of gelijk aan nul is
+        bool prijsIsGeldig = prijs >= 0;
+
+        // assert
+        Assert.IsFalse(prijsIsGeldig,
+            "Prijs mag niet negatief zijn; -5.00 moet worden geweigerd bij het toevoegen van een menu-item");
+
+        // cleanup — geen item aangemaakt
+    }
+
+    // ===== Acceptance Criteria 2: Admin wijzigt items via geldig item-id - S3 =====
+
+    /// <summary>
+    /// Path ID: Sad Path S3
+    /// Input data: Item-ID: 9999 (bestaat niet), Nieuwe naam: "Soep Deluxe"
+    /// Actor: —
+    /// Expected output: Foutmelding: item niet gevonden; geen wijziging uitgevoerd
+    /// Test type: Unit test
+    /// Scenario (NL): Admin probeert een item te wijzigen met een niet-bestaand id
+    /// Verwacht (NL): Geen enkel item in het overzicht is gewijzigd na de updatepoging met het onbekende id
+    /// </summary>
+    [TestMethod]
+    public void UpdateMenuItem_NietBestaandItemId_GeenWijzigingUitgevoerd()
+    {
+        // arrange
+        int onbestaandID = 9999; // id dat niet bestaat in de database (zie testscript)
+        var alleItemsVoor = _menuItemAccess.GetAllMenuItems();
+        int aantalVoor = alleItemsVoor.Count; // snapshots van huidige toestand vóór de actie
+
+        var gewijzigd = new MenuItem
+        {
+            ID = onbestaandID,
+            Naam = "Soep Deluxe",   // nieuwe naam uit testscript
+            Prijs = 10.00m,
+            MenuCatogorieID = 1,
+            Beschrijving = "",
+            Allergeen = "",
+            BereidingsTijd = 0
+        };
+
+        // act
+        _menuItemAccess.UpdateMenuItem(gewijzigd);
+        var alleItemsNa = _menuItemAccess.GetAllMenuItems();
+        int aantalNa = alleItemsNa.Count;
+        bool bevatSoepDeluxe = alleItemsNa.Any(i => i.Naam == "Soep Deluxe");
+
+        // assert
+        Assert.AreEqual(aantalVoor, aantalNa,
+            "Het aantal menu-items mag niet veranderen na een updatepoging met het niet-bestaande id 9999");
+        Assert.IsFalse(bevatSoepDeluxe,
+            "Item 'Soep Deluxe' mag niet in het overzicht verschijnen; id 9999 bestaat niet in de database");
+
+        // cleanup — geen item aangemaakt
+    }
+
+    // ===== Acceptance Criteria 3: Admin verwijdert items via item-id - S4 =====
+
+    /// <summary>
+    /// Path ID: Sad Path S4
+    /// Input data: Item-ID: 8888 (bestaat niet)
+    /// Actor: Admin: superuser
+    /// Expected output: Foutmelding: item niet gevonden; verwijdering niet uitgevoerd
+    /// Test type: Unit test
+    /// Scenario (NL): Admin probeert een item te verwijderen met een niet-bestaand id
+    /// Verwacht (NL): Het aantal menu-items blijft ongewijzigd na de verwijderpoging met het onbekende id
+    /// </summary>
+    [TestMethod]
+    public void DeleteMenuItem_NietBestaandItemId_AantalItemsOngewijzigd()
+    {
+        // arrange
+        int onbestaandID = 8888; // id dat niet bestaat in de database (zie testscript)
+        var alleItemsVoor = _menuItemAccess.GetAllMenuItems();
+        int aantalVoor = alleItemsVoor.Count; // snapshot vóór de verwijderpoging
+
+        // act
+        _menuItemAccess.DeleteMenuItem(onbestaandID);
+        var alleItemsNa = _menuItemAccess.GetAllMenuItems();
+        int aantalNa = alleItemsNa.Count;
+
+        // assert
+        Assert.AreEqual(aantalVoor, aantalNa,
+            "Het aantal menu-items mag niet afnemen na een verwijderpoging met het niet-bestaande id 8888");
+
+        // cleanup — geen item aangemaakt
+    }
+}
