@@ -522,7 +522,7 @@ public class AdminMenuUI
 
         Console.WriteLine("1. Bezig met bereiden");
         Console.WriteLine("2. Bestelling bereid");
-        Console.WriteLine("3. Bestelling afgerond (verwijderen)");
+        Console.WriteLine("3. Bestelling afgerond");
         Console.WriteLine("4. Annuleren\n");
 
         Console.Write("Kies een optie: ");
@@ -545,10 +545,8 @@ public class AdminMenuUI
                 break;
 
             case 3:
-                BestellingAccess.DeleteBestelling(gekozen.ID);
-
                 Console.Clear();
-                Console.WriteLine($"Bestelling #{gekozen.ID} is verwijderd.");
+                Console.WriteLine($"Bestelling #{gekozen.ID} is afgerond.");
                 Console.ReadKey(true);
                 return;
 
