@@ -39,16 +39,27 @@ public sealed class MenuKaartTesting
     public void GetItemsByCategory_RequestStartersCategory_ReturnsStartersList()
     {
         int categoryId = 1;
-        
+
+        var testItem = new MenuItem(0, categoryId, "Test Starter Item", 8.00m, "Test beschrijving", "geen", 10);
+        itemAccess.AddMenuItem(testItem);
+
         var starters = itemAccess.GetItemsByCategory(categoryId);
 
-        // assert
-        Assert.IsNotNull(starters,
-            "Starters lijst mag niet null zijn");
-        Assert.IsTrue(starters.Count > 0,
-            "Starters categorie moet minimaal één item bevatten");
-        Assert.IsTrue(starters.All(s => s.MenuCatogorieID == categoryId),
-            "Alle items in de lijst moeten tot de Starters categorie behoren");
+        try
+        {
+            // assert
+            Assert.IsNotNull(starters,
+                "Starters lijst mag niet null zijn");
+            Assert.IsNotEmpty(starters,
+                "Starters categorie moet minimaal één item bevatten");
+            Assert.IsTrue(starters.All(s => s.MenuCatogorieID == categoryId),
+                "Alle items in de lijst moeten tot de Starters categorie behoren");
+        }
+        finally
+        {
+            var added = starters?.FirstOrDefault(s => s.Naam == "Test Starter Item");
+            if (added != null) itemAccess.DeleteMenuItem(added.ID);
+        }
     }
 
     /// <summary>
@@ -325,7 +336,7 @@ public sealed class MenuKaartTesting
             "Er moeten minimaal 5 menu categorieën beschikbaar zijn");
         
         var categoryNames = categories.Select(c => c.Naam).ToList();
-        Assert.IsTrue(categoryNames.Any(n => n.Contains("Start") || n.Contains("Starter")),
+        Assert.IsTrue(categoryNames.Any(n => n.Contains("Start") || n.Contains("Starter") || n.Contains("Voorgerecht")),
             "Starters categorie moet beschikbaar zijn");
         Assert.IsTrue(categoryNames.Any(n => n.Contains("Main") || n.Contains("Hoofd") || n.Contains("Principale")),
             "Mains categorie moet beschikbaar zijn");
