@@ -181,7 +181,15 @@ public class AdminMenuUI
         string naam = Console.ReadLine() ?? "";
 
         Console.Write("Prijs        : ");
-        decimal prijs = decimal.Parse(Console.ReadLine() ?? "0");
+        string prijsInput = Console.ReadLine() ?? "";
+
+        if (!decimal.TryParse(prijsInput, out decimal prijs) || prijs < 0)
+        {
+            Console.WriteLine("Je kan geen negatieve prijs invoeren.");
+            Console.ReadKey(true);
+            return;
+        }
+
 
         Console.Write("Beschrijving : ");
         string beschrijving = Console.ReadLine() ?? "";
@@ -256,8 +264,21 @@ public class AdminMenuUI
         string updateNaam = string.IsNullOrWhiteSpace(input) ? gekozenItem.Naam : input;
 
         Console.Write($"Prijs        [€{gekozenItem.Prijs:F2}]: ");
-        input = Console.ReadLine() ?? "";
-        decimal updatePrijs = string.IsNullOrWhiteSpace(input) ? gekozenItem.Prijs : decimal.Parse(input);
+        string prijsInput = Console.ReadLine() ?? "";
+
+        decimal updatePrijs;
+
+        if (string.IsNullOrWhiteSpace(prijsInput))
+        {
+            updatePrijs = gekozenItem.Prijs;
+        }
+        else if (!decimal.TryParse(prijsInput, out updatePrijs) || updatePrijs < 0)
+        {
+            Console.WriteLine("Je kan geen negatieve prijs invoeren.");
+            Console.ReadKey(true);
+            return;
+        }
+
 
         Console.Write($"Beschrijving [{gekozenItem.Beschrijving}]: ");
         input = Console.ReadLine() ?? "";
