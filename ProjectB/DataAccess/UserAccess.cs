@@ -80,12 +80,6 @@ public class UserAccess
     {
         string sql = "SELECT Rol FROM Gebruiker WHERE Id = @UserId";
 
-         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
-    }
-
-    public Gebruiker? GetAdminAccount()
-    {
-        string sql = $"SELECT * FROM {table} WHERE Rol = 2 LIMIT 1";
-        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql);
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
     }
 }

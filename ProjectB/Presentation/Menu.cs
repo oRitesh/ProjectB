@@ -60,11 +60,11 @@ public static class Menu
             opties.Add(MainMenuOption.Reserveren);
             opties.Add(MainMenuOption.Afhalen);
 
-            if (HuidigeGebruiker.Naam == "gast")
+            if (HuidigeGebruiker.Rol == 0)
             {
                 opties.Add(MainMenuOption.Login);
             }
-            else if (HuidigeGebruiker.Naam == "Admin")
+            else if (HuidigeGebruiker.Rol == 2 || HuidigeGebruiker.Rol == 3)
             {
                 opties.Add(MainMenuOption.Admin);
             }
@@ -200,7 +200,7 @@ public static class Menu
 
                 case MainMenuOption.Admin:
                     AdminMenuUI adminMenuUI = new AdminMenuUI();
-                    adminMenuUI.ShowAdminMenu();
+                    adminMenuUI.ShowAdminMenu(HuidigeGebruiker.Rol);
                     break;
 
                 case MainMenuOption.Overzicht:

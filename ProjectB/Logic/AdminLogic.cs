@@ -20,9 +20,9 @@ public class AdminLogic
             return;
         }
 
-        if (user.Rol == 2)
+        if (user.Rol == 2 || user.Rol == 3)
         {
-            adminMenuUI.ShowAdminMenu();
+            adminMenuUI.ShowAdminMenu(user.Rol);
         }
         else
         {
