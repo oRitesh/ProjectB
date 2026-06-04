@@ -457,27 +457,27 @@ public class AdminMenuUI
         var items = itemAccess.GetBestellingMenuItemsByBestellingId(gekozen.ID);
 
         Console.Clear();
-        Console.WriteLine($"=== BESTELLING {gekozen.ID} ===\n");
-        Console.WriteLine($"Gebruiker ID : {gekozen.GebruikerID}");
-        Console.WriteLine($"Status       : {gekozen.Status}");
-        Console.WriteLine($"Ophaaltijd   : {gekozen.OphaalTijd}");
-        Console.WriteLine($"Prijs  : €{gekozen.TotaalPrijs}\n");
-
-        Console.WriteLine("Bestelde items:");
-        Console.WriteLine("----------------------------------");
+        Console.WriteLine($"  ┌─ Bestelling #{gekozen.ID} ────────────────────────────");
+        Console.WriteLine($"  │  Gebruiker  : {gekozen.GebruikerID,-28}");
+        Console.WriteLine($"  │  Status     : {gekozen.Status,-28}");
+        Console.WriteLine($"  │  Ophaaltijd : {gekozen.OphaalTijd,-28}");
+        Console.WriteLine($"  │  Totaalprijs: €{gekozen.TotaalPrijs,-27}");
+        Console.WriteLine("   ----------------------------------");
 
         if (items.Count == 0)
         {
-            Console.WriteLine("Geen items gevonden.");
+            Console.WriteLine($"  │  {"Geen items gevonden.",-45}");
         }
         else
         {
             foreach (var item in items)
             {
-                Console.WriteLine($"Item naam: {menuItemAccess.GetMenuItemNameById(item.MenuItemID)}\nAantal: {item.Aantal}\nPrijs: €{item.PrijsPerStuk}\n");
+                string naam = menuItemAccess.GetMenuItemNameById(item.MenuItemID);
+                string regel = $"{naam}:  x{item.Aantal} - €{item.PrijsPerStuk}";
+                Console.WriteLine($"  │  {regel,-45}");
             }
         }
-
+        Console.WriteLine($"  └──────────────────────────────────────────────");
         Console.WriteLine("\nDruk op een toets om terug te gaan...");
         Console.ReadKey(true);
     }
