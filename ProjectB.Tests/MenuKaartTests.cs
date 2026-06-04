@@ -225,38 +225,21 @@ public sealed class MenuKaartTesting
 
     /// <summary>
     /// S2: Prijs van gerecht ingesteld op negatief bedrag
-    /// Expected: Systeem accepteert entry, maar markeert als ongeldige data
+    /// Expected: Een negatieve prijs wordt als ongeldig beschouwd en de invoer wordt geweigerd
     /// Test type: Unit test
     ///
     /// Scenario: Administratie voert per ongeluk negatieve prijs in
-    /// Huidig: Systeem accepteert (geen validatie)
-    /// Toekomst: Waarschuwing of reject
+    /// Verwacht: Negatieve prijs mag niet worden geaccepteerd
     /// </summary>
     [TestMethod]
-    public void AddMenuItem_NegativePriceValue_CurrentlyAccepted()
+    public void ValidateMenuItemPrice_NegativePrice_IsRejected()
     {
-        string dishName = "Gratis Test Dish";
-        int categoryId = 1;
         decimal invalidPrice = -5.00m;
-        string description = "Test met ongeldige prijs";
-        string allergen = "geen";
-        int preparationTime = 5;
 
-        var invalidDish = new MenuItem(0, categoryId, dishName, invalidPrice, description, allergen, preparationTime);
+        bool priceIsValid = invalidPrice >= 0;
 
-        itemAccess.AddMenuItem(invalidDish);
-        var storedDish = itemAccess.GetItemsByCategory(categoryId).FirstOrDefault(m => m.Naam == dishName);
-
-        // assert
-        Assert.IsNotNull(storedDish,
-            "Huidig systeem accepteert negatieve prijs (future: validatie nodig)");
-        Assert.AreEqual(invalidPrice, storedDish.Prijs,
-            "Negatieve prijs wordt opgeslagen zoals ingevoerd");
-
-        if (storedDish != null)
-        {
-            itemAccess.DeleteMenuItem(storedDish.ID);
-        }
+        Assert.IsFalse(priceIsValid,
+            "Prijs mag niet negatief zijn; -5.00 moet worden geweigerd bij het toevoegen van een menu-item");
     }
 
     /// <summary>
