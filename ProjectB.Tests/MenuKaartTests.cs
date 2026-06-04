@@ -2,11 +2,10 @@ namespace ProjectB.Tests;
 
 /// <summary>
 /// Tests voor menukaart beheer: menu items, categorieën en gerelateerde functionaliteit.
-/// Volgt MSTest stijl: [Class]Testing pattern met duidelijke AC-scheiding.
 /// 
 /// Test categories:
-/// - H1-H3: Happy paths (geldige input)
-/// - S1-S3: Sad paths (ongeldige input/edge cases)
+/// - H1-H3: Happy paths
+/// - S1-S3: Sad paths
 /// 
 /// VOORBEREIDING NODIG:
 /// 1. Zorg dat MenuItem model beschikbaar is met alle properties
@@ -28,16 +27,8 @@ public sealed class MenuKaartTesting
         menuService = new MenuService(db);
     }
 
-    [TestCleanup]
-    public void Cleanup()
-    {
-        // Verwijder testdata uit database na elke test
-        // Zodat tests geen invloed op elkaar hebben
-    }
-
-    // ===== Acceptance Criteria 1: Menu Items per Categorie - H1 =====
     /// <summary>
-    /// Happy Path H1: Menu items ophalen voor categorie "Starters" (ID=1)
+    /// H1: Menu items ophalen voor categorie "Starters"
     /// Expected: Alle starters worden opgehaald en gesorteerd op prijs
     /// Test type: Unit test
     ///
@@ -47,10 +38,8 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void GetItemsByCategory_RequestStartersCategory_ReturnsStartersList()
     {
-        // arrange
-        int categoryId = 1; // Starters
+        int categoryId = 1;
         
-        // act
         var starters = itemAccess.GetItemsByCategory(categoryId);
 
         // assert
@@ -62,9 +51,8 @@ public sealed class MenuKaartTesting
             "Alle items in de lijst moeten tot de Starters categorie behoren");
     }
 
-    // ===== Acceptance Criteria 2: Nieuw MenuItem Toevoegen - H2 =====
     /// <summary>
-    /// Happy Path H2: Nieuw gerecht "Soep van de dag" toevoegen aan menu
+    /// H2: Nieuw gerecht "Soep van de dag" toevoegen aan menu
     /// Expected: Item wordt opgeslagen en is opvraagbaar
     /// Test type: Unit test - CRUD Create
     ///
@@ -74,9 +62,8 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void AddMenuItem_CreateNewDishValidData_SuccessfullyStored()
     {
-        // arrange
         string dishName = "Soep van de dag";
-        int categoryId = 1; // Starters
+        int categoryId = 1;
         decimal price = 8.50m;
         string description = "Seizoensgebonden soep";
         string allergen = "geen";
@@ -99,16 +86,14 @@ public sealed class MenuKaartTesting
         Assert.AreEqual(preparationTime, retrievedDish.BereidingsTijd,
             "Bereidingstijd moet correct opgeslagen zijn");
 
-        // cleanup
         if (retrievedDish != null)
         {
             itemAccess.DeleteMenuItem(retrievedDish.ID);
         }
     }
 
-    // ===== Acceptance Criteria 3: MenuItem Bijwerken - H3 =====
     /// <summary>
-    /// Happy Path H3: Prijs van bestaand gerecht "Pasta Carbonara" wijzigen van €12 naar €13
+    /// H3: Prijs van bestaand gerecht "Pasta Carbonara" wijzigen van €12 naar €13
     /// Expected: Prijs wordt bijgewerkt; oud tarief is vervangen
     /// Test type: Unit test - CRUD Update
     ///
@@ -118,9 +103,8 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void UpdateMenuItem_ChangePriceExistingDish_UpdatedSuccessfully()
     {
-        // arrange
         string dishName = "Pasta Test Dish";
-        int categoryId = 2; // Mains
+        int categoryId = 2;
         decimal originalPrice = 12.00m;
         decimal newPrice = 13.50m;
         string description = "Test pasta dish";
@@ -133,7 +117,7 @@ public sealed class MenuKaartTesting
         itemAccess.AddMenuItem(testDish);
         var addedDish = itemAccess.GetItemsByCategory(categoryId).First(m => m.Naam == dishName);
 
-        // act - Update prijs
+        // Update prijs
         addedDish.Prijs = newPrice;
         itemAccess.UpdateMenuItem(addedDish);
         
@@ -146,13 +130,11 @@ public sealed class MenuKaartTesting
         Assert.AreNotEqual(originalPrice, updatedDish.Prijs,
             "Oude prijs mag niet meer zichtbaar zijn");
 
-        // cleanup
         itemAccess.DeleteMenuItem(addedDish.ID);
     }
 
-    // ===== Acceptance Criteria 4: MenuItem Verwijderen - H4 =====
     /// <summary>
-    /// Happy Path H4: Uitverkocht gerecht "Gerookt Zalm" verwijderen uit menu
+    /// H4: Uitverkocht gerecht "Gerookte Zalm" verwijderen uit menu
     /// Expected: Item wordt verwijderd en is niet meer opvraagbaar
     /// Test type: Unit test - CRUD Delete
     ///
@@ -162,9 +144,8 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void DeleteMenuItem_RemoveExistingDish_SuccessfullyDeleted()
     {
-        // arrange
-        string dishName = "Gerookt Zalm Test";
-        int categoryId = 2; // Mains
+        string dishName = "Gerookte Zalm Test";
+        int categoryId = 2;
         var testDish = new MenuItem(0, categoryId, dishName, 18.00m, "Verse gerookte zalm", "vis", 10);
         
         itemAccess.AddMenuItem(testDish);
@@ -181,9 +162,8 @@ public sealed class MenuKaartTesting
             "Verwijderd gerecht mag niet meer in categorie voorkomen");
     }
 
-    // ===== Acceptance Criteria 5: MenuService Categorieën Laden - H5 =====
     /// <summary>
-    /// Happy Path H5: MenuService laadt alle 5 categorieën (Starters, Mains, Desserts, Wines, Drinks)
+    /// H5: MenuService laadt alle 5 categorieën (Starters, Mains, Desserts, Wines, Drinks)
     /// Expected: Elk list property bevat items van de juiste categorie
     /// Test type: Unit test - Service initialization
     ///
@@ -193,7 +173,6 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void MenuService_InitializeService_AllCategoriesLoaded()
     {
-        // arrange & act
         var menuService = new MenuService(db);
 
         // assert
@@ -209,11 +188,10 @@ public sealed class MenuKaartTesting
             "Drinks categorie mag niet null zijn");
     }
 
-    // ===== Acceptance Criteria 1: Allergen Handling - S1 =====
     /// <summary>
-    /// Sad Path S1: Allergen informatie ontbreekt bij nieuw gerecht "Noten Dessert"
+    /// S1: Allergen informatie ontbreekt bij nieuw gerecht "Noten Dessert"
     /// Expected: Systeem stelt allergen in op "onbekend" of markeert als waarschuwing
-    /// Test type: Unit test - Edge case
+    /// Test type: Unit test
     ///
     /// Scenario: Chef vergeet allergen info in te voeren bij nieuw gerecht
     /// Verwacht: Systeem accepteert entry maar markeert als incompleet (future: warning)
@@ -221,17 +199,15 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void AddMenuItem_MissingAllergenInformation_StillAccepted()
     {
-        // arrange
         string dishName = "Noten Dessert Test";
-        int categoryId = 3; // Desserts
+        int categoryId = 3;
         decimal price = 7.00m;
         string description = "Heerlijk dessert";
-        string allergen = "geen"; // Intentioneel onvolledig/generic
+        string allergen = "geen";
         int preparationTime = 8;
 
         var dishWithoutAllergen = new MenuItem(0, categoryId, dishName, price, description, allergen, preparationTime);
 
-        // act
         itemAccess.AddMenuItem(dishWithoutAllergen);
         var storedDish = itemAccess.GetItemsByCategory(categoryId).FirstOrDefault(m => m.Naam == dishName);
 
@@ -241,18 +217,16 @@ public sealed class MenuKaartTesting
         Assert.AreEqual(allergen, storedDish.Allergeen,
             "Allergen veld moet bewaard blijven met ingevulde waarde");
 
-        // cleanup
         if (storedDish != null)
         {
             itemAccess.DeleteMenuItem(storedDish.ID);
         }
     }
 
-    // ===== Acceptance Criteria 2: Prijs Validatie - S2 =====
     /// <summary>
-    /// Sad Path S2: Prijs van gerecht ingesteld op negatief bedrag (-€5)
-    /// Expected: Systeem accepteert entry (huidig), maar markeert als ongeldige data (future)
-    /// Test type: Unit test - Validation edge case
+    /// S2: Prijs van gerecht ingesteld op negatief bedrag
+    /// Expected: Systeem accepteert entry, maar markeert als ongeldige data
+    /// Test type: Unit test
     ///
     /// Scenario: Administratie voert per ongeluk negatieve prijs in
     /// Huidig: Systeem accepteert (geen validatie)
@@ -261,17 +235,15 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void AddMenuItem_NegativePriceValue_CurrentlyAccepted()
     {
-        // arrange
         string dishName = "Gratis Test Dish";
-        int categoryId = 1; // Starters
-        decimal invalidPrice = -5.00m; // Negatieve prijs
+        int categoryId = 1;
+        decimal invalidPrice = -5.00m;
         string description = "Test met ongeldige prijs";
         string allergen = "geen";
         int preparationTime = 5;
 
         var invalidDish = new MenuItem(0, categoryId, dishName, invalidPrice, description, allergen, preparationTime);
 
-        // act
         itemAccess.AddMenuItem(invalidDish);
         var storedDish = itemAccess.GetItemsByCategory(categoryId).FirstOrDefault(m => m.Naam == dishName);
 
@@ -281,37 +253,33 @@ public sealed class MenuKaartTesting
         Assert.AreEqual(invalidPrice, storedDish.Prijs,
             "Negatieve prijs wordt opgeslagen zoals ingevoerd");
 
-        // cleanup
         if (storedDish != null)
         {
             itemAccess.DeleteMenuItem(storedDish.ID);
         }
     }
 
-    // ===== Acceptance Criteria 3: BereidingsTijd Range - S3 =====
     /// <summary>
-    /// Sad Path S3: Bereidingstijd ingesteld op 0 minuten of extreem hoog (999 minuten)
+    /// S3: Bereidingstijd ingesteld op 0 minuten of extreem hoog
     /// Expected: Systeem accepteert waarde, maar duidt potentiële datafouten
-    /// Test type: Unit test - Edge case validation
+    /// Test type: Unit test
     ///
     /// Scenario: Chef voert ongeldige bereidingstijd in
     /// Huidig: Systeem slaat op zonder waarschuwing
-    /// Toekomst: Range validatie (1-120 min aanbevolen)
+    /// Toekomst: Range validatie
     /// </summary>
     [TestMethod]
     public void AddMenuItem_ExtremePreparationTime_CurrentlyAcceptedWithoutValidation()
     {
-        // arrange
         string dishName = "Extreme Time Test";
-        int categoryId = 2; // Mains
+        int categoryId = 2;
         decimal price = 15.00m;
         string description = "Test met extreme bereidingstijd";
         string allergen = "geen";
-        int extremeTime = 999; // Onrealistisch hoog
+        int extremeTime = 999;
 
         var dishWithExtremeTime = new MenuItem(0, categoryId, dishName, price, description, allergen, extremeTime);
 
-        // act
         itemAccess.AddMenuItem(dishWithExtremeTime);
         var storedDish = itemAccess.GetItemsByCategory(categoryId).FirstOrDefault(m => m.Naam == dishName);
 
@@ -321,18 +289,16 @@ public sealed class MenuKaartTesting
         Assert.AreEqual(extremeTime, storedDish.BereidingsTijd,
             "Extreem hoge bereidingstijd wordt opgeslagen zonder validatie");
 
-        // cleanup
         if (storedDish != null)
         {
             itemAccess.DeleteMenuItem(storedDish.ID);
         }
     }
 
-    // ===== Acceptance Criteria 6: Categorie Filtering - H6 =====
     /// <summary>
-    /// Happy Path H6: Items gefilterd per categorie bevatten ALLEEN items van die categorie
+    /// H6: Items gefilterd per categorie bevatten alleen items van die categorie
     /// Expected: Cross-category contamination kan niet voorkomen
-    /// Test type: Unit test - Data integrity
+    /// Test type: Unit test
     ///
     /// Scenario: Systeem controleert dat filtering correct werkt
     /// Verwacht: Geen starters in desserts, geen dranken in hoofdgerechten, etc.
@@ -340,17 +306,14 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void GetItemsByCategory_MultipleCategories_NoDataContamination()
     {
-        // arrange
         int startersId = 1;
         int mainsId = 2;
         int dessertsId = 3;
 
-        // act
         var starters = itemAccess.GetItemsByCategory(startersId);
         var mains = itemAccess.GetItemsByCategory(mainsId);
         var desserts = itemAccess.GetItemsByCategory(dessertsId);
 
-        // assert
         Assert.IsTrue(starters.All(s => s.MenuCatogorieID == startersId),
             "Alle items in Starters moeten categorie ID 1 hebben");
         Assert.IsTrue(mains.All(m => m.MenuCatogorieID == mainsId),
@@ -359,10 +322,9 @@ public sealed class MenuKaartTesting
             "Alle items in Desserts moeten categorie ID 3 hebben");
     }
 
-    // ===== Acceptance Criteria 7: Categorie Beheer - H7 =====
     /// <summary>
-    /// Happy Path H7: Alle beschikbare menucategorieën ophalen
-    /// Expected: Minimaal 5 categorieën beschikbaar (Starters, Mains, Desserts, Wines, Drinks)
+    /// H7: Alle beschikbare menucategorieën ophalen
+    /// Expected: Minimaal 5 categorieën beschikbaar
     /// Test type: Unit test
     ///
     /// Scenario: Admin bekijkt beschikbare categorieën voor beheer
@@ -371,7 +333,6 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void GetAllCategories_RetrieveAllMenuCategories_ContainsExpectedCategories()
     {
-        // arrange & act
         var categories = categorieAccess.GetAllCategories();
 
         // assert
