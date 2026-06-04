@@ -276,6 +276,9 @@ public class AfhaalSysteemUI
         Console.WriteLine($"  Uw bestelling wordt klaargemaakt.");
         Console.WriteLine($"  Ophaaltijd: {ophaalTijd}");
         Console.WriteLine();
+        Console.WriteLine("  Betalen op locatie bij afhalen.");
+        Console.WriteLine($"Totaal: €{logic.BerekenTotaal():0.00}");
+        Console.WriteLine();
         Console.WriteLine("Druk op een toets om terug te gaan naar het hoofdmenu...");
         Console.ReadKey(true);
 
