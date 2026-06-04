@@ -41,6 +41,16 @@ public class RegistratieUI
         );
         if (wachtwoord == null) return null;
 
+
+        string sterren = new string('*', wachtwoord.Length);
+        Console.Clear();
+        string? wachtwoordBevestig = InputValidatie.ValideerInput(
+            $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter): {sterren}\nBevestig wachtwoord",
+            x => x == wachtwoord,
+            "Wachtwoorden komen niet overeen."
+        );
+        if (wachtwoordBevestig == null) return null;
+
         Gebruiker nieuweGebruiker;
 
         if (userExists)
