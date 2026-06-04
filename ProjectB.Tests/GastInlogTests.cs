@@ -7,6 +7,34 @@ public sealed class GastInlogTests
 {
     private readonly DatabaseContext _db;
     private readonly ReservationLogic _logic;
+    private readonly TijdslotAccess _tijdslotAccess;
+
+    [ClassInitialize]
+    public static void SetupDatabase(TestContext _)
+    {
+        var setupDb = new DatabaseContext();
+        setupDb.Connection.Execute(@"
+            CREATE TABLE IF NOT EXISTS OpeningsDag (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                DagVanWeek INTEGER NOT NULL,
+                IsOpen INTEGER NOT NULL
+            )");
+        if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsDag") == 0)
+            for (int i = 0; i <= 6; i++)
+                setupDb.Connection.Execute(
+                    "INSERT INTO OpeningsDag (DagVanWeek, IsOpen) VALUES (@D, 1)", new { D = i });
+
+        setupDb.Connection.Execute(@"
+            CREATE TABLE IF NOT EXISTS OpeningsTijden (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                OpeningsTijd TEXT NOT NULL,
+                SluitingsTijd TEXT NOT NULL
+            )");
+        if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsTijden") == 0)
+            setupDb.Connection.Execute(
+                "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
+        setupDb.Close();
+    }
 
     // Testdata bijhouden voor opruimen na elke test
     private readonly List<int> _aangemaakteGebruikerIDs = [];
@@ -20,9 +48,9 @@ public sealed class GastInlogTests
         _db = new DatabaseContext();
         var reserveringAccess = new ReserveringAccess(_db);
         var tafelAccess = new TafelAccess(_db);
-        var tijdslotAccess = new TijdslotAccess(_db);
+        _tijdslotAccess = new TijdslotAccess(_db);
         var userAccess = new UserAccess(_db);
-        _logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+        _logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
     }
 
     [TestCleanup]
@@ -36,7 +64,7 @@ public sealed class GastInlogTests
         _aangemaakteReserveringIDs.Clear();
 
         foreach (int id in _aangemaakteTijdslotIDs)
-            _logic.TijdslotAccess.DeleteTijdslot(id);
+            _tijdslotAccess.DeleteTijdslot(id);
         _aangemaakteTijdslotIDs.Clear();
 
         foreach (int id in _aangemaakteGebruikerIDs)
@@ -93,11 +121,15 @@ public sealed class GastInlogTests
         int aantalPersonen = 2;
 
         // Maak tijdsloten aan voor de testdatum als die nog niet bestaan
-        var bestaandeTijdsloten = _logic.TijdslotAccess.GetTijdslotenByDatum("2026-06-10");
+        var bestaandeTijdsloten = _tijdslotAccess.GetTijdslotenByDatum("2026-06-10");
         bool nieuweTijdsloten = bestaandeTijdsloten.Count == 0;
-        _logic.MaakTijdslotenVoorDatumAlsNietBestaan(datum);
+        if (nieuweTijdsloten)
+        {
+            foreach (var ts in _logic.MaakTijdslotenVoorDatum(datum))
+                _tijdslotAccess.AddTijdslot(ts);
+        }
 
-        var tijdsloten = _logic.TijdslotAccess.GetTijdslotenByDatum("2026-06-10");
+        var tijdsloten = _tijdslotAccess.GetTijdslotenByDatum("2026-06-10");
         Assert.IsNotEmpty(tijdsloten,
             "Er moeten tijdsloten beschikbaar zijn voor 10-06-2026");
 
