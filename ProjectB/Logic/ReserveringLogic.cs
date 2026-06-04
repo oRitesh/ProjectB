@@ -3,6 +3,8 @@ public class ReservationLogic
     private readonly ReserveringAccess reserveringAccess;
     private readonly TafelAccess tafelAccess;
     private readonly UserAccess userAccess;
+    private readonly OpeningsTijdenAccess openingsTijdenAccess;
+    private readonly OpeningsDagAccess openingsDagAccess;
 
     public ReservationLogic(
         ReserveringAccess reserveringAccess,
@@ -12,6 +14,10 @@ public class ReservationLogic
         this.reserveringAccess = reserveringAccess;
         this.tafelAccess = tafelAccess;
         this.userAccess = userAccess;
+
+        DatabaseContext db = new DatabaseContext();
+        this.openingsTijdenAccess = new OpeningsTijdenAccess(db);
+        this.openingsDagAccess = new OpeningsDagAccess(db);
     }
 
     public ReserveringAccess ReserveringAccess => reserveringAccess;
@@ -39,7 +45,10 @@ public class ReservationLogic
 
         for (DateTime datum = vandaag; datum <= eindDatum; datum = datum.AddDays(1))
         {
-            datums.Add(datum);
+            if (openingsDagAccess.IsOpenOpDatum(datum))
+            {
+                datums.Add(datum);
+            }
         }
 
         return datums;
@@ -55,30 +64,55 @@ public class ReservationLogic
         DateTime vandaag = DateTime.Today;
         DateTime eindDatum = vandaag.AddMonths(1);
 
-        return datum.Date >= vandaag && datum.Date <= eindDatum.Date;
+        return datum.Date >= vandaag
+            && datum.Date <= eindDatum.Date
+            && openingsDagAccess.IsOpenOpDatum(datum);
+    }
+
+    private DateTime CombineDatumEnTijd(DateTime datum, string tijd)
+    {
+        TimeSpan parsedTijd = TimeSpan.Parse(tijd);
+        return datum.Date.Add(parsedTijd);
     }
 
     public List<Tijdslot> MaakTijdslotenVoorDatum(DateTime datum)
     {
         List<Tijdslot> tijdsloten = new List<Tijdslot>();
 
+        if (!openingsDagAccess.IsOpenOpDatum(datum))
+        {
+            return tijdsloten;
+        }
+
+        OpeningsTijden? opening = openingsTijdenAccess.GetOpeningsTijden();
+
+        if (opening == null)
+        {
+            return tijdsloten;
+        }
+
         string datumString = datum.ToString("yyyy-MM-dd");
 
-        DateTime start = datum.Date.AddHours(17);
-        DateTime laatsteStart = datum.Date.AddHours(22);
+        DateTime start = CombineDatumEnTijd(datum, opening.OpeningsTijd);
+        DateTime sluiting = CombineDatumEnTijd(datum, opening.SluitingsTijd);
+
+        if (sluiting <= start)
+        {
+            sluiting = sluiting.AddDays(1);
+        }
+
+        DateTime laatsteStart = sluiting.AddHours(-2);
 
         while (start <= laatsteStart)
         {
             DateTime eind = start.AddHours(2);
 
-            Tijdslot tijdslot = new Tijdslot(
+            tijdsloten.Add(new Tijdslot(
                 0,
                 datumString,
                 start.ToString("yyyy-MM-dd HH:mm:ss"),
                 eind.ToString("yyyy-MM-dd HH:mm:ss")
-            );
-
-            tijdsloten.Add(tijdslot);
+            ));
 
             start = start.AddMinutes(15);
         }

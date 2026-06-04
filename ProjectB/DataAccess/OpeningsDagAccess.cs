@@ -31,27 +31,21 @@ public class OpeningsDagAccess
         );
     }
 
-    public bool IsRestaurantOpenOpDag(DateTime datum)
+    public bool IsOpenOpDatum(DateTime datum)
     {
         int dagVanWeek = (int)datum.DayOfWeek;
+        OpeningsDag? dag = GetOpeningsDagByDagVanWeek(dagVanWeek);
 
-        OpeningsDag? openingsDag = GetOpeningsDagByDagVanWeek(dagVanWeek);
-
-        if (openingsDag == null)
-        {
-            return false;
-        }
-
-        return openingsDag.IsOpen == 1;
+        return dag != null && dag.IsOpen == 1;
     }
 
-    public void UpdateOpeningsDag(OpeningsDag openingsDag)
+    public void UpdateOpeningsDag(OpeningsDag dag)
     {
         string sql = $@"
             UPDATE {Table}
             SET IsOpen = @IsOpen
             WHERE ID = @ID;";
 
-        db.Connection.Execute(sql, openingsDag);
+        db.Connection.Execute(sql, dag);
     }
 }

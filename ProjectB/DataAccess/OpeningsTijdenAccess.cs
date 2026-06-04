@@ -12,15 +12,11 @@ public class OpeningsTijdenAccess
 
     public OpeningsTijden? GetOpeningsTijden()
     {
-        string sql = $@"
-            SELECT * FROM {Table}
-            ORDER BY ID
-            LIMIT 1;";
-
+        string sql = $@"SELECT * FROM {Table} ORDER BY ID LIMIT 1;";
         return db.Connection.QueryFirstOrDefault<OpeningsTijden>(sql);
     }
 
-    public void UpdateOpeningsTijden(OpeningsTijden openingsTijden)
+    public void UpdateOpeningsTijden(OpeningsTijden tijden)
     {
         string sql = $@"
             UPDATE {Table}
@@ -28,6 +24,6 @@ public class OpeningsTijdenAccess
                 SluitingsTijd = @SluitingsTijd
             WHERE ID = @ID;";
 
-        db.Connection.Execute(sql, openingsTijden);
+        db.Connection.Execute(sql, tijden);
     }
 }

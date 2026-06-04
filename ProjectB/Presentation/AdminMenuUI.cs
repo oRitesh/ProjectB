@@ -7,11 +7,14 @@ public class AdminMenuUI
     private readonly ReserveringAccess reserveringAccess;
     private readonly MenuCategorieAccess menuCategorieAccess;
     private readonly bestellingAccess BestellingAccess;
+    private readonly OpeningsTijdenAccess openingsTijdenAccess;
+    private readonly OpeningsDagAccess openingsDagAccess;
 
     private readonly DatabaseContext menuItemDb;
     private readonly DatabaseContext reserveringDb;
     private readonly DatabaseContext menuCategorieDb;
     private readonly DatabaseContext bestellingDb;
+    private readonly DatabaseContext openingsDb;
 
     public AdminMenuUI()
     {
@@ -19,11 +22,14 @@ public class AdminMenuUI
         this.reserveringDb = new DatabaseContext();
         this.menuCategorieDb = new DatabaseContext();
         this.bestellingDb = new DatabaseContext();
+        this.openingsDb = new DatabaseContext();
 
         this.menuItemAccess = new MenuItemAccess(menuItemDb);
         this.reserveringAccess = new ReserveringAccess(reserveringDb);
         this.menuCategorieAccess = new MenuCategorieAccess(menuCategorieDb);
         this.BestellingAccess = new bestellingAccess(bestellingDb);
+        this.openingsTijdenAccess = new OpeningsTijdenAccess(openingsDb);
+        this.openingsDagAccess = new OpeningsDagAccess(openingsDb);
     }
 
     ~AdminMenuUI()
@@ -32,6 +38,7 @@ public class AdminMenuUI
         reserveringDb?.Close();
         menuCategorieDb?.Close();
         bestellingDb?.Close();
+        openingsDb?.Close();
     }
 
     private List<Tijdslot> MaakTijdslotenVoorDatum(DateTime datum)
@@ -89,6 +96,7 @@ public class AdminMenuUI
             "Wis bestelling geheugen",
             "Bekijk alle bestellingen",
             "Wijzig bestelling status",
+            "Wijzig openingstijden",
             "Terug naar hoofdmenu"
         };
 
@@ -104,6 +112,7 @@ public class AdminMenuUI
                 case "Wis bestelling geheugen": WisBestellingGeheugen(); break;
                 case "Bekijk alle bestellingen": BekijkBestellingen(); break;
                 case "Wijzig bestelling status": AanpassenBestellingStatus(); break;
+                case "Wijzig openingstijden": WijzigOpeningstijden(); break;
                 case "Terug naar hoofdmenu": return;
                 case null: return;
             }
@@ -585,5 +594,115 @@ public class AdminMenuUI
             Console.WriteLine("Alle bestellingen zijn verwijderd.");
             Console.ReadKey(true);
         }
+    }
+
+    private void WijzigOpeningstijden()
+    {
+        List<string> opties = new()
+        {
+            "Wijzig openingstijd en sluitingstijd",
+            "Wijzig openingsdagen",
+            "Terug"
+        };
+
+        while (true)
+        {
+            string? keuze = ArrowMenu.ShowMenu("OPENINGSTIJDEN BEHEREN", opties, x => x);
+
+            switch (keuze)
+            {
+                case "Wijzig openingstijd en sluitingstijd":
+                    WijzigOpeningsEnSluitingsTijd();
+                    break;
+
+                case "Wijzig openingsdagen":
+                    WijzigOpeningsDagen();
+                    break;
+
+                case "Terug":
+                case null:
+                    return;
+            }
+        }
+    }
+
+    private void WijzigOpeningsEnSluitingsTijd()
+    {
+        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
+
+        if (tijden == null)
+        {
+            Console.Clear();
+            Console.WriteLine("Geen openingstijden gevonden in de database.");
+            Console.WriteLine("Druk op een toets om terug te gaan...");
+            Console.ReadKey(true);
+            return;
+        }
+
+        Console.Clear();
+        Console.WriteLine("==================================");
+        Console.WriteLine("     OPENINGSTIJDEN WIJZIGEN      ");
+        Console.WriteLine("==================================");
+        Console.WriteLine();
+        Console.WriteLine($"Huidige openingstijd : {tijden.OpeningsTijd}");
+        Console.WriteLine($"Huidige sluitingstijd: {tijden.SluitingsTijd}");
+        Console.WriteLine();
+        Console.Write("Nieuwe openingstijd (HH:mm): ");
+        string nieuweOpening = Console.ReadLine() ?? "";
+
+        Console.Write("Nieuwe sluitingstijd (HH:mm): ");
+        string nieuweSluiting = Console.ReadLine() ?? "";
+
+        if (!TimeSpan.TryParse(nieuweOpening, out _) || !TimeSpan.TryParse(nieuweSluiting, out _))
+        {
+            Console.WriteLine("Ongeldige tijd. Gebruik bijvoorbeeld 17:00 of 00:00.");
+            Console.ReadKey(true);
+            return;
+        }
+
+        tijden.OpeningsTijd = nieuweOpening;
+        tijden.SluitingsTijd = nieuweSluiting;
+
+        openingsTijdenAccess.UpdateOpeningsTijden(tijden);
+
+        Console.WriteLine("Openingstijden bijgewerkt.");
+        Console.ReadKey(true);
+    }
+
+    private void WijzigOpeningsDagen()
+    {
+        while (true)
+        {
+            List<OpeningsDag> dagen = openingsDagAccess.GetAllOpeningsDagen();
+
+            OpeningsDag? gekozenDag = ArrowMenu.ShowMenu(
+                "OPENINGSDAGEN WIJZIGEN",
+                dagen,
+                d => $"{DagNaam(d.DagVanWeek)} - {(d.IsOpen == 1 ? "Open" : "Gesloten")}"
+            );
+
+            if (gekozenDag == null)
+            {
+                return;
+            }
+
+            gekozenDag.IsOpen = gekozenDag.IsOpen == 1 ? 0 : 1;
+            openingsDagAccess.UpdateOpeningsDag(gekozenDag);
+        }
+    }
+
+    private string DagNaam(int dagVanWeek)
+    {
+        return dagVanWeek switch
+        {
+            0 => "Zondag",
+            1 => "Maandag",
+            2 => "Dinsdag",
+            3 => "Woensdag",
+            4 => "Donderdag",
+            5 => "Vrijdag",
+            6 => "Zaterdag",
+            _ => "Onbekend"
+        };
     }
 }
