@@ -189,8 +189,15 @@ public class AfhaalSysteemUI
 
         if (gebruikerID == 0)
         {
-            if (!VraagLoginOfGast())
-                return false;
+            while (true)
+            {
+                var resultaat = VraagLoginOfGast();
+                if (resultaat == null) return false;
+                if (resultaat == true) break;
+
+                // doorgaan als gast
+                if (VulGastGegevensIn()) break;
+            }
         }
 
         // Ophaaltijd kiezen
@@ -275,72 +282,73 @@ public class AfhaalSysteemUI
         return true;
     }
 
-    private bool VraagLoginOfGast()
+    private bool? VraagLoginOfGast()
     {
         while (true)
         {
-            Console.Clear();
-            Console.WriteLine("==================================");
-            Console.WriteLine("  INLOGGEN OF ALS GAST Doorgaan?  ");
-            Console.WriteLine("==================================");
-            Console.WriteLine();
-            Console.WriteLine("1. Inloggen");
-            Console.WriteLine("2. Registreren");
-            Console.WriteLine("3. Doorgaan als gast");
-            Console.WriteLine("0. Terug");
-            Console.WriteLine();
-            Console.Write("Maak een keuze: ");
+            var opties = new List<string> { "Inloggen", "Registreren", "Doorgaan als gast" };
+            string? keuze = ArrowMenu.ShowMenu(
+                "INLOGGEN OF ALS GAST DOORGAAN?",
+                opties,
+                x => x
+            );
 
-            string? keuze = Console.ReadLine();
+            if (keuze == null) return null; // Escape = terug
 
-            if (keuze == "1" || keuze == "2")
+            DatabaseContext db2 = new DatabaseContext();
+            UserAccess userAccess = new UserAccess(db2);
+            Gebruiker? user = null;
+
+            if (keuze == "Inloggen")
+                user = new InlogUI(userAccess).Login();
+            else if (keuze == "Registreren")
+                user = new RegistratieUI(userAccess).Registreer();
+            else if (keuze == "Doorgaan als gast")
             {
-                DatabaseContext db2 = new DatabaseContext();
-                UserAccess userAccess = new UserAccess(db2);
-                InlogUI inlogUI = new InlogUI(userAccess);
-                RegistratieUI registratieUI = new RegistratieUI(userAccess);
-
-                Gebruiker? user = null;
-
-                if (keuze == "1")
-                    user = inlogUI.Login();
-                else
-                    user = registratieUI.Registreer();
-
-                if (user != null)
-                {
-                    gebruikerID = user.ID;
-                    db2.Close();
-                    return true;
-                }
-
                 db2.Close();
-            }
-            else if (keuze == "3")
-            {
-                VulGastGegevensIn();
-                return true;
-            }
-            else if (keuze == "0")
-            {
                 return false;
             }
-            else
+
+            if (user != null)
             {
-                Console.WriteLine("Ongeldige keuze. Druk op een toets om opnieuw te proberen...");
-                Console.ReadKey(true);
+                gebruikerID = user.ID;
+                db2.Close();
+                return true;
             }
+
+            db2.Close();
         }
     }
 
-    private void VulGastGegevensIn()
+    private bool VulGastGegevensIn()
     {
         Console.Clear();
         Console.WriteLine("=== Gastgegevens ===");
-        Console.Write("Naam: ");
-        gastNaam = Console.ReadLine() ?? "Gast";
+        Console.WriteLine("Druk op Escape om terug te gaan.");
+        Console.WriteLine();
 
-        Console.Write("Telefoonnummer: ");
-        gastTelefoon = Console.ReadLine() ?? "Onbekend";
+        string? naam = LeesInvoer.LeesInvoerMetEscape("Voer uw naam in: ");
+        if (naam == null) return false;
+
+        while (string.IsNullOrEmpty(naam))
+        {
+            Console.WriteLine("Naam mag niet leeg zijn. Probeer opnieuw.");
+            naam = LeesInvoer.LeesInvoerMetEscape("Voer uw naam in: ");
+            if (naam == null) return false;
+        }
+
+        string? telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");
+        if (telefoon == null) return false;
+
+        while (string.IsNullOrEmpty(telefoon) || !telefoon.All(char.IsDigit) || telefoon.Length != 10)
+        {
+            Console.WriteLine("Ongeldig telefoonnummer. Voer precies 10 cijfers in.");
+            telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");
+            if (telefoon == null) return false;
+        }
+
+        gastNaam = naam;
+        gastTelefoon = telefoon;
+        return true;
     }
 }

@@ -74,15 +74,16 @@ public class RegistratieUI
         return nieuweGebruiker;
     }
 
-    private string VraagUniekEmail()
+    private string? VraagUniekEmail()
     {
         while (true)
         {
-            string email = InputValidatie.ValideerInput(
+            string? email = InputValidatie.ValideerInput(
                 "E-mailadres",
                 x => x.Contains("@") && x.Contains("."),
                 "Ongeldig e-mailadres."
             );
+            if (email == null) return null;
 
             var checkUser = userAccess.GetUserByEmail(email);
             if (checkUser != null)
@@ -98,15 +99,16 @@ public class RegistratieUI
         }
     }
 
-    private string VraagTelefoonMetCheck(ref bool userExists)
+    private string? VraagTelefoonMetCheck(ref bool userExists)
     {
         while (true)
         {
-            string telefoon = InputValidatie.ValideerInput(
+            string? telefoon = InputValidatie.ValideerInput(
                 "Telefoonnummer",
                 x => x.Length >= 8 && x.All(char.IsDigit),
                 "Telefoonnummer moet minimaal 8 cijfers bevatten en mag geen letters bevatten."
             );
+            if (telefoon == null) return null;
 
             var checkUser = userAccess.GetUserByPhoneNumber(telefoon);
 
