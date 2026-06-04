@@ -1,5 +1,7 @@
 
 
+using System.Collections;
+
 public static class Menu
 {
     private static Gebruiker? HuidigeGebruiker = new Gebruiker(0, 0, "gast", "", "", "");
@@ -117,10 +119,12 @@ public static class Menu
             else if (HuidigeGebruiker.Rol == 2 || HuidigeGebruiker.Rol == 3)
             {
                 opties.Add(MainMenuOption.Admin);
+                opties.Add(MainMenuOption.Loguit);
             }
             else
             {
                 opties.Add(MainMenuOption.Overzicht);
+                opties.Add(MainMenuOption.Loguit);
             }
 
             opties.Add(MainMenuOption.Exit);
@@ -137,6 +141,7 @@ public static class Menu
                     MainMenuOption.Afhalen => "Plaats afhaalbestelling",
                     MainMenuOption.Overzicht => "Overzicht reserveringen",
                     MainMenuOption.Login => "Login / registreer",
+                    MainMenuOption.Loguit => "Loguit",
                     MainMenuOption.Admin => "Open Admin menu",
                     MainMenuOption.Exit => "Afsluiten",
                     _ => ""
@@ -247,6 +252,16 @@ public static class Menu
                         db.Close();
                         break;
                     }
+
+                case MainMenuOption.Loguit:
+                    string? bevestig = ArrowMenu.ShowMenu(
+                        "WEET U ZEKER DAT U WILT UITLOGGEN?",
+                        new List<string> { "Ja, uitloggen", "Nee, annuleer" },
+                        x => x
+                    );
+                    if (bevestig == "Ja, uitloggen")
+                        HuidigeGebruiker = new Gebruiker(0, 0, "gast", "", "", "");
+                    break;
 
                 case MainMenuOption.Admin:
                     AdminMenuUI adminMenuUI = new AdminMenuUI();

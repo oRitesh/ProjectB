@@ -6,6 +6,7 @@ public enum MainMenuOption
     Afhalen,
     Overzicht,
     Login,
+    Loguit,
 
     Admin,
     Exit
