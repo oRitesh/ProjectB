@@ -1,47 +1,72 @@
 using System.Globalization;
 using Dapper;
+
 public class AdminMenuUI
 {
     private readonly MenuItemAccess menuItemAccess;
     private readonly ReserveringAccess reserveringAccess;
-    private readonly TijdslotAccess tijdslotAccess;
     private readonly MenuCategorieAccess menuCategorieAccess;
-
     private readonly bestellingAccess BestellingAccess;
+    private readonly OpeningsTijdenAccess openingsTijdenAccess;
+    private readonly OpeningsDagAccess openingsDagAccess;
 
     private readonly DatabaseContext menuItemDb;
-    private readonly DatabaseContext tijdslotDb;
     private readonly DatabaseContext reserveringDb;
     private readonly DatabaseContext menuCategorieDb;
     private readonly DatabaseContext bestellingDb;
+    private readonly DatabaseContext openingsDb;
 
     public AdminMenuUI()
     {
         this.menuItemDb = new DatabaseContext();
-        this.tijdslotDb = new DatabaseContext();
         this.reserveringDb = new DatabaseContext();
         this.menuCategorieDb = new DatabaseContext();
         this.bestellingDb = new DatabaseContext();
+        this.openingsDb = new DatabaseContext();
 
         this.menuItemAccess = new MenuItemAccess(menuItemDb);
-        this.tijdslotAccess = new TijdslotAccess(tijdslotDb);
         this.reserveringAccess = new ReserveringAccess(reserveringDb);
         this.menuCategorieAccess = new MenuCategorieAccess(menuCategorieDb);
         this.BestellingAccess = new bestellingAccess(bestellingDb);
+        this.openingsTijdenAccess = new OpeningsTijdenAccess(openingsDb);
+        this.openingsDagAccess = new OpeningsDagAccess(openingsDb);
     }
 
     ~AdminMenuUI()
     {
         menuItemDb?.Close();
-        tijdslotDb?.Close();
         reserveringDb?.Close();
         menuCategorieDb?.Close();
         bestellingDb?.Close();
+        openingsDb?.Close();
     }
 
-    // ─────────────────────────────────────────────
-    //  Hulpfunctie: toon één reservering als kaartje
-    // ─────────────────────────────────────────────
+    private List<Tijdslot> MaakTijdslotenVoorDatum(DateTime datum)
+    {
+        List<Tijdslot> tijdsloten = new List<Tijdslot>();
+
+        string datumString = datum.ToString("yyyy-MM-dd");
+
+        DateTime start = datum.Date.AddHours(17);
+        DateTime laatsteStart = datum.Date.AddHours(22);
+
+        while (start <= laatsteStart)
+        {
+            DateTime eind = start.AddHours(2);
+
+            tijdsloten.Add(new Tijdslot(
+                0,
+                datumString,
+                start.ToString("yyyy-MM-dd HH:mm:ss"),
+                eind.ToString("yyyy-MM-dd HH:mm:ss")
+            ));
+
+            start = start.AddMinutes(15);
+        }
+
+        return tijdsloten;
+    }
+
     private void ToonReserveringKaart(Reservering r, int nummer)
     {
         CultureInfo nl = new CultureInfo("nl-NL");
@@ -64,18 +89,26 @@ public class AdminMenuUI
     // ─────────────────────────────────────────────
     //  Hoofdmenu
     // ─────────────────────────────────────────────
-    public void ShowAdminMenu()
+    public void ShowAdminMenu(int rol = 2)
     {
-        List<string> opties = new()
-        {
-            "Wijzig menukaart",
-            "Bekijk alle reserveringen",
-            "Bekijk reserveringen per tijdslot",
-            "Wis bestelling geheugen",
-            "Bekijk alle bestellingen",
-            "Wijzig bestelling status",
-            "Terug naar hoofdmenu"
-        };
+        List<string> opties = new();
+
+        if (rol == 2)
+            opties.Add("Wijzig menukaart");
+
+        opties.Add("Bekijk alle reserveringen");
+        opties.Add("Bekijk reserveringen per tijdslot");
+
+        if (rol == 2)
+            opties.Add("Wis bestelling geheugen");
+
+        opties.Add("Bekijk alle bestellingen");
+        opties.Add("Wijzig bestelling status");
+
+        if (rol == 2)
+            opties.Add("Wijzig openingstijden");
+        opties.Add("Terug naar hoofdmenu");
+
 
         while (true)
         {
@@ -89,15 +122,13 @@ public class AdminMenuUI
                 case "Wis bestelling geheugen": WisBestellingGeheugen(); break;
                 case "Bekijk alle bestellingen": BekijkBestellingen(); break;
                 case "Wijzig bestelling status": AanpassenBestellingStatus(); break;
+                case "Wijzig openingstijden": WijzigOpeningstijden(); break;
                 case "Terug naar hoofdmenu": return;
                 case null: return;
             }
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  Menukaart bewerken
-    // ─────────────────────────────────────────────
     public void EditMenu()
     {
         List<string> opties = new()
@@ -304,9 +335,6 @@ public class AdminMenuUI
         Console.ReadKey(true);
     }
 
-    // ─────────────────────────────────────────────
-    //  Alle reserveringen
-    // ─────────────────────────────────────────────
     public void ViewReservations()
     {
         Console.Clear();
@@ -333,12 +361,13 @@ public class AdminMenuUI
         Console.ReadKey(true);
     }
 
-    // ─────────────────────────────────────────────
-    //  Reserveringen per tijdslot
-    // ─────────────────────────────────────────────
     public void ViewReservationsPerTimeSlot()
     {
-        List<string> datums = tijdslotAccess.GetAllDatums();
+        List<string> datums = reserveringAccess.GetAllReserveringen()
+            .Select(r => DateTime.Parse(r.StartTijd).ToString("yyyy-MM-dd"))
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
 
         if (datums.Count == 0)
         {
@@ -350,18 +379,13 @@ public class AdminMenuUI
         }
 
         string? gekozenDatum = ArrowMenu.ShowMenu("KIES DATUM", datums, x => x);
-        if (gekozenDatum == null) return;
 
-        List<Tijdslot> tijdsloten = tijdslotAccess.GetTijdslotenByDatum(gekozenDatum);
-
-        if (tijdsloten.Count == 0)
+        if (gekozenDatum == null)
         {
-            Console.Clear();
-            Console.WriteLine($"Geen tijdsloten gevonden op {gekozenDatum}.");
-            Console.WriteLine("Druk op een toets om terug te gaan...");
-            Console.ReadKey(true);
             return;
         }
+
+        List<Tijdslot> tijdsloten = MaakTijdslotenVoorDatum(DateTime.Parse(gekozenDatum));
 
         Tijdslot? geselecteerd = ArrowMenu.ShowMenu(
             $"TIJDSLOT  ({gekozenDatum})",
@@ -374,7 +398,10 @@ public class AdminMenuUI
             }
         );
 
-        if (geselecteerd == null) return;
+        if (geselecteerd == null)
+        {
+            return;
+        }
 
         string tijdslotLabel = DateTime.TryParse(geselecteerd.StartTijd, out DateTime sl) ? sl.ToString("HH:mm") : geselecteerd.StartTijd;
         tijdslotLabel += " – " + (DateTime.TryParse(geselecteerd.EindTijd, out DateTime el) ? el.ToString("HH:mm") : geselecteerd.EindTijd);
@@ -386,7 +413,7 @@ public class AdminMenuUI
         Console.WriteLine("==================================");
         Console.WriteLine();
 
-        var reserveringen = reserveringAccess.GetReserveringenVoorDatum(geselecteerd.Datum);
+        var reserveringen = reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(geselecteerd);
 
         if (reserveringen.Count == 0)
         {
@@ -443,7 +470,6 @@ public class AdminMenuUI
             return;
         }
 
-
         var gekozen = bestellingen[keuze - 1];
 
         var itemAccess = new BestellingMenuItemAccess(new DatabaseContext());
@@ -474,7 +500,6 @@ public class AdminMenuUI
         Console.WriteLine("\nDruk op een toets om terug te gaan...");
         Console.ReadKey(true);
     }
-
 
     public void AanpassenBestellingStatus()
     {
@@ -522,7 +547,7 @@ public class AdminMenuUI
 
         Console.WriteLine("1. Bezig met bereiden");
         Console.WriteLine("2. Bestelling bereid");
-        Console.WriteLine("3. Bestelling afgerond (verwijderen)");
+        Console.WriteLine("3. Bestelling afgerond");
         Console.WriteLine("4. Annuleren\n");
 
         Console.Write("Kies een optie: ");
@@ -545,10 +570,8 @@ public class AdminMenuUI
                 break;
 
             case 3:
-                BestellingAccess.DeleteBestelling(gekozen.ID);
-
                 Console.Clear();
-                Console.WriteLine($"Bestelling #{gekozen.ID} is verwijderd.");
+                Console.WriteLine($"Bestelling #{gekozen.ID} is afgerond.");
                 Console.ReadKey(true);
                 return;
 
@@ -579,5 +602,115 @@ public class AdminMenuUI
             Console.WriteLine("Alle bestellingen zijn verwijderd.");
             Console.ReadKey(true);
         }
+    }
+
+    private void WijzigOpeningstijden()
+    {
+        List<string> opties = new()
+        {
+            "Wijzig openingstijd en sluitingstijd",
+            "Wijzig openingsdagen",
+            "Terug"
+        };
+
+        while (true)
+        {
+            string? keuze = ArrowMenu.ShowMenu("OPENINGSTIJDEN BEHEREN", opties, x => x);
+
+            switch (keuze)
+            {
+                case "Wijzig openingstijd en sluitingstijd":
+                    WijzigOpeningsEnSluitingsTijd();
+                    break;
+
+                case "Wijzig openingsdagen":
+                    WijzigOpeningsDagen();
+                    break;
+
+                case "Terug":
+                case null:
+                    return;
+            }
+        }
+    }
+
+    private void WijzigOpeningsEnSluitingsTijd()
+    {
+        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
+
+        if (tijden == null)
+        {
+            Console.Clear();
+            Console.WriteLine("Geen openingstijden gevonden in de database.");
+            Console.WriteLine("Druk op een toets om terug te gaan...");
+            Console.ReadKey(true);
+            return;
+        }
+
+        Console.Clear();
+        Console.WriteLine("==================================");
+        Console.WriteLine("     OPENINGSTIJDEN WIJZIGEN      ");
+        Console.WriteLine("==================================");
+        Console.WriteLine();
+        Console.WriteLine($"Huidige openingstijd : {tijden.OpeningsTijd}");
+        Console.WriteLine($"Huidige sluitingstijd: {tijden.SluitingsTijd}");
+        Console.WriteLine();
+        Console.Write("Nieuwe openingstijd (HH:mm): ");
+        string nieuweOpening = Console.ReadLine() ?? "";
+
+        Console.Write("Nieuwe sluitingstijd (HH:mm): ");
+        string nieuweSluiting = Console.ReadLine() ?? "";
+
+        if (!TimeSpan.TryParse(nieuweOpening, out _) || !TimeSpan.TryParse(nieuweSluiting, out _))
+        {
+            Console.WriteLine("Ongeldige tijd. Gebruik bijvoorbeeld 17:00 of 00:00.");
+            Console.ReadKey(true);
+            return;
+        }
+
+        tijden.OpeningsTijd = nieuweOpening;
+        tijden.SluitingsTijd = nieuweSluiting;
+
+        openingsTijdenAccess.UpdateOpeningsTijden(tijden);
+
+        Console.WriteLine("Openingstijden bijgewerkt.");
+        Console.ReadKey(true);
+    }
+
+    private void WijzigOpeningsDagen()
+    {
+        while (true)
+        {
+            List<OpeningsDag> dagen = openingsDagAccess.GetAllOpeningsDagen();
+
+            OpeningsDag? gekozenDag = ArrowMenu.ShowMenu(
+                "OPENINGSDAGEN WIJZIGEN",
+                dagen,
+                d => $"{DagNaam(d.DagVanWeek)} - {(d.IsOpen == 1 ? "Open" : "Gesloten")}"
+            );
+
+            if (gekozenDag == null)
+            {
+                return;
+            }
+
+            gekozenDag.IsOpen = gekozenDag.IsOpen == 1 ? 0 : 1;
+            openingsDagAccess.UpdateOpeningsDag(gekozenDag);
+        }
+    }
+
+    private string DagNaam(int dagVanWeek)
+    {
+        return dagVanWeek switch
+        {
+            0 => "Zondag",
+            1 => "Maandag",
+            2 => "Dinsdag",
+            3 => "Woensdag",
+            4 => "Donderdag",
+            5 => "Vrijdag",
+            6 => "Zaterdag",
+            _ => "Onbekend"
+        };
     }
 }

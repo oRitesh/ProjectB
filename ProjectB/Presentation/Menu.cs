@@ -30,9 +30,8 @@ public static class Menu
 
         ReserveringAccess reserveringAccess = new ReserveringAccess(db);
         TafelAccess tafelAccess = new TafelAccess(db);
-        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
         UserAccess userAccess = new UserAccess(db);
-        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
         ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, HuidigeGebruiker);
         reserveringUI.ShowReserveringPage();
@@ -60,11 +59,11 @@ public static class Menu
             opties.Add(MainMenuOption.Reserveren);
             opties.Add(MainMenuOption.Afhalen);
 
-            if (HuidigeGebruiker.Naam == "gast")
+            if (HuidigeGebruiker.Rol == 0)
             {
                 opties.Add(MainMenuOption.Login);
             }
-            else if (HuidigeGebruiker.Naam == "Admin")
+            else if (HuidigeGebruiker.Rol == 2 || HuidigeGebruiker.Rol == 3)
             {
                 opties.Add(MainMenuOption.Admin);
             }
@@ -200,7 +199,7 @@ public static class Menu
 
                 case MainMenuOption.Admin:
                     AdminMenuUI adminMenuUI = new AdminMenuUI();
-                    adminMenuUI.ShowAdminMenu();
+                    adminMenuUI.ShowAdminMenu(HuidigeGebruiker.Rol);
                     break;
 
                 case MainMenuOption.Overzicht:
@@ -215,10 +214,9 @@ public static class Menu
                         DatabaseContext db = new DatabaseContext();
                         ReserveringAccess reserveringAccess = new ReserveringAccess(db);
                         TafelAccess tafelAccess = new TafelAccess(db);
-                        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
                         UserAccess userAccess = new UserAccess(db);
 
-                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
                         ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
                         overzichtUI.ShowOverzicht();
