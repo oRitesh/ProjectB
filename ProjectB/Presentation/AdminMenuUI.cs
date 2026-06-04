@@ -64,18 +64,23 @@ public class AdminMenuUI
     // ─────────────────────────────────────────────
     //  Hoofdmenu
     // ─────────────────────────────────────────────
-    public void ShowAdminMenu()
+    public void ShowAdminMenu(int rol = 2)
     {
-        List<string> opties = new()
-        {
-            "Wijzig menukaart",
-            "Bekijk alle reserveringen",
-            "Bekijk reserveringen per tijdslot",
-            "Wis bestelling geheugen",
-            "Bekijk alle bestellingen",
-            "Wijzig bestelling status",
-            "Terug naar hoofdmenu"
-        };
+        List<string> opties = new();
+
+        if (rol == 2)
+            opties.Add("Wijzig menukaart");
+
+        opties.Add("Bekijk alle reserveringen");
+        opties.Add("Bekijk reserveringen per tijdslot");
+
+        if (rol == 2)
+            opties.Add("Wis bestelling geheugen");
+
+        opties.Add("Bekijk alle bestellingen");
+        opties.Add("Wijzig bestelling status");
+        opties.Add("Terug naar hoofdmenu");
+
 
         while (true)
         {
