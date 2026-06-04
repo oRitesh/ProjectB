@@ -442,58 +442,39 @@ public class AdminMenuUI
             return;
         }
 
-        for (int i = 0; i < bestellingen.Count; i++)
-        {
-            var b = bestellingen[i];
-            Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
-        }
+        var gekozen = ArrowMenu.ShowMenu(
+           "KIES BESTELLING",
+           bestellingen,
+           b => $"Bestelling: {b.ID}  |  Gebruiker: {b.GebruikerID}  |  Status: {b.Status}"
+       );
 
-        Console.WriteLine("\nKies een bestelling (nummer): ");
-        string? input = Console.ReadLine();
-
-        if (!int.TryParse(input, out int keuze))
-        {
-            Console.WriteLine("Ongeldige invoer.");
-            return;
-        }
-        else if (keuze < 1)
-        {
-            Console.WriteLine("Nummer moet minimaal 1 zijn.");
-            return;
-        }
-        else if (keuze > bestellingen.Count)
-        {
-            Console.WriteLine("Nummer bestaat niet in de lijst.");
-            return;
-        }
-
-        var gekozen = bestellingen[keuze - 1];
+        if (gekozen == null) return;
 
         var itemAccess = new BestellingMenuItemAccess(new DatabaseContext());
         var items = itemAccess.GetBestellingMenuItemsByBestellingId(gekozen.ID);
 
         Console.Clear();
-        Console.WriteLine($"=== BESTELLING {gekozen.ID} ===\n");
-        Console.WriteLine($"Gebruiker ID : {gekozen.GebruikerID}");
-        Console.WriteLine($"Status       : {gekozen.Status}");
-        Console.WriteLine($"Ophaaltijd   : {gekozen.OphaalTijd}");
-        Console.WriteLine($"Prijs  : €{gekozen.TotaalPrijs}\n");
-
-        Console.WriteLine("Bestelde items:");
-        Console.WriteLine("----------------------------------");
+        Console.WriteLine($"  ┌─ Bestelling #{gekozen.ID} ────────────────────────────");
+        Console.WriteLine($"  │  Gebruiker  : {gekozen.GebruikerID,-28}");
+        Console.WriteLine($"  │  Status     : {gekozen.Status,-28}");
+        Console.WriteLine($"  │  Ophaaltijd : {gekozen.OphaalTijd,-28}");
+        Console.WriteLine($"  │  Totaalprijs: €{gekozen.TotaalPrijs,-27}");
+        Console.WriteLine("   ----------------------------------");
 
         if (items.Count == 0)
         {
-            Console.WriteLine("Geen items gevonden.");
+            Console.WriteLine($"  │  {"Geen items gevonden.",-45}");
         }
         else
         {
             foreach (var item in items)
             {
-                Console.WriteLine($"Item naam: {menuItemAccess.GetMenuItemNameById(item.MenuItemID)}\nAantal: {item.Aantal}\nPrijs: €{item.PrijsPerStuk}\n");
+                string naam = menuItemAccess.GetMenuItemNameById(item.MenuItemID);
+                string regel = $"{naam}:  x{item.Aantal} - €{item.PrijsPerStuk}";
+                Console.WriteLine($"  │  {regel,-45}");
             }
         }
-
+        Console.WriteLine($"  └──────────────────────────────────────────────");
         Console.WriteLine("\nDruk op een toets om terug te gaan...");
         Console.ReadKey(true);
     }
@@ -512,61 +493,36 @@ public class AdminMenuUI
             return;
         }
 
-        for (int i = 0; i < bestellingen.Count; i++)
+        var gekozen = ArrowMenu.ShowMenu(
+           "KIES BESTELLING",
+           bestellingen,
+           b => $"Bestelling: {b.ID}  |  Gebruiker: {b.GebruikerID}  |  Status: {b.Status}"
+       );
+
+        List<string> statusOpties = new()
         {
-            var b = bestellingen[i];
-            Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
-        }
+            "Bezig met bereiden",
+            "Bestelling bereid",
+            "Bestelling afgerond",
+        };
 
-        Console.WriteLine("\nKies een bestelling (nummer): ");
-        string? input = Console.ReadLine();
-
-        if (!int.TryParse(input, out int keuze))
-        {
-            Console.WriteLine("Ongeldige invoer.");
-            return;
-        }
-        else if (keuze < 1)
-        {
-            Console.WriteLine("Nummer moet minimaal 1 zijn.");
-            return;
-        }
-        else if (keuze > bestellingen.Count)
-        {
-            Console.WriteLine("Nummer bestaat niet in de lijst.");
-            return;
-        }
-
-        var gekozen = bestellingen[keuze - 1];
-
-        Console.Clear();
-        Console.WriteLine($"=== STATUS WIJZIGEN VOOR BESTELLING #{gekozen.ID} ===\n");
-
-        Console.WriteLine("1. Bezig met bereiden");
-        Console.WriteLine("2. Bestelling bereid");
-        Console.WriteLine("3. Bestelling afgerond");
-        Console.WriteLine("4. Annuleren\n");
-
-        Console.Write("Kies een optie: ");
-        string? statusInput = Console.ReadLine();
-
-        if (!int.TryParse(statusInput, out int statusKeuze))
-        {
-            Console.WriteLine("Ongeldige invoer.");
-            return;
-        }
+        string? statusKeuze = ArrowMenu.ShowMenu(
+            $"STATUS WIJZIGEN VOOR BESTELLING #{gekozen.ID}",
+            statusOpties,
+            x => x
+        );
 
         switch (statusKeuze)
         {
-            case 1:
+            case "Bezig met bereiden":
                 BestellingAccess.UpdateStatus(gekozen.ID, "Bezig met bereiden");
                 break;
 
-            case 2:
+            case "Bestelling bereid":
                 BestellingAccess.UpdateStatus(gekozen.ID, "Bestelling bereid");
                 break;
 
-            case 3:
+            case "Bestelling afgerond":
                 Console.Clear();
                 Console.WriteLine($"Bestelling #{gekozen.ID} is afgerond.");
                 Console.ReadKey(true);
@@ -583,16 +539,15 @@ public class AdminMenuUI
 
     public void WisBestellingGeheugen()
     {
-        Console.Clear();
-        Console.WriteLine("=== BESTELLINGSGEHEUGEN WISSEN ===\n");
-        Console.WriteLine("Weet je zeker dat je alle bestellingen wilt verwijderen?");
-        Console.WriteLine("Deze actie kan niet ongedaan worden gemaakt.\n");
-        Console.WriteLine("1. Ja, wis alle bestellingen");
-        Console.WriteLine("2. Nee, annuleer\n");
-        Console.Write("Kies een optie: ");
-        string? input = Console.ReadLine();
+        List<string> bevestigOpties = new() { "Ja, wis alle bestellingen", "Nee, annuleer" };
 
-        if (input == "1")
+        string? keuze = ArrowMenu.ShowMenu(
+            "BESTELLINGSGEHEUGEN WISSEN",
+            bevestigOpties,
+            x => x
+        );
+
+        if (keuze == "Ja, wis alle bestellingen")
         {
             BestellingAccess.DeleteAllBestellingen();
             Console.Clear();

@@ -7,6 +7,7 @@ public sealed class KlantLijstenLezenTests
 {
     private readonly DatabaseContext _db;
     private readonly ReservationLogic _logic;
+    private readonly TijdslotAccess _tijdslotAccess;
 
     // Testdata bijhouden voor opruimen na elke test
     private readonly List<int> _aangemaakteGebruikerIDs = [];
@@ -20,9 +21,9 @@ public sealed class KlantLijstenLezenTests
         _db = new DatabaseContext();
         var reserveringAccess = new ReserveringAccess(_db);
         var tafelAccess = new TafelAccess(_db);
-        var tijdslotAccess = new TijdslotAccess(_db);
+        _tijdslotAccess = new TijdslotAccess(_db);
         var userAccess = new UserAccess(_db);
-        _logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+        _logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
     }
 
     [TestCleanup]
@@ -35,7 +36,7 @@ public sealed class KlantLijstenLezenTests
 
         // Verwijder tijdsloten zodat de database schoon blijft na de test
         foreach (int id in _aangemaakteTijdslotIDs)
-            _logic.TijdslotAccess.DeleteTijdslot(id);
+            _tijdslotAccess.DeleteTijdslot(id);
         _aangemaakteTijdslotIDs.Clear();
 
         // Verwijder testgebruikers zodat ze andere tests niet beïnvloeden

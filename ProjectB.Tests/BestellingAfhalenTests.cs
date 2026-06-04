@@ -1,3 +1,5 @@
+using Dapper;
+
 namespace ProjectB.Tests;
 
 [TestClass]
@@ -5,6 +7,33 @@ public sealed class BestellingAfhalenTesting
 {
     private readonly DatabaseContext db;
     private readonly AfhaalSysteemLogic logic;
+
+    [ClassInitialize]
+    public static void SetupDatabase(TestContext _)
+    {
+        var setupDb = new DatabaseContext();
+        setupDb.Connection.Execute(@"
+            CREATE TABLE IF NOT EXISTS OpeningsDag (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                DagVanWeek INTEGER NOT NULL,
+                IsOpen INTEGER NOT NULL
+            )");
+        if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsDag") == 0)
+            for (int i = 0; i <= 6; i++)
+                setupDb.Connection.Execute(
+                    "INSERT INTO OpeningsDag (DagVanWeek, IsOpen) VALUES (@D, 1)", new { D = i });
+
+        setupDb.Connection.Execute(@"
+            CREATE TABLE IF NOT EXISTS OpeningsTijden (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                OpeningsTijd TEXT NOT NULL,
+                SluitingsTijd TEXT NOT NULL
+            )");
+        if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsTijden") == 0)
+            setupDb.Connection.Execute(
+                "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
+        setupDb.Close();
+    }
 
     public BestellingAfhalenTesting()
     {
