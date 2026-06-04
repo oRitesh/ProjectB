@@ -86,19 +86,29 @@ public class AdminMenuUI
         Console.WriteLine();
     }
 
-    public void ShowAdminMenu()
+    // ─────────────────────────────────────────────
+    //  Hoofdmenu
+    // ─────────────────────────────────────────────
+    public void ShowAdminMenu(int rol = 2)
     {
-        List<string> opties = new()
-        {
-            "Wijzig menukaart",
-            "Bekijk alle reserveringen",
-            "Bekijk reserveringen per tijdslot",
-            "Wis bestelling geheugen",
-            "Bekijk alle bestellingen",
-            "Wijzig bestelling status",
-            "Wijzig openingstijden",
-            "Terug naar hoofdmenu"
-        };
+        List<string> opties = new();
+
+        if (rol == 2)
+            opties.Add("Wijzig menukaart");
+
+        opties.Add("Bekijk alle reserveringen");
+        opties.Add("Bekijk reserveringen per tijdslot");
+
+        if (rol == 2)
+            opties.Add("Wis bestelling geheugen");
+
+        opties.Add("Bekijk alle bestellingen");
+        opties.Add("Wijzig bestelling status");
+
+        if (rol == 2)
+            opties.Add("Wijzig openingstijden");
+        opties.Add("Terug naar hoofdmenu");
+
 
         while (true)
         {
@@ -537,7 +547,7 @@ public class AdminMenuUI
 
         Console.WriteLine("1. Bezig met bereiden");
         Console.WriteLine("2. Bestelling bereid");
-        Console.WriteLine("3. Bestelling afgerond (verwijderen)");
+        Console.WriteLine("3. Bestelling afgerond");
         Console.WriteLine("4. Annuleren\n");
 
         Console.Write("Kies een optie: ");
@@ -560,10 +570,8 @@ public class AdminMenuUI
                 break;
 
             case 3:
-                BestellingAccess.DeleteBestelling(gekozen.ID);
-
                 Console.Clear();
-                Console.WriteLine($"Bestelling #{gekozen.ID} is verwijderd.");
+                Console.WriteLine($"Bestelling #{gekozen.ID} is afgerond.");
                 Console.ReadKey(true);
                 return;
 
