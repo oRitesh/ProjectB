@@ -15,24 +15,25 @@ public class RegistratieUI
     public Gebruiker? Registreer()
     {
         Console.Clear();
-        Console.WriteLine("=== Registreren ===");
-        Console.WriteLine();
 
         bool userExists = false;
 
         string? naam = InputValidatie.ValideerInput(
-            "Naam",
+            "=== Registreren ===\n\nNaam",
             x => x.Length > 0,
             "Naam mag niet leeg zijn."
         );
         if (naam == null) return null;
 
-        string email = VraagUniekEmail();
+        string? email = VraagUniekEmail(naam);
+        if (email == null) return null;
 
-        string telefoon = VraagTelefoonMetCheck(ref userExists);
+        string? telefoon = VraagTelefoonMetCheck(ref userExists, naam, email);
+        if (telefoon == null) return null;
 
+        Console.Clear();
         string? wachtwoord = InputValidatie.ValideerInput(
-            "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
+            $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
             x => x.Length >= 8
                  && x.Any(char.IsUpper)
                  && x.Any(char.IsLower),
@@ -76,12 +77,13 @@ public class RegistratieUI
         return nieuweGebruiker;
     }
 
-    private string? VraagUniekEmail()
+    private string? VraagUniekEmail(string naam)
     {
         while (true)
         {
+            Console.Clear();
             string? email = InputValidatie.ValideerInput(
-                "E-mailadres",
+                $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres",
                 x => x.Contains("@") && x.Contains("."),
                 "Ongeldig e-mailadres."
             );
@@ -100,12 +102,13 @@ public class RegistratieUI
         }
     }
 
-    private string? VraagTelefoonMetCheck(ref bool userExists)
+    private string? VraagTelefoonMetCheck(ref bool userExists, string naam, string email)
     {
         while (true)
         {
+            Console.Clear();
             string? telefoon = InputValidatie.ValideerInput(
-                "Telefoonnummer",
+                $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer",
                 x => x.Length >= 8 && x.All(char.IsDigit),
                 "Telefoonnummer moet minimaal 8 cijfers bevatten en mag geen letters bevatten."
             );

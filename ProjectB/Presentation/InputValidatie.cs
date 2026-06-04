@@ -9,7 +9,7 @@ public static class InputValidatie
         {
             string? input;
 
-            if (label is not ("Wachtwoord" or "Wachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)"))
+            if (!label.Contains("Wachtwoord"))
                 input = LeesInvoer.LeesInvoerMetEscape($"{label}: ");
             else
                 input = RandomLogicTools.ReadPassword($"{label}: ");
