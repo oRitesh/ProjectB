@@ -1,16 +1,14 @@
 using System.Globalization;
 using Dapper;
+
 public class AdminMenuUI
 {
     private readonly MenuItemAccess menuItemAccess;
     private readonly ReserveringAccess reserveringAccess;
-    private readonly TijdslotAccess tijdslotAccess;
     private readonly MenuCategorieAccess menuCategorieAccess;
-
     private readonly bestellingAccess BestellingAccess;
 
     private readonly DatabaseContext menuItemDb;
-    private readonly DatabaseContext tijdslotDb;
     private readonly DatabaseContext reserveringDb;
     private readonly DatabaseContext menuCategorieDb;
     private readonly DatabaseContext bestellingDb;
@@ -18,13 +16,11 @@ public class AdminMenuUI
     public AdminMenuUI()
     {
         this.menuItemDb = new DatabaseContext();
-        this.tijdslotDb = new DatabaseContext();
         this.reserveringDb = new DatabaseContext();
         this.menuCategorieDb = new DatabaseContext();
         this.bestellingDb = new DatabaseContext();
 
         this.menuItemAccess = new MenuItemAccess(menuItemDb);
-        this.tijdslotAccess = new TijdslotAccess(tijdslotDb);
         this.reserveringAccess = new ReserveringAccess(reserveringDb);
         this.menuCategorieAccess = new MenuCategorieAccess(menuCategorieDb);
         this.BestellingAccess = new bestellingAccess(bestellingDb);
@@ -33,15 +29,37 @@ public class AdminMenuUI
     ~AdminMenuUI()
     {
         menuItemDb?.Close();
-        tijdslotDb?.Close();
         reserveringDb?.Close();
         menuCategorieDb?.Close();
         bestellingDb?.Close();
     }
 
-    // ─────────────────────────────────────────────
-    //  Hulpfunctie: toon één reservering als kaartje
-    // ─────────────────────────────────────────────
+    private List<Tijdslot> MaakTijdslotenVoorDatum(DateTime datum)
+    {
+        List<Tijdslot> tijdsloten = new List<Tijdslot>();
+
+        string datumString = datum.ToString("yyyy-MM-dd");
+
+        DateTime start = datum.Date.AddHours(17);
+        DateTime laatsteStart = datum.Date.AddHours(22);
+
+        while (start <= laatsteStart)
+        {
+            DateTime eind = start.AddHours(2);
+
+            tijdsloten.Add(new Tijdslot(
+                0,
+                datumString,
+                start.ToString("yyyy-MM-dd HH:mm:ss"),
+                eind.ToString("yyyy-MM-dd HH:mm:ss")
+            ));
+
+            start = start.AddMinutes(15);
+        }
+
+        return tijdsloten;
+    }
+
     private void ToonReserveringKaart(Reservering r, int nummer)
     {
         CultureInfo nl = new CultureInfo("nl-NL");
@@ -61,9 +79,6 @@ public class AdminMenuUI
         Console.WriteLine();
     }
 
-    // ─────────────────────────────────────────────
-    //  Hoofdmenu
-    // ─────────────────────────────────────────────
     public void ShowAdminMenu()
     {
         List<string> opties = new()
@@ -95,9 +110,6 @@ public class AdminMenuUI
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  Menukaart bewerken
-    // ─────────────────────────────────────────────
     public void EditMenu()
     {
         List<string> opties = new()
@@ -304,9 +316,6 @@ public class AdminMenuUI
         Console.ReadKey(true);
     }
 
-    // ─────────────────────────────────────────────
-    //  Alle reserveringen
-    // ─────────────────────────────────────────────
     public void ViewReservations()
     {
         Console.Clear();
@@ -333,12 +342,13 @@ public class AdminMenuUI
         Console.ReadKey(true);
     }
 
-    // ─────────────────────────────────────────────
-    //  Reserveringen per tijdslot
-    // ─────────────────────────────────────────────
     public void ViewReservationsPerTimeSlot()
     {
-        List<string> datums = tijdslotAccess.GetAllDatums();
+        List<string> datums = reserveringAccess.GetAllReserveringen()
+            .Select(r => DateTime.Parse(r.StartTijd).ToString("yyyy-MM-dd"))
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
 
         if (datums.Count == 0)
         {
@@ -350,18 +360,13 @@ public class AdminMenuUI
         }
 
         string? gekozenDatum = ArrowMenu.ShowMenu("KIES DATUM", datums, x => x);
-        if (gekozenDatum == null) return;
 
-        List<Tijdslot> tijdsloten = tijdslotAccess.GetTijdslotenByDatum(gekozenDatum);
-
-        if (tijdsloten.Count == 0)
+        if (gekozenDatum == null)
         {
-            Console.Clear();
-            Console.WriteLine($"Geen tijdsloten gevonden op {gekozenDatum}.");
-            Console.WriteLine("Druk op een toets om terug te gaan...");
-            Console.ReadKey(true);
             return;
         }
+
+        List<Tijdslot> tijdsloten = MaakTijdslotenVoorDatum(DateTime.Parse(gekozenDatum));
 
         Tijdslot? geselecteerd = ArrowMenu.ShowMenu(
             $"TIJDSLOT  ({gekozenDatum})",
@@ -374,7 +379,10 @@ public class AdminMenuUI
             }
         );
 
-        if (geselecteerd == null) return;
+        if (geselecteerd == null)
+        {
+            return;
+        }
 
         string tijdslotLabel = DateTime.TryParse(geselecteerd.StartTijd, out DateTime sl) ? sl.ToString("HH:mm") : geselecteerd.StartTijd;
         tijdslotLabel += " – " + (DateTime.TryParse(geselecteerd.EindTijd, out DateTime el) ? el.ToString("HH:mm") : geselecteerd.EindTijd);
@@ -386,7 +394,7 @@ public class AdminMenuUI
         Console.WriteLine("==================================");
         Console.WriteLine();
 
-        var reserveringen = reserveringAccess.GetReserveringenVoorDatum(geselecteerd.Datum);
+        var reserveringen = reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(geselecteerd);
 
         if (reserveringen.Count == 0)
         {
@@ -443,7 +451,6 @@ public class AdminMenuUI
             return;
         }
 
-
         var gekozen = bestellingen[keuze - 1];
 
         var itemAccess = new BestellingMenuItemAccess(new DatabaseContext());
@@ -474,7 +481,6 @@ public class AdminMenuUI
         Console.WriteLine("\nDruk op een toets om terug te gaan...");
         Console.ReadKey(true);
     }
-
 
     public void AanpassenBestellingStatus()
     {

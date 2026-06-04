@@ -30,9 +30,8 @@ public static class Menu
 
         ReserveringAccess reserveringAccess = new ReserveringAccess(db);
         TafelAccess tafelAccess = new TafelAccess(db);
-        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
         UserAccess userAccess = new UserAccess(db);
-        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
         ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, HuidigeGebruiker);
         reserveringUI.ShowReserveringPage();
@@ -215,10 +214,9 @@ public static class Menu
                         DatabaseContext db = new DatabaseContext();
                         ReserveringAccess reserveringAccess = new ReserveringAccess(db);
                         TafelAccess tafelAccess = new TafelAccess(db);
-                        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
                         UserAccess userAccess = new UserAccess(db);
 
-                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
                         ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
                         overzichtUI.ShowOverzicht();
