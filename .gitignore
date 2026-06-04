@@ -416,3 +416,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+# deze toevoegen zodat niks meer raar doet in de project vanuit Martin's kant, hij heeft macbook
+.gitignore
