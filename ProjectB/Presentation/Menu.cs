@@ -6,6 +6,21 @@ public static class Menu
 
     static void ShowInformationPage()
     {
+        DatabaseContext db = new DatabaseContext();
+
+        OpeningsTijdenAccess openingsTijdenAccess = new OpeningsTijdenAccess(db);
+        OpeningsDagAccess openingsDagAccess = new OpeningsDagAccess(db);
+
+        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
+        List<OpeningsDag> dagen = openingsDagAccess.GetAllOpeningsDagen();
+
+        db.Close();
+
+        string openingsDagenTekst = MaakOpeningsDagenTekst(dagen);
+        string openingsTijdenTekst = tijden == null
+            ? "Onbekend"
+            : $"{tijden.OpeningsTijd} - {tijden.SluitingsTijd}";
+
         Console.Clear();
         Console.WriteLine("==================================");
         Console.WriteLine("         INFORMATIEPAGINA         ");
@@ -13,8 +28,8 @@ public static class Menu
         Console.WriteLine("Restaurantnaam : Het Culinaire Bootje");
         Console.WriteLine("Telefoonnummer : 0612345678");
         Console.WriteLine("Adres          : Witte de Withstraat 12, Rotterdam");
-        Console.WriteLine("Openingstijden : Dinsdag t/m zaterdag");
-        Console.WriteLine("                  17:00 - 00:00");
+        Console.WriteLine($"Openingsdagen  : {openingsDagenTekst}");
+        Console.WriteLine($"Openingstijden : {openingsTijdenTekst}");
         Console.WriteLine();
         Console.WriteLine("Welkom bij Het Culinaire Bootje!");
         Console.WriteLine("Hier kunt u genieten van heerlijk eten");
@@ -22,6 +37,42 @@ public static class Menu
         Console.WriteLine();
         Console.WriteLine("Druk op een toets om terug te gaan...");
         Console.ReadKey(true);
+    }
+
+    static string MaakOpeningsDagenTekst(List<OpeningsDag> dagen)
+    {
+        List<int> openDagen = dagen
+            .Where(d => d.IsOpen == 1)
+            .Select(d => d.DagVanWeek)
+            .OrderBy(d => d)
+            .ToList();
+
+        if (openDagen.Count == 0)
+        {
+            return "Gesloten";
+        }
+
+        if (openDagen.Count == 7)
+        {
+            return "Elke dag";
+        }
+
+        return string.Join(", ", openDagen.Select(DagNaam));
+    }
+
+    static string DagNaam(int dagVanWeek)
+    {
+        return dagVanWeek switch
+        {
+            0 => "Zondag",
+            1 => "Maandag",
+            2 => "Dinsdag",
+            3 => "Woensdag",
+            4 => "Donderdag",
+            5 => "Vrijdag",
+            6 => "Zaterdag",
+            _ => "Onbekend"
+        };
     }
 
     static void ShowReservationPage()
