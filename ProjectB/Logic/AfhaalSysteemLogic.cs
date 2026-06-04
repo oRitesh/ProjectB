@@ -66,11 +66,6 @@ public class AfhaalSysteemLogic
     {
         return Winkelwagen.Sum(x => x.Item.Prijs * x.Aantal);
     }
-    private DateTime CombineDatumEnTijd(DateTime datum, string tijd)
-    {
-        TimeSpan parsedTijd = TimeSpan.Parse(tijd);
-        return datum.Date.Add(parsedTijd);
-    }
 
     private int LangsteBereidingsTijd()
     {
@@ -97,8 +92,8 @@ public class AfhaalSysteemLogic
             return opties;
         }
 
-        DateTime openingstijd = CombineDatumEnTijd(vandaag, tijden.OpeningsTijd);
-        DateTime sluitingstijd = CombineDatumEnTijd(vandaag, tijden.SluitingsTijd);
+        DateTime openingstijd = DateTimeHelper.CombineDatumEnTijd(vandaag, tijden.OpeningsTijd);
+        DateTime sluitingstijd = DateTimeHelper.CombineDatumEnTijd(vandaag, tijden.SluitingsTijd);
 
         if (sluitingstijd <= openingstijd)
         {
@@ -149,7 +144,7 @@ public class AfhaalSysteemLogic
 
         if (tijden != null)
         {
-            DateTime openingstijd = CombineDatumEnTijd(vandaag, tijden.OpeningsTijd);
+            DateTime openingstijd = DateTimeHelper.CombineDatumEnTijd(vandaag, tijden.OpeningsTijd);
 
             if (snelsteOphaalTijd < openingstijd)
             {

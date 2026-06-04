@@ -71,8 +71,7 @@ public class ReservationLogic
 
     private DateTime CombineDatumEnTijd(DateTime datum, string tijd)
     {
-        TimeSpan parsedTijd = TimeSpan.Parse(tijd);
-        return datum.Date.Add(parsedTijd);
+        return DateTimeHelper.CombineDatumEnTijd(datum, tijd);
     }
 
     public List<Tijdslot> MaakTijdslotenVoorDatum(DateTime datum)

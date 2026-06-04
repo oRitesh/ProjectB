@@ -9,6 +9,7 @@ public class AdminMenuUI
     private readonly bestellingAccess BestellingAccess;
     private readonly OpeningsTijdenAccess openingsTijdenAccess;
     private readonly OpeningsDagAccess openingsDagAccess;
+    private readonly TimeSlotLogic timeSlotLogic;
 
     private readonly DatabaseContext menuItemDb;
     private readonly DatabaseContext reserveringDb;
@@ -30,6 +31,7 @@ public class AdminMenuUI
         this.BestellingAccess = new bestellingAccess(bestellingDb);
         this.openingsTijdenAccess = new OpeningsTijdenAccess(openingsDb);
         this.openingsDagAccess = new OpeningsDagAccess(openingsDb);
+        this.timeSlotLogic = new TimeSlotLogic(openingsDb);
     }
 
     ~AdminMenuUI()
@@ -39,32 +41,6 @@ public class AdminMenuUI
         menuCategorieDb?.Close();
         bestellingDb?.Close();
         openingsDb?.Close();
-    }
-
-    private List<Tijdslot> MaakTijdslotenVoorDatum(DateTime datum)
-    {
-        List<Tijdslot> tijdsloten = new List<Tijdslot>();
-
-        string datumString = datum.ToString("yyyy-MM-dd");
-
-        DateTime start = datum.Date.AddHours(17);
-        DateTime laatsteStart = datum.Date.AddHours(22);
-
-        while (start <= laatsteStart)
-        {
-            DateTime eind = start.AddHours(2);
-
-            tijdsloten.Add(new Tijdslot(
-                0,
-                datumString,
-                start.ToString("yyyy-MM-dd HH:mm:ss"),
-                eind.ToString("yyyy-MM-dd HH:mm:ss")
-            ));
-
-            start = start.AddMinutes(15);
-        }
-
-        return tijdsloten;
     }
 
     private void ToonReserveringKaart(Reservering r, int nummer)
@@ -406,7 +382,7 @@ public class AdminMenuUI
             return;
         }
 
-        List<Tijdslot> tijdsloten = MaakTijdslotenVoorDatum(DateTime.Parse(gekozenDatum));
+        List<Tijdslot> tijdsloten = timeSlotLogic.MaakTijdslotenVoorAdmin(DateTime.Parse(gekozenDatum));
 
         Tijdslot? geselecteerd = ArrowMenu.ShowMenu(
             $"TIJDSLOT  ({gekozenDatum})",

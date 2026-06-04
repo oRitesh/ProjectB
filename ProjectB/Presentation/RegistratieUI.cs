@@ -4,10 +4,12 @@ using System.Linq;
 public class RegistratieUI
 {
     private readonly UserAccess userAccess;
+    private readonly UserValidationLogic validationLogic;
 
     public RegistratieUI(UserAccess userAccess)
     {
         this.userAccess = userAccess;
+        this.validationLogic = new UserValidationLogic(userAccess);
     }
 
     public Gebruiker? Registreer()
@@ -85,8 +87,7 @@ public class RegistratieUI
             );
             if (email == null) return null;
 
-            var checkUser = userAccess.GetUserByEmail(email);
-            if (checkUser != null)
+            if (!validationLogic.IsEmailUnique(email))
             {
                 Console.WriteLine();
                 Console.WriteLine("E-mailadres is al in gebruik. Probeer het opnieuw.");
@@ -110,9 +111,7 @@ public class RegistratieUI
             );
             if (telefoon == null) return null;
 
-            var checkUser = userAccess.GetUserByPhoneNumber(telefoon);
-
-            if (checkUser != null && checkUser.Rol == 1)
+            if (!validationLogic.IsPhoneNumberAvailable(telefoon))
             {
                 Console.WriteLine();
                 Console.WriteLine("Dit telefoonnummer is al gekoppeld aan een account.");
@@ -120,7 +119,8 @@ public class RegistratieUI
                 Console.Clear();
                 continue;
             }
-            else if (checkUser != null && checkUser.Rol == 0)
+
+            if (validationLogic.IsPhoneNumberForGuest(telefoon))
             {
                 userExists = true;
             }
