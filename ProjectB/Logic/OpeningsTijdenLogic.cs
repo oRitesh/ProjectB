@@ -2,9 +2,9 @@ public class OpeningsTijdenLogic
 {
     private readonly OpeningsTijdenAccess openingsTijdenAccess;
 
-    public OpeningsTijdenLogic(DatabaseContext db)
+    public OpeningsTijdenLogic()
     {
-        openingsTijdenAccess = new OpeningsTijdenAccess(db);
+        openingsTijdenAccess = new OpeningsTijdenAccess();
     }
 
     public OpeningsTijden? GetOpeningsTijden() => openingsTijdenAccess.GetOpeningsTijden();

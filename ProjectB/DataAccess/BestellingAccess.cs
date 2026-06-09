@@ -7,9 +7,9 @@ public class bestellingAccess
     private readonly DatabaseContext db;
     public const string Table = "Bestelling";
 
-    public bestellingAccess(DatabaseContext db)
+    public bestellingAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public List<Bestelling> GetAllBestellingen()

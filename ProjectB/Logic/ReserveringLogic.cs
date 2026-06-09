@@ -20,13 +20,13 @@ public class ReservationLogic
         this.openingsDagAccess = openingsDagAccess;
     }
 
-    public ReservationLogic(DatabaseContext db)
+    public ReservationLogic()
     {
-        this.reserveringAccess = new ReserveringAccess(db);
-        this.tafelAccess = new TafelAccess(db);
-        this.userAccess = new UserAccess(db);
-        this.openingsTijdenAccess = new OpeningsTijdenAccess(db);
-        this.openingsDagAccess = new OpeningsDagAccess(db);
+        this.reserveringAccess = new ReserveringAccess();
+        this.tafelAccess = new TafelAccess();
+        this.userAccess = new UserAccess();
+        this.openingsTijdenAccess = new OpeningsTijdenAccess();
+        this.openingsDagAccess = new OpeningsDagAccess();
     }
 
     public List<int> GetAantalPersonenOpties()

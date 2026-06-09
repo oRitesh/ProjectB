@@ -2,7 +2,6 @@ public class AfhaalSysteemUI
 {
     private readonly AfhaalSysteemLogic logic;
     private readonly MenuService menuService;
-    private readonly DatabaseContext db;
     private readonly UserLogic userLogic;
     private int gebruikerID;
 
@@ -10,12 +9,11 @@ public class AfhaalSysteemUI
     private string gastNaam = "";
     private string gastTelefoon = "";
 
-    public AfhaalSysteemUI(DatabaseContext db, Gebruiker gebruiker)
+    public AfhaalSysteemUI(Gebruiker gebruiker)
     {
-        logic = new AfhaalSysteemLogic(db);
-        menuService = new MenuService(db);
-        userLogic = new UserLogic(db);
-        this.db = db;
+        logic = new AfhaalSysteemLogic();
+        menuService = new MenuService();
+        userLogic = new UserLogic();
         this.gebruikerID = gebruiker.ID;
     }
 
@@ -300,7 +298,7 @@ public class AfhaalSysteemUI
 
             if (keuze == null) return null; // Escape = terug
 
-            UserLogic userLogic = new UserLogic(db);
+            UserLogic userLogic = new UserLogic();
             Gebruiker? user = null;
 
             if (keuze == "Inloggen")

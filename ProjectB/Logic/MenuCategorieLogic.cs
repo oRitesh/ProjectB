@@ -2,9 +2,9 @@ public class MenuCategorieLogic
 {
     private readonly MenuCategorieAccess menuCategorieAccess;
 
-    public MenuCategorieLogic(DatabaseContext db)
+    public MenuCategorieLogic()
     {
-        menuCategorieAccess = new MenuCategorieAccess(db);
+        menuCategorieAccess = new MenuCategorieAccess();
     }
 
     public List<MenuCategorie> GetAllCategories() => menuCategorieAccess.GetAllCategories();

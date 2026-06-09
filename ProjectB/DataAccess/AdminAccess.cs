@@ -4,9 +4,9 @@ public class AdminAccess
 {
     private readonly DatabaseContext db;
 
-    public AdminAccess(DatabaseContext db)
+    public AdminAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public bool AdminExists()

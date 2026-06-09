@@ -2,9 +2,9 @@ public class OpeningsDagLogic
 {
     private readonly OpeningsDagAccess openingsDagAccess;
 
-    public OpeningsDagLogic(DatabaseContext db)
+    public OpeningsDagLogic()
     {
-        openingsDagAccess = new OpeningsDagAccess(db);
+        openingsDagAccess = new OpeningsDagAccess();
     }
 
     public List<OpeningsDag> GetAllOpeningsDagen() => openingsDagAccess.GetAllOpeningsDagen();

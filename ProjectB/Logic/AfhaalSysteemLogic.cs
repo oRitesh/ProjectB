@@ -6,13 +6,13 @@ public class AfhaalSysteemLogic
     private readonly bestellingAccess bestellingAccess;
     private readonly BestellingMenuItemAccess bestellingMenuItemAccess;
 
-    public AfhaalSysteemLogic(DatabaseContext db)
+    public AfhaalSysteemLogic()
     {
-        userAccess = new UserAccess(db);
-        openingsTijdenAccess = new OpeningsTijdenAccess(db);
-        openingsDagAccess = new OpeningsDagAccess(db);
-        bestellingAccess = new bestellingAccess(db);
-        bestellingMenuItemAccess = new BestellingMenuItemAccess(db);
+        userAccess = new UserAccess();
+        openingsTijdenAccess = new OpeningsTijdenAccess();
+        openingsDagAccess = new OpeningsDagAccess();
+        bestellingAccess = new bestellingAccess();
+        bestellingMenuItemAccess = new BestellingMenuItemAccess();
     }
 
     public List<(MenuItem Item, int Aantal)> Winkelwagen { get; private set; } = new();

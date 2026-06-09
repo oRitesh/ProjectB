@@ -8,9 +8,9 @@ public class MenuService
 
     private readonly MenuItemAccess itemAccess;
 
-    public MenuService(DatabaseContext db)
+    public MenuService()
     {
-        itemAccess = new MenuItemAccess(db);
+        itemAccess = new MenuItemAccess();
         Starters = itemAccess.GetItemsByCategory(1);
         Mains = itemAccess.GetItemsByCategory(2);
         Desserts = itemAccess.GetItemsByCategory(3);

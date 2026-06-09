@@ -3,9 +3,20 @@ using System.IO;
 
 public class DatabaseContext
 {
+    private static DatabaseContext? _instance;
+
+    public static DatabaseContext Instance
+    {
+        get
+        {
+            _instance ??= new DatabaseContext();
+            return _instance;
+        }
+    }
+
     public SqliteConnection Connection { get; }
 
-    public DatabaseContext()
+    private DatabaseContext()
     {
         // Bereken het pad naar de database file
         // Dit werkt zowel wanneer de app normaal draait als wanneer tests draaien

@@ -2,9 +2,9 @@ public class BestellingMenuItemLogic
 {
     private readonly BestellingMenuItemAccess bestellingMenuItemAccess;
 
-    public BestellingMenuItemLogic(DatabaseContext db)
+    public BestellingMenuItemLogic()
     {
-        bestellingMenuItemAccess = new BestellingMenuItemAccess(db);
+        bestellingMenuItemAccess = new BestellingMenuItemAccess();
     }
 
     public List<BestellingMenuItem> GetBestellingMenuItemsByBestellingId(int bestellingId)

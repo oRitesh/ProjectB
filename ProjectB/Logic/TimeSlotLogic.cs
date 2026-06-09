@@ -3,10 +3,10 @@ public class TimeSlotLogic
     private readonly OpeningsTijdenAccess openingsTijdenAccess;
     private readonly OpeningsDagAccess openingsDagAccess;
 
-    public TimeSlotLogic(DatabaseContext db)
+    public TimeSlotLogic()
     {
-        this.openingsTijdenAccess = new OpeningsTijdenAccess(db);
-        this.openingsDagAccess = new OpeningsDagAccess(db);
+        this.openingsTijdenAccess = new OpeningsTijdenAccess();
+        this.openingsDagAccess = new OpeningsDagAccess();
     }
 
     public List<Tijdslot> MaakTijdslotenVoorReservering(DateTime datum)

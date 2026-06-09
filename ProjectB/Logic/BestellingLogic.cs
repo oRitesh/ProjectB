@@ -2,9 +2,9 @@ public class BestellingLogic
 {
     private readonly bestellingAccess bestellingAccess;
 
-    public BestellingLogic(DatabaseContext db)
+    public BestellingLogic()
     {
-        bestellingAccess = new bestellingAccess(db);
+        bestellingAccess = new bestellingAccess();
     }
 
     public List<Bestelling> GetAllBestellingen() => bestellingAccess.GetAllBestellingen();

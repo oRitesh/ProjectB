@@ -2,9 +2,9 @@ public class MenuItemLogic
 {
     private readonly MenuItemAccess menuItemAccess;
 
-    public MenuItemLogic(DatabaseContext db)
+    public MenuItemLogic()
     {
-        menuItemAccess = new MenuItemAccess(db);
+        menuItemAccess = new MenuItemAccess();
     }
 
     public List<MenuItem> GetAllMenuItems() => menuItemAccess.GetAllMenuItems();

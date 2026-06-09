@@ -5,9 +5,9 @@ public class ReserveringAccess
     private readonly DatabaseContext db;
     public const string Table = "Reservering";
 
-    public ReserveringAccess(DatabaseContext db)
+    public ReserveringAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public void AddReservering(Reservering reservering)

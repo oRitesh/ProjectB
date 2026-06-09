@@ -7,9 +7,9 @@ public class UserAccess
     private readonly DatabaseContext db;
     public const string table = "Gebruiker";
 
-    public UserAccess(DatabaseContext db)
+    public UserAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public int AddUser(Gebruiker gebruiker)

@@ -3,10 +3,10 @@ public class AdminLogic
     private readonly UserAccess userAccess;
     private readonly AdminAccess adminAccess;
 
-    public AdminLogic(DatabaseContext db)
+    public AdminLogic()
     {
-        this.userAccess = new UserAccess(db);
-        this.adminAccess = new AdminAccess(db);
+        this.userAccess = new UserAccess();
+        this.adminAccess = new AdminAccess();
     }
 
     public Gebruiker? GetUserIfAuthorized(int userId)

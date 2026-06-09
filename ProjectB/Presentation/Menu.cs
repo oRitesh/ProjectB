@@ -5,12 +5,11 @@ using System.Collections;
 public static class Menu
 {
     private static Gebruiker? HuidigeGebruiker = new Gebruiker(0, 0, "gast", "", "", "");
-    private static DatabaseContext? _db;
 
     static void ShowInformationPage()
     {
-        OpeningsTijdenLogic openingsTijdenLogic = new OpeningsTijdenLogic(_db!);
-        OpeningsDagLogic openingsDagLogic = new OpeningsDagLogic(_db!);
+        OpeningsTijdenLogic openingsTijdenLogic = new OpeningsTijdenLogic();
+        OpeningsDagLogic openingsDagLogic = new OpeningsDagLogic();
 
         OpeningsTijden? tijden = openingsTijdenLogic.GetOpeningsTijden();
         List<OpeningsDag> dagen = openingsDagLogic.GetAllOpeningsDagen();
@@ -40,21 +39,20 @@ public static class Menu
 
     static void ShowReservationPage()
     {
-        ReservationLogic reservationLogic = new ReservationLogic(_db!);
-        UserLogic userLogic = new UserLogic(_db!);
+        ReservationLogic reservationLogic = new ReservationLogic();
+        UserLogic userLogic = new UserLogic();
 
         ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, HuidigeGebruiker, userLogic);
         reserveringUI.ShowReserveringPage();
     }
 
-    public static void Show(DatabaseContext db)
+    public static void Show()
     {
-        _db = db;
         bool running = true;
 
         while (running)
         {
-            AdminLogic adminLogicCheck = new AdminLogic(_db);
+            AdminLogic adminLogicCheck = new AdminLogic();
             string? tempPassword = adminLogicCheck.EnsureAdminExists();
 
             if (tempPassword != null)
@@ -141,7 +139,7 @@ public static class Menu
 
                 case MainMenuOption.Menu:
                     {
-                        ShowMenuUI menuUI = new ShowMenuUI(new MenuService(_db));
+                        ShowMenuUI menuUI = new ShowMenuUI(new MenuService());
                         menuUI.ShowMenuPage();
                         break;
                     }
@@ -152,14 +150,14 @@ public static class Menu
 
                 case MainMenuOption.Afhalen:
                     {
-                        AfhaalSysteemUI afhaalUI = new AfhaalSysteemUI(_db, HuidigeGebruiker);
+                        AfhaalSysteemUI afhaalUI = new AfhaalSysteemUI(HuidigeGebruiker);
                         afhaalUI.Start();
                         break;
                     }
 
                 case MainMenuOption.Login:
                     {
-                        UserLogic userLogic = new UserLogic(_db);
+                        UserLogic userLogic = new UserLogic();
                         InlogUI inlogUI = new InlogUI(userLogic);
                         RegistratieUI registratieUI = new RegistratieUI(userLogic);
 
@@ -221,7 +219,7 @@ public static class Menu
                     break;
 
                 case MainMenuOption.Admin:
-                    AdminMenuUI adminMenuUI = new AdminMenuUI(_db);
+                    AdminMenuUI adminMenuUI = new AdminMenuUI();
                     adminMenuUI.ShowAdminMenu(HuidigeGebruiker.Rol);
                     break;
 
@@ -234,8 +232,8 @@ public static class Menu
                             break;
                         }
 
-                        ReservationLogic logic = new ReservationLogic(_db);
-                        UserLogic userLogic = new UserLogic(_db);
+                        ReservationLogic logic = new ReservationLogic();
+                        UserLogic userLogic = new UserLogic();
 
                         ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker, userLogic);
                         overzichtUI.ShowOverzicht();

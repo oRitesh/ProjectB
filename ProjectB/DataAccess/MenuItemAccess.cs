@@ -5,9 +5,9 @@ public class MenuItemAccess
     private readonly DatabaseContext db;
     public const string Table = "MenuItem";
 
-    public MenuItemAccess(DatabaseContext db)
+    public MenuItemAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public List<MenuItem> GetItemsByCategory(int categoryId)

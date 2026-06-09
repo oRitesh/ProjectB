@@ -3,9 +3,9 @@ public class UserLogic
     private readonly UserAccess userAccess;
     private readonly UserValidationLogic validationLogic;
 
-    public UserLogic(DatabaseContext db)
+    public UserLogic()
     {
-        userAccess = new UserAccess(db);
+        userAccess = new UserAccess();
         validationLogic = new UserValidationLogic(userAccess);
     }
 

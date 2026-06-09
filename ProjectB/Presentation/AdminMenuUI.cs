@@ -11,16 +11,16 @@ public class AdminMenuUI
     private readonly OpeningsDagLogic openingsDagLogic;
     private readonly TimeSlotLogic timeSlotLogic;
 
-    public AdminMenuUI(DatabaseContext db)
+    public AdminMenuUI()
     {
-        this.menuItemLogic = new MenuItemLogic(db);
-        this.reservationLogic = new ReservationLogic(db);
-        this.menuCategorieLogic = new MenuCategorieLogic(db);
-        this.bestellingLogic = new BestellingLogic(db);
-        this.bestellingMenuItemLogic = new BestellingMenuItemLogic(db);
-        this.openingsTijdenLogic = new OpeningsTijdenLogic(db);
-        this.openingsDagLogic = new OpeningsDagLogic(db);
-        this.timeSlotLogic = new TimeSlotLogic(db);
+        this.menuItemLogic = new MenuItemLogic();
+        this.reservationLogic = new ReservationLogic();
+        this.menuCategorieLogic = new MenuCategorieLogic();
+        this.bestellingLogic = new BestellingLogic();
+        this.bestellingMenuItemLogic = new BestellingMenuItemLogic();
+        this.openingsTijdenLogic = new OpeningsTijdenLogic();
+        this.openingsDagLogic = new OpeningsDagLogic();
+        this.timeSlotLogic = new TimeSlotLogic();
     }
 
     private void ToonReserveringKaart(Reservering r, int nummer)
