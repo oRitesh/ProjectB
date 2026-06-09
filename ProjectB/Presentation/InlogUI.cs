@@ -12,20 +12,28 @@ public class InlogUI
     public Gebruiker? Login()
     {
         Console.Clear();
-        string? email = InputValidatie.ValideerInput(
+        string? email = null;
+        string? wachtwoord = null;
+
+        while (true)
+        {
+            Console.Clear();
+            email = InputValidatie.ValideerInput(
             "=== Inloggen ===\nDruk op Escape om terug te gaan.\n\nE-mailadres",
             x => x.Contains("@") && x.Contains("."),
             "Ongeldig e-mailadres."
         );
-        if (email == null) return null;
+            if (email == null) return null;
 
-        Console.Clear();
-        string? wachtwoord = InputValidatie.ValideerInput(
-            $"=== Inloggen ===\nDruk op Escape om terug te gaan.\n\nE-mailadres: {email}\nWachtwoord",
-            x => x.Length > 0,
-            "Wachtwoord mag niet leeg zijn."
-        );
-        if (wachtwoord == null) return null;
+            Console.Clear();
+            wachtwoord = InputValidatie.ValideerInput(
+                $"=== Inloggen ===\nDruk op Escape om terug te gaan.\n\nE-mailadres: {email}\nWachtwoord",
+                x => x.Length > 0,
+                "Wachtwoord mag niet leeg zijn."
+            );
+            if (wachtwoord != null) break;
+        }
+
 
         var user = userAccess.GetUserByEmail(email, wachtwoord);
 
