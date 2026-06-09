@@ -40,13 +40,13 @@ public class InlogUI
         if (user != null)
         {
             Console.WriteLine();
-            Console.WriteLine($"✔ Succesvol ingelogd! Welkom terug, {user.Naam}.");
+            Console.WriteLine($"Succesvol ingelogd! Welkom terug, {user.Naam}.");
             Console.ReadKey(true);
             return user;
         }
 
         Console.WriteLine();
-        Console.WriteLine("❌ Onjuiste inloggegevens.");
+        Console.WriteLine("Onjuiste inloggegevens.");
         Console.ReadKey(true);
         return null;
     }
