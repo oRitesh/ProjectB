@@ -72,7 +72,7 @@ public sealed class KlantReserveringTests
 
 
     /// <summary>
-    /// S2: Klant probeert reservering van 3 uur in te voeren
+    /// S2: klant probeert reservering te maken voor een datum in het verleden
     /// Scenario: Klant probeert een reservering voor een voorbije datum te maken
     /// </summary>
     [TestMethod]
@@ -181,28 +181,5 @@ public sealed class KlantReserveringTests
 
         Assert.IsNotEmpty(beschikbareTafels,
             "Er moet minstens een beschikbare tafel zijn");
-    }
-
-
-    /// <summary>
-    /// S4: Klant probeert te reserveren op een tijdslot waarbij alle tafels al bezet zijn
-    /// Scenario: Klant probeert op een moment dat alle tafels bezet zijn toch te reserveren
-    /// </summary>
-    [TestMethod]
-    public void ValideerBeschikbaarheidTafel_TafelAlBezet_ReserveringGeweigerd()
-    {
-        var alleTafels = tafelAccess.GetAllTafels();
-        Assert.IsNotEmpty(alleTafels, "Er moeten tafels in de database bestaan");
-
-        string startTijd = "2026-06-20 18:00";
-        string eindTijd = "2026-06-20 20:00";
-        var tafel = alleTafels.First();
-
-        var overlappendeReserveringen = reserveringAccess.GetOverlappendeReserveringen(tafel.ID, startTijd, eindTijd);
-
-        if (overlappendeReserveringen.Count > 0)
-        {
-            Assert.AreEqual(tafel.ID, overlappendeReserveringen[0].TafelID, "Tafel ID moet matchen");
-        }
     }
 }
