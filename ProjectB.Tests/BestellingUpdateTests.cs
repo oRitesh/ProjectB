@@ -71,7 +71,7 @@ public sealed class BestellingUpdateTesting
         string description = "Italiaans gerecht";
         string allergen = "gluten";
 
-        MenuItem testDish = new(0, categoryId, dishName, (int)price, description, allergen);
+        MenuItem testDish = new(0, categoryId, dishName, (int)price, description, allergen, 0);
 
         // act
         itemAccess.AddMenuItem(testDish);

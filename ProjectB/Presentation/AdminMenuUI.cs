@@ -1,47 +1,48 @@
 using System.Globalization;
 using Dapper;
+
 public class AdminMenuUI
 {
     private readonly MenuItemAccess menuItemAccess;
     private readonly ReserveringAccess reserveringAccess;
-    private readonly TijdslotAccess tijdslotAccess;
     private readonly MenuCategorieAccess menuCategorieAccess;
-
     private readonly bestellingAccess BestellingAccess;
+    private readonly OpeningsTijdenAccess openingsTijdenAccess;
+    private readonly OpeningsDagAccess openingsDagAccess;
+    private readonly TimeSlotLogic timeSlotLogic;
 
     private readonly DatabaseContext menuItemDb;
-    private readonly DatabaseContext tijdslotDb;
     private readonly DatabaseContext reserveringDb;
     private readonly DatabaseContext menuCategorieDb;
     private readonly DatabaseContext bestellingDb;
+    private readonly DatabaseContext openingsDb;
 
     public AdminMenuUI()
     {
         this.menuItemDb = new DatabaseContext();
-        this.tijdslotDb = new DatabaseContext();
         this.reserveringDb = new DatabaseContext();
         this.menuCategorieDb = new DatabaseContext();
         this.bestellingDb = new DatabaseContext();
+        this.openingsDb = new DatabaseContext();
 
         this.menuItemAccess = new MenuItemAccess(menuItemDb);
-        this.tijdslotAccess = new TijdslotAccess(tijdslotDb);
         this.reserveringAccess = new ReserveringAccess(reserveringDb);
         this.menuCategorieAccess = new MenuCategorieAccess(menuCategorieDb);
         this.BestellingAccess = new bestellingAccess(bestellingDb);
+        this.openingsTijdenAccess = new OpeningsTijdenAccess(openingsDb);
+        this.openingsDagAccess = new OpeningsDagAccess(openingsDb);
+        this.timeSlotLogic = new TimeSlotLogic(openingsDb);
     }
 
     ~AdminMenuUI()
     {
         menuItemDb?.Close();
-        tijdslotDb?.Close();
         reserveringDb?.Close();
         menuCategorieDb?.Close();
         bestellingDb?.Close();
+        openingsDb?.Close();
     }
 
-    // ─────────────────────────────────────────────
-    //  Hulpfunctie: toon één reservering als kaartje
-    // ─────────────────────────────────────────────
     private void ToonReserveringKaart(Reservering r, int nummer)
     {
         CultureInfo nl = new CultureInfo("nl-NL");
@@ -64,18 +65,26 @@ public class AdminMenuUI
     // ─────────────────────────────────────────────
     //  Hoofdmenu
     // ─────────────────────────────────────────────
-    public void ShowAdminMenu()
+    public void ShowAdminMenu(int rol = 2)
     {
-        List<string> opties = new()
-        {
-            "Wijzig menukaart",
-            "Bekijk alle reserveringen",
-            "Bekijk reserveringen per tijdslot",
-            "Wis bestelling geheugen",
-            "Bekijk alle bestellingen",
-            "Wijzig bestelling status",
-            "Terug naar hoofdmenu"
-        };
+        List<string> opties = new();
+
+        if (rol == 2)
+            opties.Add("Wijzig menukaart");
+
+        opties.Add("Bekijk alle reserveringen");
+        opties.Add("Bekijk reserveringen per tijdslot");
+
+        if (rol == 2)
+            opties.Add("Wis bestelling geheugen");
+
+        opties.Add("Bekijk alle bestellingen");
+        opties.Add("Wijzig bestelling status");
+
+        if (rol == 2)
+            opties.Add("Wijzig openingstijden");
+        opties.Add("Terug naar hoofdmenu");
+
 
         while (true)
         {
@@ -89,15 +98,13 @@ public class AdminMenuUI
                 case "Wis bestelling geheugen": WisBestellingGeheugen(); break;
                 case "Bekijk alle bestellingen": BekijkBestellingen(); break;
                 case "Wijzig bestelling status": AanpassenBestellingStatus(); break;
+                case "Wijzig openingstijden": WijzigOpeningstijden(); break;
                 case "Terug naar hoofdmenu": return;
                 case null: return;
             }
         }
     }
 
-    // ─────────────────────────────────────────────
-    //  Menukaart bewerken
-    // ─────────────────────────────────────────────
     public void EditMenu()
     {
         List<string> opties = new()
@@ -150,7 +157,15 @@ public class AdminMenuUI
         string naam = Console.ReadLine() ?? "";
 
         Console.Write("Prijs        : ");
-        decimal prijs = decimal.Parse(Console.ReadLine() ?? "0");
+        string prijsInput = Console.ReadLine() ?? "";
+
+        if (!decimal.TryParse(prijsInput, out decimal prijs) || prijs < 0)
+        {
+            Console.WriteLine("Je kan geen negatieve prijs invoeren.");
+            Console.ReadKey(true);
+            return;
+        }
+
 
         Console.Write("Beschrijving : ");
         string beschrijving = Console.ReadLine() ?? "";
@@ -225,8 +240,21 @@ public class AdminMenuUI
         string updateNaam = string.IsNullOrWhiteSpace(input) ? gekozenItem.Naam : input;
 
         Console.Write($"Prijs        [€{gekozenItem.Prijs:F2}]: ");
-        input = Console.ReadLine() ?? "";
-        decimal updatePrijs = string.IsNullOrWhiteSpace(input) ? gekozenItem.Prijs : decimal.Parse(input);
+        string prijsInput = Console.ReadLine() ?? "";
+
+        decimal updatePrijs;
+
+        if (string.IsNullOrWhiteSpace(prijsInput))
+        {
+            updatePrijs = gekozenItem.Prijs;
+        }
+        else if (!decimal.TryParse(prijsInput, out updatePrijs) || updatePrijs < 0)
+        {
+            Console.WriteLine("Je kan geen negatieve prijs invoeren.");
+            Console.ReadKey(true);
+            return;
+        }
+
 
         Console.Write($"Beschrijving [{gekozenItem.Beschrijving}]: ");
         input = Console.ReadLine() ?? "";
@@ -304,9 +332,6 @@ public class AdminMenuUI
         Console.ReadKey(true);
     }
 
-    // ─────────────────────────────────────────────
-    //  Alle reserveringen
-    // ─────────────────────────────────────────────
     public void ViewReservations()
     {
         Console.Clear();
@@ -333,12 +358,13 @@ public class AdminMenuUI
         Console.ReadKey(true);
     }
 
-    // ─────────────────────────────────────────────
-    //  Reserveringen per tijdslot
-    // ─────────────────────────────────────────────
     public void ViewReservationsPerTimeSlot()
     {
-        List<string> datums = tijdslotAccess.GetAllDatums();
+        List<string> datums = reserveringAccess.GetAllReserveringen()
+            .Select(r => DateTime.Parse(r.StartTijd).ToString("yyyy-MM-dd"))
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
 
         if (datums.Count == 0)
         {
@@ -350,18 +376,13 @@ public class AdminMenuUI
         }
 
         string? gekozenDatum = ArrowMenu.ShowMenu("KIES DATUM", datums, x => x);
-        if (gekozenDatum == null) return;
 
-        List<Tijdslot> tijdsloten = tijdslotAccess.GetTijdslotenByDatum(gekozenDatum);
-
-        if (tijdsloten.Count == 0)
+        if (gekozenDatum == null)
         {
-            Console.Clear();
-            Console.WriteLine($"Geen tijdsloten gevonden op {gekozenDatum}.");
-            Console.WriteLine("Druk op een toets om terug te gaan...");
-            Console.ReadKey(true);
             return;
         }
+
+        List<Tijdslot> tijdsloten = timeSlotLogic.MaakTijdslotenVoorAdmin(DateTime.Parse(gekozenDatum));
 
         Tijdslot? geselecteerd = ArrowMenu.ShowMenu(
             $"TIJDSLOT  ({gekozenDatum})",
@@ -374,7 +395,10 @@ public class AdminMenuUI
             }
         );
 
-        if (geselecteerd == null) return;
+        if (geselecteerd == null)
+        {
+            return;
+        }
 
         string tijdslotLabel = DateTime.TryParse(geselecteerd.StartTijd, out DateTime sl) ? sl.ToString("HH:mm") : geselecteerd.StartTijd;
         tijdslotLabel += " – " + (DateTime.TryParse(geselecteerd.EindTijd, out DateTime el) ? el.ToString("HH:mm") : geselecteerd.EindTijd);
@@ -386,7 +410,7 @@ public class AdminMenuUI
         Console.WriteLine("==================================");
         Console.WriteLine();
 
-        var reserveringen = reserveringAccess.GetReserveringenVoorDatum(geselecteerd.Datum);
+        var reserveringen = reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(geselecteerd);
 
         if (reserveringen.Count == 0)
         {
@@ -418,63 +442,42 @@ public class AdminMenuUI
             return;
         }
 
-        for (int i = 0; i < bestellingen.Count; i++)
-        {
-            var b = bestellingen[i];
-            Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
-        }
+        var gekozen = ArrowMenu.ShowMenu(
+           "KIES BESTELLING",
+           bestellingen,
+           b => $"Bestelling: {b.ID}  |  Gebruiker: {b.GebruikerID}  |  Status: {b.Status}"
+       );
 
-        Console.WriteLine("\nKies een bestelling (nummer): ");
-        string? input = Console.ReadLine();
-
-        if (!int.TryParse(input, out int keuze))
-        {
-            Console.WriteLine("Ongeldige invoer.");
-            return;
-        }
-        else if (keuze < 1)
-        {
-            Console.WriteLine("Nummer moet minimaal 1 zijn.");
-            return;
-        }
-        else if (keuze > bestellingen.Count)
-        {
-            Console.WriteLine("Nummer bestaat niet in de lijst.");
-            return;
-        }
-
-
-        var gekozen = bestellingen[keuze - 1];
+        if (gekozen == null) return;
 
         var itemAccess = new BestellingMenuItemAccess(new DatabaseContext());
         var items = itemAccess.GetBestellingMenuItemsByBestellingId(gekozen.ID);
 
         Console.Clear();
-        Console.WriteLine($"=== BESTELLING {gekozen.ID} ===\n");
-        Console.WriteLine($"Gebruiker ID : {gekozen.GebruikerID}");
-        Console.WriteLine($"Status       : {gekozen.Status}");
-        Console.WriteLine($"Ophaaltijd   : {gekozen.OphaalTijd}");
-        Console.WriteLine($"Prijs  : €{gekozen.TotaalPrijs}\n");
-
-        Console.WriteLine("Bestelde items:");
-        Console.WriteLine("----------------------------------");
+        Console.WriteLine($"  ┌─ Bestelling #{gekozen.ID} ────────────────────────────");
+        Console.WriteLine($"  │  Gebruiker  : {gekozen.GebruikerID,-28}");
+        Console.WriteLine($"  │  Status     : {gekozen.Status,-28}");
+        Console.WriteLine($"  │  Ophaaltijd : {gekozen.OphaalTijd,-28}");
+        Console.WriteLine($"  │  Totaalprijs: €{gekozen.TotaalPrijs,-27}");
+        Console.WriteLine("   ----------------------------------");
 
         if (items.Count == 0)
         {
-            Console.WriteLine("Geen items gevonden.");
+            Console.WriteLine($"  │  {"Geen items gevonden.",-45}");
         }
         else
         {
             foreach (var item in items)
             {
-                Console.WriteLine($"Item naam: {menuItemAccess.GetMenuItemNameById(item.MenuItemID)}\nAantal: {item.Aantal}\nPrijs: €{item.PrijsPerStuk}\n");
+                string naam = menuItemAccess.GetMenuItemNameById(item.MenuItemID);
+                string regel = $"{naam}:  x{item.Aantal} - €{item.PrijsPerStuk}";
+                Console.WriteLine($"  │  {regel,-45}");
             }
         }
-
+        Console.WriteLine($"  └──────────────────────────────────────────────");
         Console.WriteLine("\nDruk op een toets om terug te gaan...");
         Console.ReadKey(true);
     }
-
 
     public void AanpassenBestellingStatus()
     {
@@ -490,65 +493,38 @@ public class AdminMenuUI
             return;
         }
 
-        for (int i = 0; i < bestellingen.Count; i++)
+        var gekozen = ArrowMenu.ShowMenu(
+           "KIES BESTELLING",
+           bestellingen,
+           b => $"Bestelling: {b.ID}  |  Gebruiker: {b.GebruikerID}  |  Status: {b.Status}"
+       );
+
+        List<string> statusOpties = new()
         {
-            var b = bestellingen[i];
-            Console.WriteLine($"{i + 1}.\nBestelling: {b.ID}\nGebruiker: {b.GebruikerID}\nStatus: {b.Status}\n");
-        }
+            "Bezig met bereiden",
+            "Bestelling bereid",
+            "Bestelling afgerond",
+        };
 
-        Console.WriteLine("\nKies een bestelling (nummer): ");
-        string? input = Console.ReadLine();
-
-        if (!int.TryParse(input, out int keuze))
-        {
-            Console.WriteLine("Ongeldige invoer.");
-            return;
-        }
-        else if (keuze < 1)
-        {
-            Console.WriteLine("Nummer moet minimaal 1 zijn.");
-            return;
-        }
-        else if (keuze > bestellingen.Count)
-        {
-            Console.WriteLine("Nummer bestaat niet in de lijst.");
-            return;
-        }
-
-        var gekozen = bestellingen[keuze - 1];
-
-        Console.Clear();
-        Console.WriteLine($"=== STATUS WIJZIGEN VOOR BESTELLING #{gekozen.ID} ===\n");
-
-        Console.WriteLine("1. Bezig met bereiden");
-        Console.WriteLine("2. Bestelling bereid");
-        Console.WriteLine("3. Bestelling afgerond (verwijderen)");
-        Console.WriteLine("4. Annuleren\n");
-
-        Console.Write("Kies een optie: ");
-        string? statusInput = Console.ReadLine();
-
-        if (!int.TryParse(statusInput, out int statusKeuze))
-        {
-            Console.WriteLine("Ongeldige invoer.");
-            return;
-        }
+        string? statusKeuze = ArrowMenu.ShowMenu(
+            $"STATUS WIJZIGEN VOOR BESTELLING #{gekozen.ID}",
+            statusOpties,
+            x => x
+        );
 
         switch (statusKeuze)
         {
-            case 1:
+            case "Bezig met bereiden":
                 BestellingAccess.UpdateStatus(gekozen.ID, "Bezig met bereiden");
                 break;
 
-            case 2:
+            case "Bestelling bereid":
                 BestellingAccess.UpdateStatus(gekozen.ID, "Bestelling bereid");
                 break;
 
-            case 3:
-                BestellingAccess.DeleteBestelling(gekozen.ID);
-
+            case "Bestelling afgerond":
                 Console.Clear();
-                Console.WriteLine($"Bestelling #{gekozen.ID} is verwijderd.");
+                Console.WriteLine($"Bestelling #{gekozen.ID} is afgerond.");
                 Console.ReadKey(true);
                 return;
 
@@ -563,21 +539,130 @@ public class AdminMenuUI
 
     public void WisBestellingGeheugen()
     {
-        Console.Clear();
-        Console.WriteLine("=== BESTELLINGSGEHEUGEN WISSEN ===\n");
-        Console.WriteLine("Weet je zeker dat je alle bestellingen wilt verwijderen?");
-        Console.WriteLine("Deze actie kan niet ongedaan worden gemaakt.\n");
-        Console.WriteLine("1. Ja, wis alle bestellingen");
-        Console.WriteLine("2. Nee, annuleer\n");
-        Console.Write("Kies een optie: ");
-        string? input = Console.ReadLine();
+        List<string> bevestigOpties = new() { "Ja, wis alle bestellingen", "Nee, annuleer" };
 
-        if (input == "1")
+        string? keuze = ArrowMenu.ShowMenu(
+            "BESTELLINGSGEHEUGEN WISSEN",
+            bevestigOpties,
+            x => x
+        );
+
+        if (keuze == "Ja, wis alle bestellingen")
         {
             BestellingAccess.DeleteAllBestellingen();
             Console.Clear();
             Console.WriteLine("Alle bestellingen zijn verwijderd.");
             Console.ReadKey(true);
         }
+    }
+
+    private void WijzigOpeningstijden()
+    {
+        List<string> opties = new()
+        {
+            "Wijzig openingstijd en sluitingstijd",
+            "Wijzig openingsdagen",
+            "Terug"
+        };
+
+        while (true)
+        {
+            string? keuze = ArrowMenu.ShowMenu("OPENINGSTIJDEN BEHEREN", opties, x => x);
+
+            switch (keuze)
+            {
+                case "Wijzig openingstijd en sluitingstijd":
+                    WijzigOpeningsEnSluitingsTijd();
+                    break;
+
+                case "Wijzig openingsdagen":
+                    WijzigOpeningsDagen();
+                    break;
+
+                case "Terug":
+                case null:
+                    return;
+            }
+        }
+    }
+
+    private void WijzigOpeningsEnSluitingsTijd()
+    {
+        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
+
+        if (tijden == null)
+        {
+            Console.Clear();
+            Console.WriteLine("Geen openingstijden gevonden in de database.");
+            Console.WriteLine("Druk op een toets om terug te gaan...");
+            Console.ReadKey(true);
+            return;
+        }
+
+        Console.Clear();
+        Console.WriteLine("==================================");
+        Console.WriteLine("     OPENINGSTIJDEN WIJZIGEN      ");
+        Console.WriteLine("==================================");
+        Console.WriteLine();
+        Console.WriteLine($"Huidige openingstijd : {tijden.OpeningsTijd}");
+        Console.WriteLine($"Huidige sluitingstijd: {tijden.SluitingsTijd}");
+        Console.WriteLine();
+        Console.Write("Nieuwe openingstijd (HH:mm): ");
+        string nieuweOpening = Console.ReadLine() ?? "";
+
+        Console.Write("Nieuwe sluitingstijd (HH:mm): ");
+        string nieuweSluiting = Console.ReadLine() ?? "";
+
+        if (!TimeSpan.TryParse(nieuweOpening, out _) || !TimeSpan.TryParse(nieuweSluiting, out _))
+        {
+            Console.WriteLine("Ongeldige tijd. Gebruik bijvoorbeeld 17:00 of 00:00.");
+            Console.ReadKey(true);
+            return;
+        }
+
+        tijden.OpeningsTijd = nieuweOpening;
+        tijden.SluitingsTijd = nieuweSluiting;
+
+        openingsTijdenAccess.UpdateOpeningsTijden(tijden);
+
+        Console.WriteLine("Openingstijden bijgewerkt.");
+        Console.ReadKey(true);
+    }
+
+    private void WijzigOpeningsDagen()
+    {
+        while (true)
+        {
+            List<OpeningsDag> dagen = openingsDagAccess.GetAllOpeningsDagen();
+
+            OpeningsDag? gekozenDag = ArrowMenu.ShowMenu(
+                "OPENINGSDAGEN WIJZIGEN",
+                dagen,
+                d => $"{DagNaam(d.DagVanWeek)} - {(d.IsOpen == 1 ? "Open" : "Gesloten")}"
+            );
+
+            if (gekozenDag == null)
+            {
+                return;
+            }
+
+            gekozenDag.IsOpen = gekozenDag.IsOpen == 1 ? 0 : 1;
+            openingsDagAccess.UpdateOpeningsDag(gekozenDag);
+        }
+    }
+
+    private string DagNaam(int dagVanWeek)
+    {
+        return dagVanWeek switch
+        {
+            0 => "Zondag",
+            1 => "Maandag",
+            2 => "Dinsdag",
+            3 => "Woensdag",
+            4 => "Donderdag",
+            5 => "Vrijdag",
+            6 => "Zaterdag",
+            _ => "Onbekend"
+        };
     }
 }

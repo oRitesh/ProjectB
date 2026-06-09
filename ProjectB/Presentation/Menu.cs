@@ -1,11 +1,28 @@
 
 
+using System.Collections;
+
 public static class Menu
 {
     private static Gebruiker? HuidigeGebruiker = new Gebruiker(0, 0, "gast", "", "", "");
 
     static void ShowInformationPage()
     {
+        DatabaseContext db = new DatabaseContext();
+
+        OpeningsTijdenAccess openingsTijdenAccess = new OpeningsTijdenAccess(db);
+        OpeningsDagAccess openingsDagAccess = new OpeningsDagAccess(db);
+
+        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
+        List<OpeningsDag> dagen = openingsDagAccess.GetAllOpeningsDagen();
+
+        db.Close();
+
+        string openingsDagenTekst = MaakOpeningsDagenTekst(dagen);
+        string openingsTijdenTekst = tijden == null
+            ? "Onbekend"
+            : $"{tijden.OpeningsTijd} - {tijden.SluitingsTijd}";
+
         Console.Clear();
         Console.WriteLine("==================================");
         Console.WriteLine("         INFORMATIEPAGINA         ");
@@ -13,8 +30,8 @@ public static class Menu
         Console.WriteLine("Restaurantnaam : Het Culinaire Bootje");
         Console.WriteLine("Telefoonnummer : 0612345678");
         Console.WriteLine("Adres          : Witte de Withstraat 12, Rotterdam");
-        Console.WriteLine("Openingstijden : Dinsdag t/m zaterdag");
-        Console.WriteLine("                  17:00 - 00:00");
+        Console.WriteLine($"Openingsdagen  : {openingsDagenTekst}");
+        Console.WriteLine($"Openingstijden : {openingsTijdenTekst}");
         Console.WriteLine();
         Console.WriteLine("Welkom bij Het Culinaire Bootje!");
         Console.WriteLine("Hier kunt u genieten van heerlijk eten");
@@ -24,15 +41,50 @@ public static class Menu
         Console.ReadKey(true);
     }
 
+    static string MaakOpeningsDagenTekst(List<OpeningsDag> dagen)
+    {
+        List<int> openDagen = dagen
+            .Where(d => d.IsOpen == 1)
+            .Select(d => d.DagVanWeek)
+            .OrderBy(d => d)
+            .ToList();
+
+        if (openDagen.Count == 0)
+        {
+            return "Gesloten";
+        }
+
+        if (openDagen.Count == 7)
+        {
+            return "Elke dag";
+        }
+
+        return string.Join(", ", openDagen.Select(DagNaam));
+    }
+
+    static string DagNaam(int dagVanWeek)
+    {
+        return dagVanWeek switch
+        {
+            0 => "Zondag",
+            1 => "Maandag",
+            2 => "Dinsdag",
+            3 => "Woensdag",
+            4 => "Donderdag",
+            5 => "Vrijdag",
+            6 => "Zaterdag",
+            _ => "Onbekend"
+        };
+    }
+
     static void ShowReservationPage()
     {
         DatabaseContext db = new DatabaseContext();
 
         ReserveringAccess reserveringAccess = new ReserveringAccess(db);
         TafelAccess tafelAccess = new TafelAccess(db);
-        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
         UserAccess userAccess = new UserAccess(db);
-        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
         ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, HuidigeGebruiker);
         reserveringUI.ShowReserveringPage();
@@ -60,17 +112,19 @@ public static class Menu
             opties.Add(MainMenuOption.Reserveren);
             opties.Add(MainMenuOption.Afhalen);
 
-            if (HuidigeGebruiker.Naam == "gast")
+            if (HuidigeGebruiker.Rol == 0)
             {
                 opties.Add(MainMenuOption.Login);
             }
-            else if (HuidigeGebruiker.Naam == "Admin")
+            else if (HuidigeGebruiker.Rol == 2 || HuidigeGebruiker.Rol == 3)
             {
                 opties.Add(MainMenuOption.Admin);
+                opties.Add(MainMenuOption.Loguit);
             }
             else
             {
                 opties.Add(MainMenuOption.Overzicht);
+                opties.Add(MainMenuOption.Loguit);
             }
 
             opties.Add(MainMenuOption.Exit);
@@ -87,6 +141,7 @@ public static class Menu
                     MainMenuOption.Afhalen => "Plaats afhaalbestelling",
                     MainMenuOption.Overzicht => "Overzicht reserveringen",
                     MainMenuOption.Login => "Login / registreer",
+                    MainMenuOption.Loguit => "Loguit",
                     MainMenuOption.Admin => "Open Admin menu",
                     MainMenuOption.Exit => "Afsluiten",
                     _ => ""
@@ -198,9 +253,19 @@ public static class Menu
                         break;
                     }
 
+                case MainMenuOption.Loguit:
+                    string? bevestig = ArrowMenu.ShowMenu(
+                        "WEET U ZEKER DAT U WILT UITLOGGEN?",
+                        new List<string> { "Ja, uitloggen", "Nee, annuleer" },
+                        x => x
+                    );
+                    if (bevestig == "Ja, uitloggen")
+                        HuidigeGebruiker = new Gebruiker(0, 0, "gast", "", "", "");
+                    break;
+
                 case MainMenuOption.Admin:
                     AdminMenuUI adminMenuUI = new AdminMenuUI();
-                    adminMenuUI.ShowAdminMenu();
+                    adminMenuUI.ShowAdminMenu(HuidigeGebruiker.Rol);
                     break;
 
                 case MainMenuOption.Overzicht:
@@ -215,10 +280,9 @@ public static class Menu
                         DatabaseContext db = new DatabaseContext();
                         ReserveringAccess reserveringAccess = new ReserveringAccess(db);
                         TafelAccess tafelAccess = new TafelAccess(db);
-                        TijdslotAccess tijdslotAccess = new TijdslotAccess(db);
                         UserAccess userAccess = new UserAccess(db);
 
-                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, tijdslotAccess, userAccess);
+                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
                         ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
                         overzichtUI.ShowOverzicht();

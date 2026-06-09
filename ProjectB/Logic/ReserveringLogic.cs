@@ -2,28 +2,27 @@ public class ReservationLogic
 {
     private readonly ReserveringAccess reserveringAccess;
     private readonly TafelAccess tafelAccess;
-    private readonly TijdslotAccess tijdslotAccess;
     private readonly UserAccess userAccess;
+    private readonly OpeningsTijdenAccess openingsTijdenAccess;
+    private readonly OpeningsDagAccess openingsDagAccess;
 
     public ReservationLogic(
         ReserveringAccess reserveringAccess,
         TafelAccess tafelAccess,
-        TijdslotAccess tijdslotAccess,
         UserAccess userAccess)
     {
         this.reserveringAccess = reserveringAccess;
         this.tafelAccess = tafelAccess;
-        this.tijdslotAccess = tijdslotAccess;
         this.userAccess = userAccess;
+
+        DatabaseContext db = new DatabaseContext();
+        this.openingsTijdenAccess = new OpeningsTijdenAccess(db);
+        this.openingsDagAccess = new OpeningsDagAccess(db);
     }
 
-    //publieke getters voor access van andere classes
     public ReserveringAccess ReserveringAccess => reserveringAccess;
     public TafelAccess TafelAccess => tafelAccess;
-    public TijdslotAccess TijdslotAccess => tijdslotAccess;
     public UserAccess UserAccess => userAccess;
-
-
 
     public List<int> GetAantalPersonenOpties()
     {
@@ -46,7 +45,10 @@ public class ReservationLogic
 
         for (DateTime datum = vandaag; datum <= eindDatum; datum = datum.AddDays(1))
         {
-            datums.Add(datum);
+            if (openingsDagAccess.IsOpenOpDatum(datum))
+            {
+                datums.Add(datum);
+            }
         }
 
         return datums;
@@ -62,36 +64,59 @@ public class ReservationLogic
         DateTime vandaag = DateTime.Today;
         DateTime eindDatum = vandaag.AddMonths(1);
 
-        return datum.Date >= vandaag && datum.Date <= eindDatum.Date;
+        return datum.Date >= vandaag
+            && datum.Date <= eindDatum.Date
+            && openingsDagAccess.IsOpenOpDatum(datum);
     }
 
-    public void MaakTijdslotenVoorDatumAlsNietBestaan(DateTime datum)
+    private DateTime CombineDatumEnTijd(DateTime datum, string tijd)
     {
-        string datumString = datum.ToString("yyyy-MM-dd");
-        List<Tijdslot> bestaandeTijdsloten = tijdslotAccess.GetTijdslotenByDatum(datumString);
+        return DateTimeHelper.CombineDatumEnTijd(datum, tijd);
+    }
 
-        if (bestaandeTijdsloten.Count > 0)
+    public List<Tijdslot> MaakTijdslotenVoorDatum(DateTime datum)
+    {
+        List<Tijdslot> tijdsloten = new List<Tijdslot>();
+
+        if (!openingsDagAccess.IsOpenOpDatum(datum))
         {
-            return;
+            return tijdsloten;
         }
 
-        DateTime start = datum.Date.AddHours(17);
-        DateTime laatsteStart = datum.Date.AddHours(22);
+        OpeningsTijden? opening = openingsTijdenAccess.GetOpeningsTijden();
+
+        if (opening == null)
+        {
+            return tijdsloten;
+        }
+
+        string datumString = datum.ToString("yyyy-MM-dd");
+
+        DateTime start = CombineDatumEnTijd(datum, opening.OpeningsTijd);
+        DateTime sluiting = CombineDatumEnTijd(datum, opening.SluitingsTijd);
+
+        if (sluiting <= start)
+        {
+            sluiting = sluiting.AddDays(1);
+        }
+
+        DateTime laatsteStart = sluiting.AddHours(-2);
 
         while (start <= laatsteStart)
         {
             DateTime eind = start.AddHours(2);
 
-            Tijdslot tijdslot = new Tijdslot(
+            tijdsloten.Add(new Tijdslot(
                 0,
                 datumString,
                 start.ToString("yyyy-MM-dd HH:mm:ss"),
                 eind.ToString("yyyy-MM-dd HH:mm:ss")
-            );
+            ));
 
-            tijdslotAccess.AddTijdslot(tijdslot);
             start = start.AddMinutes(15);
         }
+
+        return tijdsloten;
     }
 
     public int GetBenodigdeCapaciteit(int aantalPersonen)
@@ -123,11 +148,9 @@ public class ReservationLogic
             return beschikbareTijdsloten;
         }
 
-        MaakTijdslotenVoorDatumAlsNietBestaan(datum);
-
         int benodigdeCapaciteit = GetBenodigdeCapaciteit(aantalPersonen);
         List<Tafel> mogelijkeTafels = tafelAccess.GetTafelsByCapaciteit(benodigdeCapaciteit);
-        List<Tijdslot> tijdsloten = tijdslotAccess.GetTijdslotenByDatum(datum.ToString("yyyy-MM-dd"));
+        List<Tijdslot> tijdsloten = MaakTijdslotenVoorDatum(datum);
 
         foreach (Tijdslot tijdslot in tijdsloten)
         {

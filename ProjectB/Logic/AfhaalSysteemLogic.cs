@@ -1,11 +1,15 @@
 public class AfhaalSysteemLogic
 {
     private readonly UserAccess userAccess;
+    private readonly OpeningsTijdenAccess openingsTijdenAccess;
+    private readonly OpeningsDagAccess openingsDagAccess;
+
     public AfhaalSysteemLogic(DatabaseContext db)
     {
         userAccess = new UserAccess(db);
+        openingsTijdenAccess = new OpeningsTijdenAccess(db);
+        openingsDagAccess = new OpeningsDagAccess(db);
     }
-
 
     public List<(MenuItem Item, int Aantal)> Winkelwagen { get; private set; } = new();
 
@@ -32,7 +36,6 @@ public class AfhaalSysteemLogic
         }
     }
 
-
     public void VoegToe(MenuItem item)
     {
         for (int i = 0; i < Winkelwagen.Count; i++)
@@ -50,7 +53,13 @@ public class AfhaalSysteemLogic
     public void VerwijderItem(int index)
     {
         if (index >= 0 && index < Winkelwagen.Count)
-            Winkelwagen.RemoveAt(index);
+        {
+            var entry = Winkelwagen[index];
+            if (entry.Aantal > 1)
+                Winkelwagen[index] = (entry.Item, entry.Aantal - 1); // verlaag met 1
+            else
+                Winkelwagen.RemoveAt(index); // verwijder helemaal als het de laatste is
+        }
     }
 
     public decimal BerekenTotaal()
@@ -58,24 +67,51 @@ public class AfhaalSysteemLogic
         return Winkelwagen.Sum(x => x.Item.Prijs * x.Aantal);
     }
 
+    private int LangsteBereidingsTijd()
+    {
+        return Winkelwagen.Count > 0
+            ? Winkelwagen.Max(x => x.Item.BereidingsTijd)
+            : 0;
+    }
+
     public List<string> GetOphaalTijdOpties()
     {
         var opties = new List<string>();
 
         DateTime vandaag = DateTime.Today;
-        DateTime openingstijd = vandaag.AddHours(17);      // 17:00
-        DateTime laatsteOphaalTijd = vandaag.AddHours(23); // 23:00
 
-        DateTime snelsteOphaalTijd = DateTime.Parse(BerekenOphaalTijd());
-
-        if (snelsteOphaalTijd > laatsteOphaalTijd)
+        if (!openingsDagAccess.IsOpenOpDatum(vandaag))
         {
             return opties;
         }
 
+        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
+
+        if (tijden == null)
+        {
+            return opties;
+        }
+
+        DateTime openingstijd = DateTimeHelper.CombineDatumEnTijd(vandaag, tijden.OpeningsTijd);
+        DateTime sluitingstijd = DateTimeHelper.CombineDatumEnTijd(vandaag, tijden.SluitingsTijd);
+
+        if (sluitingstijd <= openingstijd)
+        {
+            sluitingstijd = sluitingstijd.AddDays(1);
+        }
+
+        DateTime laatsteOphaalTijd = sluitingstijd.AddHours(-1);
+
+        DateTime snelsteOphaalTijd = DateTime.Now.AddMinutes(LangsteBereidingsTijd() + 15);
+
         if (snelsteOphaalTijd < openingstijd)
         {
             snelsteOphaalTijd = openingstijd;
+        }
+
+        if (snelsteOphaalTijd > laatsteOphaalTijd)
+        {
+            return opties;
         }
 
         opties.Add($"Zo snel mogelijk ({snelsteOphaalTijd:HH:mm})");
@@ -97,16 +133,25 @@ public class AfhaalSysteemLogic
         var gast = new Gebruiker(0, naam, telefoon);
         int nieuweGebruikerID = userAccess.AddUser(gast);
         return nieuweGebruikerID;
-    }   
+    }
 
     public string BerekenOphaalTijd()
     {
-        int langsteBereidingsTijd = Winkelwagen.Count > 0
-            ? Winkelwagen.Max(x => x.Item.BereidingsTijd)
-            : 0;
+        DateTime vandaag = DateTime.Today;
+        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
 
-        return DateTime.Now
-            .AddMinutes(langsteBereidingsTijd + 15)
-            .ToString("HH:mm");
+        DateTime snelsteOphaalTijd = DateTime.Now.AddMinutes(LangsteBereidingsTijd() + 15);
+
+        if (tijden != null)
+        {
+            DateTime openingstijd = DateTimeHelper.CombineDatumEnTijd(vandaag, tijden.OpeningsTijd);
+
+            if (snelsteOphaalTijd < openingstijd)
+            {
+                snelsteOphaalTijd = openingstijd;
+            }
+        }
+
+        return snelsteOphaalTijd.ToString("HH:mm");
     }
 }

@@ -1,7 +1,8 @@
 public static class RandomLogicTools
 {
-    public static string ReadPassword()
+    public static string? ReadPassword(string prompt = "")
     {
+        Console.Write(prompt);
         string password = "";
         ConsoleKeyInfo key;
 
@@ -9,7 +10,13 @@ public static class RandomLogicTools
         {
             key = Console.ReadKey(true); // true = don't display the key
 
-            if (key.Key == ConsoleKey.Enter)
+            if (key.Key == ConsoleKey.Escape)  // nieuw
+            {
+                Console.WriteLine();
+                return null;
+            }
+
+            else if (key.Key == ConsoleKey.Enter)
             {
                 Console.WriteLine();
                 break;
