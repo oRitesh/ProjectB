@@ -9,20 +9,25 @@ public class ReservationLogic
     public ReservationLogic(
         ReserveringAccess reserveringAccess,
         TafelAccess tafelAccess,
-        UserAccess userAccess)
+        UserAccess userAccess,
+        OpeningsTijdenAccess openingsTijdenAccess,
+        OpeningsDagAccess openingsDagAccess)
     {
         this.reserveringAccess = reserveringAccess;
         this.tafelAccess = tafelAccess;
         this.userAccess = userAccess;
+        this.openingsTijdenAccess = openingsTijdenAccess;
+        this.openingsDagAccess = openingsDagAccess;
+    }
 
-        DatabaseContext db = new DatabaseContext();
+    public ReservationLogic(DatabaseContext db)
+    {
+        this.reserveringAccess = new ReserveringAccess(db);
+        this.tafelAccess = new TafelAccess(db);
+        this.userAccess = new UserAccess(db);
         this.openingsTijdenAccess = new OpeningsTijdenAccess(db);
         this.openingsDagAccess = new OpeningsDagAccess(db);
     }
-
-    public ReserveringAccess ReserveringAccess => reserveringAccess;
-    public TafelAccess TafelAccess => tafelAccess;
-    public UserAccess UserAccess => userAccess;
 
     public List<int> GetAantalPersonenOpties()
     {
@@ -303,4 +308,19 @@ public class ReservationLogic
         int gastID = userAccess.AddUser(NieuweGast);
         return gastID;
     }
+
+    public List<Reservering> GetAllReserveringen()
+        => reserveringAccess.GetAllReserveringen();
+
+    public List<Reservering> GetReserveringenByGebruikerID(int gebruikerID)
+        => reserveringAccess.GetReserveringenByGebruikerID(gebruikerID);
+
+    public List<Reservering> GetOverlappendeReserveringenVoorTijdslot(Tijdslot tijdslot)
+        => reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(tijdslot);
+
+    public void UpdateReservering(Reservering reservering)
+        => reserveringAccess.UpdateReservering(reservering);
+
+    public void DeleteReservering(int id)
+        => reserveringAccess.DeleteReservering(id);
 }

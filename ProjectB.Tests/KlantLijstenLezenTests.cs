@@ -8,6 +8,8 @@ public sealed class KlantLijstenLezenTests
     private readonly DatabaseContext _db;
     private readonly ReservationLogic _logic;
     private readonly TijdslotAccess _tijdslotAccess;
+    private readonly ReserveringAccess _reserveringAccess;
+    private readonly TafelAccess _tafelAccess;
 
     // Testdata bijhouden voor opruimen na elke test
     private readonly List<int> _aangemaakteGebruikerIDs = [];
@@ -19,11 +21,13 @@ public sealed class KlantLijstenLezenTests
     {
         // Initialiseer DatabaseContext en ReservationLogic met alle benodigde access-klassen
         _db = new DatabaseContext();
-        var reserveringAccess = new ReserveringAccess(_db);
-        var tafelAccess = new TafelAccess(_db);
+        _reserveringAccess = new ReserveringAccess(_db);
+        _tafelAccess = new TafelAccess(_db);
         _tijdslotAccess = new TijdslotAccess(_db);
         var userAccess = new UserAccess(_db);
-        _logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
+        var openingsTijdenAccess = new OpeningsTijdenAccess(_db);
+        var openingsDagAccess = new OpeningsDagAccess(_db);
+        _logic = new ReservationLogic(_reserveringAccess, _tafelAccess, userAccess, openingsTijdenAccess, openingsDagAccess);
     }
 
     [TestCleanup]
@@ -31,7 +35,7 @@ public sealed class KlantLijstenLezenTests
     {
         // Verwijder reserveringen zodat ze de volgende test niet beïnvloeden
         foreach (int id in _aangemaakteReserveringIDs)
-            _logic.ReserveringAccess.DeleteReservering(id);
+            _reserveringAccess.DeleteReservering(id);
         _aangemaakteReserveringIDs.Clear();
 
         // Verwijder tijdsloten zodat de database schoon blijft na de test
@@ -46,7 +50,7 @@ public sealed class KlantLijstenLezenTests
 
         // Verwijder testtafels zodat capaciteitsqueries niet worden verstoord
         foreach (int id in _aangemaakteTafelIDs)
-            _logic.TafelAccess.DeleteTafel(id);
+            _tafelAccess.DeleteTafel(id);
         _aangemaakteTafelIDs.Clear();
     }
 
@@ -92,7 +96,7 @@ public sealed class KlantLijstenLezenTests
         int gastGebruikerID = 0; // ID van niet-ingelogde gast; bestaat niet als echte gebruiker in de database
 
         // act
-        List<Reservering> resultaat = _logic.ReserveringAccess.GetReserveringenByGebruikerID(gastGebruikerID);
+        List<Reservering> resultaat = _reserveringAccess.GetReserveringenByGebruikerID(gastGebruikerID);
 
         // assert
         Assert.IsEmpty(resultaat,

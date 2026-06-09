@@ -7,13 +7,15 @@ public class ReserveringUI
 {
     private readonly ReservationLogic ReservationLogic;
     private readonly Gebruiker huidigeGebruiker;
+    private readonly UserLogic userLogic;
     private string gastNaam = "";
     private string gastTelefoon = "";
 
-    public ReserveringUI(ReservationLogic ReservationLogic, Gebruiker gebruiker)
+    public ReserveringUI(ReservationLogic ReservationLogic, Gebruiker gebruiker, UserLogic userLogic)
     {
         this.ReservationLogic = ReservationLogic;
         this.huidigeGebruiker = gebruiker;
+        this.userLogic = userLogic;
     }
 
     public void ShowReserveringPage()
@@ -206,42 +208,34 @@ public class ReserveringUI
 
             if (keuze == null) return null;
 
-            DatabaseContext db = new DatabaseContext();
-            UserAccess userAccess = new UserAccess(db);
-
             if (keuze == "Inloggen")
             {
-                var user = new InlogUI(userAccess).Login();
+                var user = new InlogUI(userLogic).Login();
                 if (user != null)
                 {
                     huidigeGebruiker.ID = user.ID;
                     huidigeGebruiker.Naam = user.Naam;
                     huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
                     huidigeGebruiker.Rol = user.Rol;
-                    db.Close();
                     return true;
                 }
             }
             else if (keuze == "Registreren")
             {
-                var user = new RegistratieUI(userAccess).Registreer();
+                var user = new RegistratieUI(userLogic).Registreer();
                 if (user != null)
                 {
                     huidigeGebruiker.ID = user.ID;
                     huidigeGebruiker.Naam = user.Naam;
                     huidigeGebruiker.Telefoonnummer = user.Telefoonnummer;
                     huidigeGebruiker.Rol = user.Rol;
-                    db.Close();
                     return true;
                 }
             }
             else if (keuze == "Doorgaan als gast")
             {
-                db.Close();
                 return false;
             }
-
-            db.Close();
         }
     }
 
@@ -267,7 +261,7 @@ public class ReserveringUI
         string? telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");
         if (telefoon == null) return false;
 
-        while (string.IsNullOrEmpty(telefoon) || !telefoon.All(char.IsDigit) || telefoon.Length != 10)
+        while (!userLogic.IsGeldigTelefoonnummer(telefoon))
         {
             Console.WriteLine("Ongeldig telefoonnummer. Voer precies 10 cijfers in.");
             telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");

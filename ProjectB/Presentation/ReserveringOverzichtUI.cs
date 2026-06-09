@@ -4,18 +4,20 @@ public class ReserveringOverzichtUI
 {
     private readonly ReservationLogic logic;
     private readonly Gebruiker gebruiker;
+    private readonly UserLogic userLogic;
 
-    public ReserveringOverzichtUI(ReservationLogic logic, Gebruiker gebruiker)
+    public ReserveringOverzichtUI(ReservationLogic logic, Gebruiker gebruiker, UserLogic userLogic)
     {
         this.logic = logic;
         this.gebruiker = gebruiker;
+        this.userLogic = userLogic;
     }
 
     public void ShowOverzicht()
     {
         while (true)
         {
-            var reserveringen = logic.ReserveringAccess.GetReserveringenByGebruikerID(gebruiker.ID);
+            var reserveringen = logic.GetReserveringenByGebruikerID(gebruiker.ID);
 
             if (reserveringen.Count == 0)
             {
@@ -93,7 +95,7 @@ public class ReserveringOverzichtUI
 
     private void WijzigVolledigeReservering(Reservering r)
     {
-        var ui = new ReserveringUI(logic, gebruiker);
+        var ui = new ReserveringUI(logic, gebruiker, userLogic);
 
         // aantal personen
         int? nieuwAantal = ui.KiesAantalPersonen();
@@ -116,7 +118,7 @@ public class ReserveringOverzichtUI
         r.EindTijd = nieuwTijdslot.EindTijd;
         r.TafelID = nieuweTafel.Value;
 
-        logic.ReserveringAccess.UpdateReservering(r);
+        logic.UpdateReservering(r);
 
         Console.WriteLine("Reservering succesvol bijgewerkt!");
         Console.ReadKey();
@@ -185,7 +187,7 @@ public class ReserveringOverzichtUI
 
         r.Opmerking = nieuweOpmerking ?? "";
 
-        logic.ReserveringAccess.UpdateReservering(r);
+        logic.UpdateReservering(r);
 
         Console.WriteLine("Opmerking bijgewerkt!");
         Console.ReadKey();
@@ -199,7 +201,7 @@ public class ReserveringOverzichtUI
 
         if (confirm?.ToLower() == "j")
         {
-            logic.ReserveringAccess.DeleteReservering(r.ID);
+            logic.DeleteReservering(r.ID);
             Console.WriteLine("Reservering verwijderd.");
         }
         else

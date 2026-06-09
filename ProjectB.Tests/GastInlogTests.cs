@@ -8,6 +8,9 @@ public sealed class GastInlogTests
     private readonly DatabaseContext _db;
     private readonly ReservationLogic _logic;
     private readonly TijdslotAccess _tijdslotAccess;
+    private readonly ReserveringAccess _reserveringAccess;
+    private readonly TafelAccess _tafelAccess;
+    private readonly UserAccess _userAccess;
 
     [ClassInitialize]
     public static void SetupDatabase(TestContext _)
@@ -46,11 +49,13 @@ public sealed class GastInlogTests
     {
         // Initialiseer DatabaseContext en ReservationLogic met alle benodigde access-klassen
         _db = new DatabaseContext();
-        var reserveringAccess = new ReserveringAccess(_db);
-        var tafelAccess = new TafelAccess(_db);
+        _reserveringAccess = new ReserveringAccess(_db);
+        _tafelAccess = new TafelAccess(_db);
         _tijdslotAccess = new TijdslotAccess(_db);
-        var userAccess = new UserAccess(_db);
-        _logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
+        _userAccess = new UserAccess(_db);
+        var openingsTijdenAccess = new OpeningsTijdenAccess(_db);
+        var openingsDagAccess = new OpeningsDagAccess(_db);
+        _logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, openingsTijdenAccess, openingsDagAccess);
     }
 
     [TestCleanup]
@@ -60,7 +65,7 @@ public sealed class GastInlogTests
         // Dit voorkomt dat tests elkaar beïnvloeden door gedeelde databasestatus.
         // Elke test moet in een schone staat beginnen en eindigen.
         foreach (int id in _aangemaakteReserveringIDs)
-            _logic.ReserveringAccess.DeleteReservering(id);
+            _reserveringAccess.DeleteReservering(id);
         _aangemaakteReserveringIDs.Clear();
 
         foreach (int id in _aangemaakteTijdslotIDs)
@@ -72,7 +77,7 @@ public sealed class GastInlogTests
         _aangemaakteGebruikerIDs.Clear();
 
         foreach (int id in _aangemaakteTafelIDs)
-            _logic.TafelAccess.DeleteTafel(id);
+            _tafelAccess.DeleteTafel(id);
         _aangemaakteTafelIDs.Clear();
     }
 
@@ -140,9 +145,9 @@ public sealed class GastInlogTests
         Tijdslot tijdslot = tijdsloten.First();
         // Zorg dat er tafels met de juiste capaciteit bestaan in de test-DB
         int benodigdeCapaciteit = _logic.GetBenodigdeCapaciteit(aantalPersonen);
-        if (_logic.TafelAccess.GetTafelsByCapaciteit(benodigdeCapaciteit).Count == 0)
+        if (_tafelAccess.GetTafelsByCapaciteit(benodigdeCapaciteit).Count == 0)
         {
-            _logic.TafelAccess.AddTafel(new Tafel(0, 99, benodigdeCapaciteit));
+            _tafelAccess.AddTafel(new Tafel(0, 99, benodigdeCapaciteit));
             int tafelID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
             _aangemaakteTafelIDs.Add(tafelID);
         }
@@ -159,7 +164,7 @@ public sealed class GastInlogTests
         bool resultaat = _logic.AddReservering(gastID, aantalPersonen, tijdslot, tafelNummer, "");
 
         // Sla reservering-IDs op voor cleanup
-        var reserveringen = _logic.ReserveringAccess.GetReserveringenByGebruikerID(gastID);
+        var reserveringen = _reserveringAccess.GetReserveringenByGebruikerID(gastID);
         foreach (var r in reserveringen)
             _aangemaakteReserveringIDs.Add(r.ID);
 
@@ -217,11 +222,11 @@ public sealed class GastInlogTests
 
         // Tijdelijk testaccount aanmaken met het juiste wachtwoord
         Gebruiker testGebruiker = new(0, 1, "Alice Test", email, "0699990001", juistWachtwoord);
-        int gebruikerID = _logic.UserAccess.AddUser(testGebruiker);
+        int gebruikerID = _userAccess.AddUser(testGebruiker);
         _aangemaakteGebruikerIDs.Add(gebruikerID);
 
         // act
-        Gebruiker? resultaat = _logic.UserAccess.GetUserByEmail(email, verkeedWachtwoord);
+        Gebruiker? resultaat = _userAccess.GetUserByEmail(email, verkeedWachtwoord);
 
         // assert
         Assert.IsNull(resultaat,
@@ -274,12 +279,12 @@ public sealed class GastInlogTests
 
         // Eerste gebruiker aanmaken met dit e-mailadres
         Gebruiker eersteGebruiker = new(0, 1, "Alicia Origineel", email, "0699990002", bestaandWachtwoord);
-        int eersteID = _logic.UserAccess.AddUser(eersteGebruiker);
+        int eersteID = _userAccess.AddUser(eersteGebruiker);
         _aangemaakteGebruikerIDs.Add(eersteID);
 
         // act
         // Registratiecontrole: kijk of het e-mailadres al in gebruik is voordat een nieuwe gebruiker wordt aangemaakt
-        Gebruiker? bestaandeGebruiker = _logic.UserAccess.GetUserByEmail(email);
+        Gebruiker? bestaandeGebruiker = _userAccess.GetUserByEmail(email);
 
         // assert
         Assert.IsNotNull(bestaandeGebruiker,
