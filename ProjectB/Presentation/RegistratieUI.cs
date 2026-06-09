@@ -29,8 +29,8 @@ public class RegistratieUI
                     Console.Clear();
                     naam = InputValidatie.ValideerInput(
                         "=== Registreren ===\n\nNaam",
-                        x => x.Length > 0,
-                        "Naam mag niet leeg zijn."
+                        x => x.Length > 1,
+                        "Naam moet minimaal 2 letters zijn."
                     );
                     if (naam == null)
                     {
