@@ -25,6 +25,13 @@ public class UserAccess
         return db.Connection.QuerySingle<int>(sql, gebruiker);
     }
 
+    public List<Gebruiker> GetAllUsers()
+    {
+        string sql = $"SELECT * FROM {table}";
+
+        return db.Connection.Query<Gebruiker>(sql).ToList();
+    }
+
     public Gebruiker? GetUserByEmail(string email, string password)
     {
         // We zoeken de gebruiker op basis van email
