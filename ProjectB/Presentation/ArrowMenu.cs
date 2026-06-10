@@ -20,9 +20,9 @@ public static class ArrowMenu
 
                 if (showHeader)
                 {
-                    Console.WriteLine(lijn);
+                    // Console.WriteLine(lijn);
                     Console.WriteLine(title.PadLeft((lijn.Length + title.Length) / 2).PadRight(lijn.Length));
-                    Console.WriteLine(lijn);
+                    // Console.WriteLine(lijn);
                     Console.WriteLine();
                 }
                 else if (!string.IsNullOrEmpty(title))
