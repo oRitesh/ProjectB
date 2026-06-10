@@ -29,7 +29,7 @@ public sealed class KlantReserveringTests
     /// Scenario: Klant maakt een reservering van 2 uur zodat duidelijk is hoelang de reservering duurt
     /// </summary>
     [TestMethod]
-    public void CreateReservering_DuurTweeUur_WordtSucvesVolAangemaakt()
+    public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
     {
         var alleTafels = tafelAccess.GetAllTafels();
         var alleReserveringen = reserveringAccess.GetReserveringenVoorDatum("2026-06-20");
@@ -55,7 +55,7 @@ public sealed class KlantReserveringTests
     /// Scenario: Klant probeert een reservering van minder dan 2 uur te maken
     /// </summary>
     [TestMethod]
-    public void ValideerReserveringsDuur_MinderDanTweeUur_IsOngeldig()
+    public void ValideerLengteReserverings_MinderDanTweeUur_IsOngeldig()
     {
         string startTijd = "2026-06-20 18:00";
         string eindTijd = "2026-06-20 19:00";
@@ -76,14 +76,14 @@ public sealed class KlantReserveringTests
     /// Scenario: Klant probeert een reservering voor een voorbije datum te maken
     /// </summary>
     [TestMethod]
-    public void ValideerReserveringsDatum_VerledeDatum_WordtGeweigerd()
+    public void ValideerReserveringsDatum_VerledenDatum_WordtGeweigerd()
     {
         DateTime reserveringsDatum = new(2026, 6, 1);
         DateTime vandaag = DateTime.Today;
 
-        bool isDateInVerleden = reserveringsDatum.Date < vandaag;
+        bool isDatumInVerleden = reserveringsDatum.Date < vandaag;
 
-        Assert.IsTrue(isDateInVerleden,
+        Assert.IsTrue(isDatumInVerleden,
             "Datum 2026-06-01 ligt in het verleden en mag niet worden geboekt");
     }
 
@@ -149,7 +149,7 @@ public sealed class KlantReserveringTests
     /// Scenario: Klant vraagt beschikbare slots voor een volgeboealde datum
     /// </summary>
     [TestMethod]
-    public void GetBeschikbareTijdsloten_GeenSlotsBeschikbaar_RetourneertLegeLijst()
+    public void GetBeschikbareTijdsloten_GeenTafelBeschikbaar_GeeftLegeLijstTerug()
     {
         string datumZonderSlots = "2026-06-21";
 
@@ -165,7 +165,7 @@ public sealed class KlantReserveringTests
     /// Scenario: Klant wil duidelijk zien welke tafels beschikbaar zijn op welke tijdsloten
     /// </summary>
     [TestMethod]
-    public void GetBeschikbareTafels_VoorTijdslot_RetourneertAlleenVriyeTafels()
+    public void GetBeschikbareTafels_TijdensTijdslot_GeeftAlleenVrijeTafelsTerug()
     {
         var alleTafels = tafelAccess.GetAllTafels();
         Assert.IsNotEmpty(alleTafels, "Er moeten tafels in de database bestaan");
