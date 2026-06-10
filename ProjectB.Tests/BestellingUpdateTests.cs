@@ -20,13 +20,6 @@ public sealed class BestellingUpdateTesting
         itemAccess = new MenuItemAccess();
     }
 
-    [TestCleanup]
-    public void Cleanup()
-    {
-        // Verwijder testdata uit database na elke test
-        // Zodat tests geen invloed op elkaar hebben
-    }
-
     // ===== Acceptance Criteria 1: Status update bestelling - H1 =====
     /// <summary>
     /// Happy Path H1: Bestelling ID 1001, Status "bereiding", Admin superuser
