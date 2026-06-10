@@ -15,7 +15,7 @@ public sealed class GastInlogTests
     [ClassInitialize]
     public static void SetupDatabase(TestContext _)
     {
-        var setupDb = new DatabaseContext();
+        var setupDb = DatabaseContext.Instance;
         setupDb.Connection.Execute(@"
             CREATE TABLE IF NOT EXISTS OpeningsDag (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,6 @@ public sealed class GastInlogTests
         if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsTijden") == 0)
             setupDb.Connection.Execute(
                 "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
-        setupDb.Close();
     }
 
     // Testdata bijhouden voor opruimen na elke test
@@ -48,14 +47,12 @@ public sealed class GastInlogTests
     public GastInlogTests()
     {
         // Initialiseer DatabaseContext en ReservationLogic met alle benodigde access-klassen
-        _db = new DatabaseContext();
-        _reserveringAccess = new ReserveringAccess(_db);
-        _tafelAccess = new TafelAccess(_db);
-        _tijdslotAccess = new TijdslotAccess(_db);
-        _userAccess = new UserAccess(_db);
-        var openingsTijdenAccess = new OpeningsTijdenAccess(_db);
-        var openingsDagAccess = new OpeningsDagAccess(_db);
-        _logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, openingsTijdenAccess, openingsDagAccess);
+        _db = DatabaseContext.Instance;
+        _reserveringAccess = new ReserveringAccess();
+        _tafelAccess = new TafelAccess();
+        _tijdslotAccess = new TijdslotAccess();
+        _userAccess = new UserAccess();
+        _logic = new ReservationLogic();
     }
 
     [TestCleanup]

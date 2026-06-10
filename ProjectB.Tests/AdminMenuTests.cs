@@ -11,8 +11,8 @@ public sealed class AdminMenuTests
 
     public AdminMenuTests()
     {
-        _db = new DatabaseContext();
-        _menuItemAccess = new MenuItemAccess(_db);
+        _db = DatabaseContext.Instance;
+        _menuItemAccess = new MenuItemAccess();
     }
 
     [TestCleanup]

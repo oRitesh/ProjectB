@@ -13,12 +13,11 @@
 [TestClass]
 public sealed class BestellingUpdateTesting
 {
-    private readonly DatabaseContext db = new();
     private readonly MenuItemAccess itemAccess;
 
     public BestellingUpdateTesting()
     {
-        itemAccess = new MenuItemAccess(db);
+        itemAccess = new MenuItemAccess();
     }
 
     [TestCleanup]
@@ -38,7 +37,7 @@ public sealed class BestellingUpdateTesting
     /// Geldige statussen: "bereiding", "afgehaald"
     /// </summary>
     [TestMethod]
-    public void ValidateBestellingStatus_ValidStatusBereiding_IsAccepted()
+    public void ValideerBestellingStatus_GeldigeStatusBereiding_WordtGeaccepteerd()
     {
         // arrange
         string inputStatus = "bereiding";
@@ -62,7 +61,7 @@ public sealed class BestellingUpdateTesting
     /// Verwacht: Waarde wordt opgeslagen en is later opvraagbaar
     /// </summary>
     [TestMethod]
-    public void AddMenuItem_CreateDishPastaBoloneseSaved_CanRetrieve()
+    public void AddMenuItem_PastaBologneseGerecht_WordtOpgeslagenEnOpgehaald()
     {
         // arrange
         string dishName = "Pasta Bolognese";
@@ -98,7 +97,7 @@ public sealed class BestellingUpdateTesting
     /// "klaar" is GEEN geldige status. Alleen "bereiding" en "afgehaald" zijn toegestaan
     /// </summary>
     [TestMethod]
-    public void ValidateBestellingStatus_InvalidStatusKlaar_IsRejected()
+    public void ValideerBestellingStatus_OngeldigeStatusKlaar_WordtGeweigerd()
     {
         // arrange
         string inputStatus = "klaar"; // ONGELDIG
@@ -122,7 +121,7 @@ public sealed class BestellingUpdateTesting
     /// BestellingAccess.GetBestellingByID(9999) moet null retourneren
     /// </summary>
     [TestMethod]
-    public void BestellingIDValidation_NonExistentID9999_MustBeRejected()
+    public void ValideerBestellingID_NietBestaandID9999_UpdateNietUitgevoerd()
     {
         // arrange
         int invalidBestellingId = 9999;
@@ -143,7 +142,7 @@ public sealed class BestellingUpdateTesting
     /// Test type: Unit test
     /// </summary>
     [TestMethod]
-    public void ValidatePreparationTime_NegativeTimeS3_ReturnsFalse()
+    public void ValideerBereidingstijd_NegatiefAantalMinuten_WordtGeweigerd()
     {
         // arrange
         int negativeMinutes = -5; // ONGELDIG: mag nooit negatief zijn

@@ -13,8 +13,8 @@ public sealed class RegistratieValidatieTests
 
     public RegistratieValidatieTests()
     {
-        _db = new DatabaseContext();
-        _userAccess = new UserAccess(_db);
+        _db = DatabaseContext.Instance;
+        _userAccess = new UserAccess();
         _validationLogic = new UserValidationLogic(_userAccess);
     }
 

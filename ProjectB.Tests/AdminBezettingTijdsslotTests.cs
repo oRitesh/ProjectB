@@ -3,13 +3,11 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class AdminBezettingTijdsslotTests
 {
-    private readonly DatabaseContext db;
     private readonly TijdslotAccess tijdslotAccess;
 
     public AdminBezettingTijdsslotTests()
     {
-        db = new DatabaseContext();
-        tijdslotAccess = new TijdslotAccess(db);
+        tijdslotAccess = new TijdslotAccess();
     }
 
     [TestCleanup]

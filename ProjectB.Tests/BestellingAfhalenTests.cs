@@ -5,13 +5,12 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class BestellingAfhalenTesting
 {
-    private readonly DatabaseContext db;
     private readonly AfhaalSysteemLogic logic;
 
     [ClassInitialize]
     public static void SetupDatabase(TestContext _)
     {
-        var setupDb = new DatabaseContext();
+        var setupDb = DatabaseContext.Instance;
         setupDb.Connection.Execute(@"
             CREATE TABLE IF NOT EXISTS OpeningsDag (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,13 +31,11 @@ public sealed class BestellingAfhalenTesting
         if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsTijden") == 0)
             setupDb.Connection.Execute(
                 "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
-        setupDb.Close();
     }
 
     public BestellingAfhalenTesting()
     {
-        db = new DatabaseContext();
-        logic = new AfhaalSysteemLogic(db);
+        logic = new AfhaalSysteemLogic();
     }
 
     [TestCleanup]

@@ -9,16 +9,13 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class MenuKaartTesting
 {
-    private readonly DatabaseContext db = new();
     private readonly MenuItemAccess itemAccess;
-    private readonly MenuCategorieAccess categorieAccess;
     private readonly MenuService menuService;
 
     public MenuKaartTesting()
     {
-        itemAccess = new MenuItemAccess(db);
-        categorieAccess = new MenuCategorieAccess(db);
-        menuService = new MenuService(db);
+        itemAccess = new MenuItemAccess();
+        menuService = new MenuService();
     }
 
     /// <summary>
@@ -92,7 +89,7 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void MenuService_InitializeService_AllCategoriesLoaded()
     {
-        var menuService = new MenuService(db);
+        var menuService = new MenuService();
 
         Assert.IsNotNull(menuService.Starters,
             "Starters categorie mag niet null zijn");

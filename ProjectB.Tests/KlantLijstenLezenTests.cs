@@ -20,14 +20,11 @@ public sealed class KlantLijstenLezenTests
     public KlantLijstenLezenTests()
     {
         // Initialiseer DatabaseContext en ReservationLogic met alle benodigde access-klassen
-        _db = new DatabaseContext();
-        _reserveringAccess = new ReserveringAccess(_db);
-        _tafelAccess = new TafelAccess(_db);
-        _tijdslotAccess = new TijdslotAccess(_db);
-        var userAccess = new UserAccess(_db);
-        var openingsTijdenAccess = new OpeningsTijdenAccess(_db);
-        var openingsDagAccess = new OpeningsDagAccess(_db);
-        _logic = new ReservationLogic(_reserveringAccess, _tafelAccess, userAccess, openingsTijdenAccess, openingsDagAccess);
+        _db = DatabaseContext.Instance;
+        _reserveringAccess = new ReserveringAccess();
+        _tafelAccess = new TafelAccess();
+        _tijdslotAccess = new TijdslotAccess();
+        _logic = new ReservationLogic();
     }
 
     [TestCleanup]
