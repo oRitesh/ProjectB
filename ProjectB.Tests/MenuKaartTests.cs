@@ -11,14 +11,10 @@ public sealed class MenuKaartTesting
 {
     private readonly DatabaseContext db = new();
     private readonly MenuItemAccess itemAccess;
-    private readonly MenuCategorieAccess categorieAccess;
-    private readonly MenuService menuService;
 
     public MenuKaartTesting()
     {
         itemAccess = new MenuItemAccess(db);
-        categorieAccess = new MenuCategorieAccess(db);
-        menuService = new MenuService(db);
     }
 
     /// <summary>
