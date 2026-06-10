@@ -22,7 +22,7 @@ public sealed class MenuKaartTesting
     }
 
     /// <summary>
-    /// H4: Menu items ophalen voor categorie "Starters"
+    /// H1: Menu items ophalen voor categorie "Starters"
     /// Scenario: Admin/Bediening vraagt alle starters op uit het menu
     /// </summary>
     [TestMethod]
@@ -52,7 +52,7 @@ public sealed class MenuKaartTesting
     }
 
     /// <summary>
-    /// H5: Prijs van bestaand gerecht "Pasta Carbonara" wijzigen van €12 naar €13
+    /// H2: Prijs van bestaand gerecht "Pasta Carbonara" wijzigen van €12 naar €13
     /// Scenario: Chef wijzigt prijs van populair gerecht vanwege ingrediënten kostenstijging
     /// </summary>
     [TestMethod]
@@ -86,7 +86,7 @@ public sealed class MenuKaartTesting
     }
 
     /// <summary>
-    /// H4: MenuService laadt alle 5 categorieën (Starters, Mains, Desserts, Wines, Drinks)
+    /// H3: MenuService laadt alle 5 categorieën (Starters, Mains, Desserts, Wines, Drinks)
     /// Scenario: Applicatie start en laadt menu in geheugen voor snelle UI display
     /// </summary>
     [TestMethod]
@@ -107,7 +107,7 @@ public sealed class MenuKaartTesting
     }
 
     /// <summary>
-    /// S2: Allergen informatie ontbreekt bij nieuw gerecht "Noten Dessert"
+    /// S1: Allergen informatie ontbreekt bij nieuw gerecht "Noten Dessert"
     /// Scenario: Chef vergeet allergen info in te voeren bij nieuw gerecht
     /// </summary>
     [TestMethod]
@@ -137,7 +137,7 @@ public sealed class MenuKaartTesting
     }
 
     /// <summary>
-    /// S3: Prijs van gerecht ingesteld op negatief bedrag
+    /// S2: Prijs van gerecht ingesteld op negatief bedrag
     /// Scenario: Administratie voert per ongeluk negatieve prijs in
     /// </summary>
     [TestMethod]
