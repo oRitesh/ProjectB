@@ -3,13 +3,11 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class AdminBezettingTijdsslotTests
 {
-    private readonly DatabaseContext db;
     private readonly TijdslotAccess tijdslotAccess;
 
     public AdminBezettingTijdsslotTests()
     {
-        db = new DatabaseContext();
-        tijdslotAccess = new TijdslotAccess(db);
+        tijdslotAccess = new TijdslotAccess();
     }
 
     [TestCleanup]
@@ -60,7 +58,7 @@ public sealed class AdminBezettingTijdsslotTests
         CollectionAssert.Contains(starttijden, "19:00",
             "Tijdslot 19:00 moet aanwezig zijn in de resultaten voor 15-06-2026");
 
-        // cleanup — [TestCleanup] verwijdert de ingevoegde tijdsloten na afloop van de test
+        // cleanup - [TestCleanup] verwijdert de ingevoegde tijdsloten na afloop van de test
     }
 
     // ===== Acceptance Criteria 1: Zoeken op datum - S1 =====
@@ -87,7 +85,7 @@ public sealed class AdminBezettingTijdsslotTests
         Assert.IsEmpty(tijdsloten,
             "De lijst moet leeg zijn voor een datum waarop geen tijdsloten bestaan; verwachte melding: 'Geen reserveringen op deze datum'");
 
-        // cleanup — geen testdata ingevoegd; geen opruiming nodig
+        // cleanup - geen testdata ingevoegd; geen opruiming nodig
     }
 
     // ===== Acceptance Criteria 1: Zoeken op datum - S2 =====
@@ -102,20 +100,19 @@ public sealed class AdminBezettingTijdsslotTests
     /// Verwacht: De datum wordt herkend als verleden datum en is niet toegestaan
     /// </summary>
     [TestMethod]
-    public void ValideerZoekdatum_DatumInVerleden_WordtGeweigerd()
+    public void GetTijdslotenByDatum_DatumInVerleden_RetourneertLegeLijst()
     {
-        // arrange
-        DateTime zoekdatum = new(2020, 1, 1); // 01-01-2020 — expliciet een datum in het verleden
-        DateTime vandaag = DateTime.Today;              // grens: alleen huidige of toekomstige datums zijn toegestaan
+        // Arrange
+        string zoekdatum = "2020-01-01"; // ver verleden datum; bevat geen tijdsloten
 
-        // act — datum is geldig als hij op of na vandaag valt
-        bool isDatumInVerleden = zoekdatum.Date < vandaag;
+        // Act
+        var tijdsloten = tijdslotAccess.GetTijdslotenByDatum(zoekdatum);
 
-        // assert
-        Assert.IsTrue(isDatumInVerleden,
-            "Datum 01-01-2020 ligt in het verleden en moet geweigerd worden; alleen huidige of toekomstige datums zijn toegestaan");
+        // Assert
+        Assert.IsEmpty(tijdsloten,
+            "Voor een datum in het verleden mogen geen tijdsloten worden teruggegeven");
 
-        // cleanup — geen testdata ingevoegd; geen opruiming nodig
+        // cleanup - geen testdata ingevoegd; geen opruiming nodig
     }
 
     // ===== Acceptance Criteria 1: Zoeken op datum - S3 =====
@@ -130,18 +127,18 @@ public sealed class AdminBezettingTijdsslotTests
     /// Verwacht: Het systeem herkent de lege invoer als ongeldig en geeft geen resultaten terug
     /// </summary>
     [TestMethod]
-    public void ValideerZoekdatum_LegeDatumInvoer_IsOngeldig()
+    public void GetTijdslotenByDatum_LegeDatumInvoer_RetourneertLegeLijst()
     {
-        // arrange
-        string zoekdatum = ""; // leeg datumveld — admin heeft geen datum ingevuld
+        // Arrange
+        string zoekdatum = ""; // leeg datumveld - geen geldige datum
 
-        // act — datum is geldig als het veld niet leeg of whitespace is
-        bool isGeldig = !string.IsNullOrWhiteSpace(zoekdatum);
+        // Act
+        var tijdsloten = tijdslotAccess.GetTijdslotenByDatum(zoekdatum);
 
-        // assert
-        Assert.IsFalse(isGeldig,
-            "Lege datum is ongeldig; systeem moet de foutmelding 'voer een geldige datum in' tonen en geen resultaten weergeven");
+        // Assert
+        Assert.IsEmpty(tijdsloten,
+            "Een lege datum geeft geen tijdsloten terug; geen resultaten mogen worden getoond");
 
-        // cleanup — geen testdata ingevoegd; geen opruiming nodig
+        // cleanup - geen testdata ingevoegd; geen opruiming nodig
     }
 }

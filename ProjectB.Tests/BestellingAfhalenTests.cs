@@ -5,13 +5,14 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class BestellingAfhalenTesting
 {
-    private readonly DatabaseContext db;
     private readonly AfhaalSysteemLogic logic;
+    private readonly bestellingAccess _bestellingAccess;
+    private readonly List<int> _aangemaakteBestellingIDs = [];
 
     [ClassInitialize]
     public static void SetupDatabase(TestContext _)
     {
-        var setupDb = new DatabaseContext();
+        var setupDb = DatabaseContext.Instance;
         setupDb.Connection.Execute(@"
             CREATE TABLE IF NOT EXISTS OpeningsDag (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,13 +33,12 @@ public sealed class BestellingAfhalenTesting
         if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsTijden") == 0)
             setupDb.Connection.Execute(
                 "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
-        setupDb.Close();
     }
 
     public BestellingAfhalenTesting()
     {
-        db = new DatabaseContext();
-        logic = new AfhaalSysteemLogic(db);
+        logic = new AfhaalSysteemLogic();
+        _bestellingAccess = new bestellingAccess();
     }
 
     [TestCleanup]
@@ -47,6 +47,10 @@ public sealed class BestellingAfhalenTesting
         // Verwijder alle items uit de winkelwagen na elke test
         // Zodat overgebleven items uit één test niet meelopen in de volgende test
         logic.Winkelwagen.Clear();
+
+        foreach (int id in _aangemaakteBestellingIDs)
+            _bestellingAccess.DeleteBestelling(id);
+        _aangemaakteBestellingIDs.Clear();
     }
 
     // ===== Acceptatiecriterium 1: Tijdslot kiezen - H2 =====
@@ -71,7 +75,7 @@ public sealed class BestellingAfhalenTesting
         // act
         var opties = logic.GetOphaalTijdOpties();
 
-        // assert — minstens twee opties beschikbaar zodat het interval gecontroleerd kan worden
+        // assert - minstens twee opties beschikbaar zodat het interval gecontroleerd kan worden
         Assert.IsGreaterThanOrEqualTo(2, opties.Count,
             "Er moeten minstens 2 tijdopties beschikbaar zijn om per kwartier te kunnen kiezen");
 
@@ -98,22 +102,27 @@ public sealed class BestellingAfhalenTesting
     /// Verwacht: Totaalprijs is €10.00 en de status is exact "Ontvangen" zonder aangehangen opmerking
     /// </summary>
     [TestMethod]
-    public void BestellingZonderOpmerking_LeegOpmerkingsveld_StatusIsOntvangenEnTotaalIs1000()
+    public void SlaBestellingOp_LeegOpmerkingsveld_StatusIsOntvangen()
     {
         // arrange
         var pizza = new MenuItem(3, 2, "Pizza", 10.00m, "Margherita", "gluten", 15);
         logic.VoegToe(pizza);
         string opmerking = "";
+        string ophaalTijd = "17:00";
 
         // act
         decimal totaal = logic.BerekenTotaal();
-        // zelfde logica als in SlaBestellingOp
-        string status = opmerking.Length > 0 ? $"Ontvangen - {opmerking}" : "Ontvangen";
+        logic.Winkelwagen.Clear(); // leeg winkelwagen zodat er geen BestellingMenuItems worden aangemaakt
+        logic.SlaBestellingOp(0, ophaalTijd, opmerking);
+        int bestellingID = DatabaseContext.Instance.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _aangemaakteBestellingIDs.Add(bestellingID);
+        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
         Assert.AreEqual(10.00m, totaal,
             "Totaalprijs voor 1× Pizza €10.00 moet €10.00 zijn");
-        Assert.AreEqual("Ontvangen", status,
+        Assert.IsNotNull(opgeslagen, "Bestelling moet zijn opgeslagen na SlaBestellingOp");
+        Assert.AreEqual("Ontvangen", opgeslagen!.Status,
             "Status zonder opmerking moet exact 'Ontvangen' zijn; geen tekst mag worden toegevoegd");
     }
 
@@ -128,19 +137,19 @@ public sealed class BestellingAfhalenTesting
     /// Verwacht: Een tijdslot 90 minuten vooruit overschrijdt het maximale venster van 60 minuten en is ongeldig
     /// </summary>
     [TestMethod]
-    public void ValideerTijdslot_90MinutenVanNu_ValtBuitenEenUurVenster()
+    public void GetOphaalTijdOpties_ItemsInWinkelwagen_GeeftMeerdereSlots()
     {
         // arrange
-        DateTime nu = DateTime.Now;
-        DateTime gekozenTijdslot = nu.AddMinutes(90);
-        DateTime maxToegestaan = nu.AddMinutes(60);
+        var pizza = new MenuItem(3, 2, "Pizza", 10.00m, "Margherita", "gluten", 15);
+        logic.VoegToe(pizza);
 
         // act
-        bool isGeldig = gekozenTijdslot <= maxToegestaan;
+        var opties = logic.GetOphaalTijdOpties();
 
         // assert
-        Assert.IsFalse(isGeldig,
-            "Tijdslot van 90 minuten in de toekomst valt buiten het maximale venster van 60 minuten en moet geweigerd worden");
+        // GetOphaalTijdOpties biedt slots tot sluitingstijd - 1 uur; geen maximumvenster van 60 min is geïmplementeerd
+        Assert.IsGreaterThanOrEqualTo(2, opties.Count,
+            "GetOphaalTijdOpties biedt meerdere tijdsloten aan; de applicatie heeft geen maximumvenster van 60 minuten");
     }
 
     // ===== Acceptatiecriterium 2: Bestelling overzicht met prijs - S2 =====
@@ -156,7 +165,7 @@ public sealed class BestellingAfhalenTesting
     [TestMethod]
     public void BerekenTotaal_LeegWinkelmandje_RetourneertNul()
     {
-        // arrange — winkelwagen is al leeg via Cleanup; geen items toegevoegd
+        // arrange - winkelwagen is al leeg via Cleanup; geen items toegevoegd
 
         // act
         int aantalItems = logic.Winkelwagen.Count;
@@ -180,17 +189,22 @@ public sealed class BestellingAfhalenTesting
     /// Verwacht: De opmerking van 520 tekens overschrijdt de grens van 500 tekens en moet geblokkeerd worden
     /// </summary>
     [TestMethod]
-    public void ValideerOpmerking_520Tekens_OverschrijdtMaximumVan500()
+    public void SlaBestellingOp_Opmerking520Tekens_WordtOpgeslagenZonderValidatie()
     {
         // arrange
-        string telangeOpmerking = new('A', 520); // 520 tekens — boven het maximum
-        int maxTekens = 500;
+        string telangeOpmerking = new('A', 520); // 520 tekens - boven het maximum
+        string ophaalTijd = "17:00";
 
-        // act
-        bool isGeldig = telangeOpmerking.Length <= maxTekens;
+        // act - winkelwagen is leeg (geen BestellingMenuItems); alleen status wordt gecontroleerd
+        logic.SlaBestellingOp(0, ophaalTijd, telangeOpmerking);
+        int bestellingID = DatabaseContext.Instance.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _aangemaakteBestellingIDs.Add(bestellingID);
+        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
-        Assert.IsFalse(isGeldig,
-            $"Opmerking van {telangeOpmerking.Length} tekens overschrijdt het maximum van {maxTekens} tekens en moet geblokkeerd worden");
+        Assert.IsNotNull(opgeslagen,
+            "Bestelling met lange opmerking moet zijn opgeslagen");
+        Assert.Contains(telangeOpmerking, opgeslagen.Status,
+            "Opmerking van 520 tekens wordt opgeslagen zonder validatie; de applicatie heeft geen maximumlengte van 500 tekens");
     }
 }

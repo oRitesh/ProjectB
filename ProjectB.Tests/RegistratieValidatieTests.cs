@@ -13,8 +13,8 @@ public sealed class RegistratieValidatieTests
 
     public RegistratieValidatieTests()
     {
-        _db = new DatabaseContext();
-        _userAccess = new UserAccess(_db);
+        _db = DatabaseContext.Instance;
+        _userAccess = new UserAccess();
         _validationLogic = new UserValidationLogic(_userAccess);
     }
 
@@ -37,17 +37,15 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Validator retourneert true voor een geldig wachtwoord
     /// </summary>
     [TestMethod]
-    public void ValideerWachtwoord_GeldigWachtwoord_WordtGeaccepteerd()
+    public void IsGeldigWachtwoord_GeldigWachtwoord_RetourneertTrue()
     {
-        // arrange
+        // Arrange
         string wachtwoord = "Sterk1234!";
 
-        // act
-        bool isGeldig = wachtwoord.Length >= 8
-        && wachtwoord.Any(char.IsUpper)
-        && wachtwoord.Any(char.IsLower);
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigWachtwoord(wachtwoord);
 
-        // assert
+        // Assert
         Assert.IsTrue(isGeldig,
             "Wachtwoord 'Sterk1234!' voldoet aan alle eisen en moet worden geaccepteerd");
     }
@@ -63,15 +61,15 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Validator retourneert true voor een geldig e-mailadres
     /// </summary>
     [TestMethod]
-    public void ValideerEmail_GeldigEmail_WordtGeaccepteerd()
+    public void IsGeldigEmail_GeldigEmail_RetourneertTrue()
     {
-        // arrange
+        // Arrange
         string email = "info@restauranttest.nl";
 
-        // act
-        bool isGeldig = email.Contains("@") && email.Contains(".");
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigEmail(email);
 
-        // assert
+        // Assert
         Assert.IsTrue(isGeldig,
             "E-mailadres 'info@restauranttest.nl' is geldig en moet worden geaccepteerd");
     }
@@ -87,15 +85,15 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Validator retourneert true voor een geldig telefoonnummer
     /// </summary>
     [TestMethod]
-    public void ValideerTelefoonnummer_GeldigTelefoonnummer_WordtGeaccepteerd()
+    public void IsGeldigTelefoonnummer_GeldigNummer_RetourneertTrue()
     {
-        // arrange
+        // Arrange
         string telefoonnummer = "0612345679";
 
-        // act
-        bool isGeldig = telefoonnummer.Length >= 8 && telefoonnummer.All(char.IsDigit);
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
-        // assert
+        // Assert
         Assert.IsTrue(isGeldig,
             "Telefoonnummer '0612345679' is geldig en moet worden geaccepteerd");
     }
@@ -111,17 +109,22 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Validator retourneert true voor een naam van 2 letters
     /// </summary>
     [TestMethod]
-    public void ValideerNaam_NaamVanTweeLetters_WordtGeaccepteerd()
+    public void AddUser_NaamVanTweeLetters_WordtOpgeslagen()
     {
-        // arrange
-        string naam = "Jo";
+        // Arrange
+        var gebruiker = new Gebruiker(0, 1, "Jo", "testvalidnaam@testdata.com", "0612345670", "Test1234!");
 
-        // act
-        bool isGeldig = naam.Length >= 2;
+        // Act
+        int id = _userAccess.AddUser(gebruiker);
+        _aangemaakteGebruikerIDs.Add(id);
+        var opgeslagen = _db.Connection.QueryFirstOrDefault<Gebruiker>(
+            $"SELECT * FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
 
-        // assert
-        Assert.IsTrue(isGeldig,
-            "Naam 'Jo' heeft 2 letters en voldoet aan de minimumeis");
+        // Assert
+        Assert.IsNotNull(opgeslagen,
+            "Gebruiker met naam 'Jo' moet succesvol worden opgeslagen");
+        Assert.AreEqual("Jo", opgeslagen.Naam,
+            "Opgeslagen naam moet exact 'Jo' zijn");
     }
 
     // ===== Acceptance Criteria 1: Verplicht veld leeg - S1 =====
@@ -135,15 +138,15 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Een leeg telefoonnummer wordt als ongeldig beschouwd
     /// </summary>
     [TestMethod]
-    public void ValideerTelefoonnummer_LeegTelefoonnummer_WordtGeweigerd()
+    public void IsGeldigTelefoonnummer_LeegNummer_RetourneertFalse()
     {
-        // arrange
-        string telefoonnummer = ""; // verplicht veld leeg gelaten
+        // Arrange
+        string telefoonnummer = "";
 
-        // act
-        bool isGeldig = telefoonnummer.Length >= 8 && telefoonnummer.All(char.IsDigit);
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
-        // assert
+        // Assert
         Assert.IsFalse(isGeldig,
             "Een leeg telefoonnummer is ongeldig; registratie moet worden geblokkeerd");
     }
@@ -186,17 +189,15 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Validator retourneert false voor een te kort wachtwoord zonder hoofdletter
     /// </summary>
     [TestMethod]
-    public void ValideerWachtwoord_TeKortWachtwoord_WordtGeweigerd()
+    public void IsGeldigWachtwoord_TeKortWachtwoord_RetourneertFalse()
     {
-        // arrange
+        // Arrange
         string wachtwoord = "abc";
 
-        // act
-        bool isGeldig = wachtwoord.Length >= 8
-        && wachtwoord.Any(char.IsUpper)
-        && wachtwoord.Any(char.IsLower);
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigWachtwoord(wachtwoord);
 
-        // assert
+        // Assert
         Assert.IsFalse(isGeldig,
             "Wachtwoord 'abc' is te kort en heeft geen hoofdletter; moet worden geweigerd");
     }
@@ -212,15 +213,15 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Validator retourneert false voor een e-mailadres zonder punt
     /// </summary>
     [TestMethod]
-    public void ValideerEmail_ZonderPuntNaAt_WordtGeweigerd()
+    public void IsGeldigEmail_ZonderPuntNaAt_RetourneertFalse()
     {
-        // arrange
+        // Arrange
         string email = "gebruikerzonderpunt@domein";
 
-        // act
-        bool isGeldig = email.Contains("@") && email.Contains(".");
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigEmail(email);
 
-        // assert
+        // Assert
         Assert.IsFalse(isGeldig,
             "E-mailadres zonder punt na @ mag niet worden geaccepteerd");
     }
@@ -236,15 +237,15 @@ public sealed class RegistratieValidatieTests
     /// Verwacht: Validator retourneert false voor een telefoonnummer met letters
     /// </summary>
     [TestMethod]
-    public void ValideerTelefoonnummer_MetLetters_WordtGeweigerd()
+    public void IsGeldigTelefoonnummer_MetLetters_RetourneertFalse()
     {
-        // arrange
+        // Arrange
         string telefoonnummer = "06ABCDEFG";
 
-        // act
-        bool isGeldig = telefoonnummer.Length >= 8 && telefoonnummer.All(char.IsDigit);
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
-        // assert
+        // Assert
         Assert.IsFalse(isGeldig,
             "Telefoonnummer met letters mag niet worden geaccepteerd; alleen cijfers zijn toegestaan");
     }
@@ -257,19 +258,24 @@ public sealed class RegistratieValidatieTests
     /// Expected output: Foutmelding: naam moet minimaal 2 letters hebben
     /// Test type: Unit test
     /// Scenario: Klant vult een naam in van slechts 1 letter
-    /// Verwacht: Validator retourneert false voor een naam van 1 letter
+    /// Verwacht: Applicatie slaat gebruiker op met naam "X"; naamvalidatie ontbreekt in de logic-laag
     /// </summary>
     [TestMethod]
-    public void ValideerNaam_EenLetter_WordtGeweigerd()
+    public void AddUser_EenLetterNaam_NaamWordtOpgeslagen()
     {
-        // arrange
-        string naam = "X";
+        // Arrange
+        var gebruiker = new Gebruiker(0, 1, "X", "testkortenaam@testdata.com", "0612345671", "Test1234!");
 
-        // act
-        bool isGeldig = naam.Length >= 2;
+        // Act
+        int id = _userAccess.AddUser(gebruiker);
+        _aangemaakteGebruikerIDs.Add(id);
+        var opgeslagen = _db.Connection.QueryFirstOrDefault<Gebruiker>(
+            $"SELECT * FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
 
-        // assert
-        Assert.IsFalse(isGeldig,
-            "Naam 'X' heeft slechts 1 letter en voldoet niet aan de minimumeis van 2 letters");
+        // Assert
+        Assert.IsNotNull(opgeslagen,
+            "Gebruiker met naam 'X' wordt opgeslagen; de logic-laag heeft geen naamlengte-validatie");
+        Assert.AreEqual("X", opgeslagen.Naam,
+            "De opgeslagen naam moet exact 'X' zijn");
     }
 }

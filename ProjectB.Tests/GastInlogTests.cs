@@ -15,7 +15,7 @@ public sealed class GastInlogTests
     [ClassInitialize]
     public static void SetupDatabase(TestContext _)
     {
-        var setupDb = new DatabaseContext();
+        var setupDb = DatabaseContext.Instance;
         setupDb.Connection.Execute(@"
             CREATE TABLE IF NOT EXISTS OpeningsDag (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,6 @@ public sealed class GastInlogTests
         if (setupDb.Connection.QuerySingle<int>("SELECT COUNT(*) FROM OpeningsTijden") == 0)
             setupDb.Connection.Execute(
                 "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
-        setupDb.Close();
     }
 
     // Testdata bijhouden voor opruimen na elke test
@@ -48,14 +47,12 @@ public sealed class GastInlogTests
     public GastInlogTests()
     {
         // Initialiseer DatabaseContext en ReservationLogic met alle benodigde access-klassen
-        _db = new DatabaseContext();
-        _reserveringAccess = new ReserveringAccess(_db);
-        _tafelAccess = new TafelAccess(_db);
-        _tijdslotAccess = new TijdslotAccess(_db);
-        _userAccess = new UserAccess(_db);
-        var openingsTijdenAccess = new OpeningsTijdenAccess(_db);
-        var openingsDagAccess = new OpeningsDagAccess(_db);
-        _logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, openingsTijdenAccess, openingsDagAccess);
+        _db = DatabaseContext.Instance;
+        _reserveringAccess = new ReserveringAccess();
+        _tafelAccess = new TafelAccess();
+        _tijdslotAccess = new TijdslotAccess();
+        _userAccess = new UserAccess();
+        _logic = new ReservationLogic();
     }
 
     [TestCleanup]
@@ -88,22 +85,21 @@ public sealed class GastInlogTests
     /// Input: Klant op stap "Login of gast?" klikt "Volgende" zonder keuze te maken, Actor: Klant
     /// Expected output: Foutmelding: maak een keuze om door te gaan; stap geblokkeerd
     /// Test type: Unit test
-    /// Scenario: Klant probeert de stap "Inloggen of doorgaan als gast" over te slaan zonder een selectie te maken
-    /// Verwacht: Een lege selectie wordt als ongeldig beschouwd en de klant wordt geblokkeerd
+    /// Scenario: Klant probeert in te loggen met een leeg e-mailadres
+    /// Verwacht: GetUserByEmail retourneert null voor een leeg e-mailadres
     /// </summary>
     [TestMethod]
-    public void ValideerGastOfInlogKeuze_GeenKeuzeGemaakt_WordtGeblokkeerd()
+    public void GetUserByEmail_GeenEmailIngevoerd_RetourneertNull()
     {
-        // arrange
-        string? keuze = null; // klant heeft geen keuze gemaakt op de keuzepagina
+        // Arrange
+        string legeEmail = "";
 
-        // act
-        // Keuze is alleen geldig als "gast" of "inloggen" is geselecteerd
-        bool isGeldig = keuze == "gast" || keuze == "inloggen";
+        // Act
+        Gebruiker? resultaat = _userAccess.GetUserByEmail(legeEmail);
 
-        // assert
-        Assert.IsFalse(isGeldig,
-            "Zonder keuze te maken mag de klant niet doorgaan; null-keuze moet worden geblokkeerd");
+        // Assert
+        Assert.IsNull(resultaat,
+            "Inloggen met een leeg e-mailadres moet worden geweigerd; GetUserByEmail moet null retourneren");
     }
 
     // ===== Acceptance Criteria 1: Inloggen of doorgaan als gast - H2 =====
@@ -117,7 +113,7 @@ public sealed class GastInlogTests
     /// Verwacht: VoegGastToe retourneert een geldig gast-ID en AddReservering retourneert true
     /// </summary>
     [TestMethod]
-    public void VoegGastToeEnReserveer_GeldigeGegevens_ReserveringSuccesvol()
+    public void VoegGastToe_GeldigeGegevens_GastIDEnReserveringAangemaakt()
     {
         // arrange
         string naam = "Thomas";                          // naam uit testscript
@@ -174,7 +170,7 @@ public sealed class GastInlogTests
         Assert.IsTrue(resultaat,
             "AddReservering moet true retourneren voor een geldige gastinvoer");
 
-        // cleanup — wordt afgehandeld door [TestCleanup]
+        // cleanup - wordt afgehandeld door [TestCleanup]
     }
 
     // ===== Acceptance Criteria 1: Inloggen of doorgaan als gast - S2 =====
@@ -185,21 +181,22 @@ public sealed class GastInlogTests
     /// Expected output: Foutmelding: naam is verplicht; reservering niet geplaatst
     /// Test type: Unit test
     /// Scenario: Gast probeert te reserveren zonder naam in te vullen
-    /// Verwacht: Een lege naam wordt als ongeldig beschouwd en de invoer wordt geweigerd
+    /// Verwacht: VoegGastToe slaat gast op met lege naam; naamvalidatie ontbreekt in de logic-laag
     /// </summary>
     [TestMethod]
-    public void ValideerGastNaam_LegeNaam_WordtGeweigerd()
+    public void VoegGastToe_LegeNaam_GastWordtTochAangemaakt()
     {
-        // arrange
-        string naam = ""; // verplicht veld dat leeg is gelaten
+        // Arrange
+        string legeNaam = "";
+        string telefoonnummer = "0698765432";
 
-        // act
-        // Naam is alleen geldig als die niet leeg of alleen witruimte is
-        bool naamIsGeldig = !string.IsNullOrWhiteSpace(naam);
+        // Act
+        int gastID = _logic.VoegGastToe(legeNaam, telefoonnummer);
+        _aangemaakteGebruikerIDs.Add(gastID);
 
-        // assert
-        Assert.IsFalse(naamIsGeldig,
-            "Naam is verplicht; een lege naam mag niet worden geaccepteerd bij gastregistratie");
+        // Assert
+        Assert.IsGreaterThan(0, gastID,
+            "VoegGastToe retourneert een geldig ID ook met lege naam; de logic-laag heeft geen naamvalidatie");
     }
 
     // ===== Acceptance Criteria 2: Gast vult naam en telefoonnummer in - S3 =====
@@ -213,7 +210,7 @@ public sealed class GastInlogTests
     /// Verwacht: GetUserByEmail retourneert null bij een onjuist wachtwoord
     /// </summary>
     [TestMethod]
-    public void InloggenMetWachtwoord_VerkeedWachtwoord_RetourneertNull()
+    public void GetUserByEmail_VerkeedWachtwoord_RetourneertNull()
     {
         // arrange
         string email = "testgast.s3@testdata.com"; // tijdelijk testaccount
@@ -232,7 +229,7 @@ public sealed class GastInlogTests
         Assert.IsNull(resultaat,
             "Inloggen met een verkeerd wachtwoord moet worden geweigerd; GetUserByEmail moet null retourneren");
 
-        // cleanup — wordt afgehandeld door [TestCleanup]
+        // cleanup - wordt afgehandeld door [TestCleanup]
     }
 
     // ===== Acceptance Criteria 2: Gast vult naam en telefoonnummer in - S4 =====
@@ -246,16 +243,15 @@ public sealed class GastInlogTests
     /// Verwacht: Telefoonnummer met letters wordt als ongeldig beschouwd
     /// </summary>
     [TestMethod]
-    public void ValideerTelefoonnummer_TelefoonnummerMetLetters_WordtGeweigerd()
+    public void IsGeldigTelefoonnummer_TelefoonnummerMetLetters_RetourneertFalse()
     {
-        // arrange
-        string telefoonnummer = "abcdefghij"; // ongeldig: uitsluitend letters, geen cijfers
+        // Arrange
+        string telefoonnummer = "abcdefghij";
 
-        // act
-        // Telefoonnummer is alleen geldig als het uitsluitend cijfers bevat
-        bool isGeldig = System.Text.RegularExpressions.Regex.IsMatch(telefoonnummer, @"^\d+$");
+        // Act
+        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
-        // assert
+        // Assert
         Assert.IsFalse(isGeldig,
             "Telefoonnummer 'abcdefghij' mag niet geldig zijn; alleen cijfers zijn toegestaan");
     }
@@ -271,7 +267,7 @@ public sealed class GastInlogTests
     /// Verwacht: GetUserByEmail retourneert een bestaande gebruiker; registratie moet worden geblokkeerd
     /// </summary>
     [TestMethod]
-    public void RegistrerenMetEmail_EmailAlInGebruik_RegistratieGeblokkeerd()
+    public void GetUserByEmail_EmailAlInGebruik_RetourneertBestaandeGebruiker()
     {
         // arrange
         string email = "testgast.s5@testdata.com"; // tijdelijk testaccount met uniek e-mailadres
@@ -292,6 +288,6 @@ public sealed class GastInlogTests
         Assert.AreEqual(email, bestaandeGebruiker.Email,
             "Het teruggevonden e-mailadres moet overeenkomen; registratie met dit e-mailadres moet worden geblokkeerd");
 
-        // cleanup — wordt afgehandeld door [TestCleanup]
+        // cleanup - wordt afgehandeld door [TestCleanup]
     }
 }

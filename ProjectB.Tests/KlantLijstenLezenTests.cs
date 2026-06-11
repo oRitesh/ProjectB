@@ -20,14 +20,11 @@ public sealed class KlantLijstenLezenTests
     public KlantLijstenLezenTests()
     {
         // Initialiseer DatabaseContext en ReservationLogic met alle benodigde access-klassen
-        _db = new DatabaseContext();
-        _reserveringAccess = new ReserveringAccess(_db);
-        _tafelAccess = new TafelAccess(_db);
-        _tijdslotAccess = new TijdslotAccess(_db);
-        var userAccess = new UserAccess(_db);
-        var openingsTijdenAccess = new OpeningsTijdenAccess(_db);
-        var openingsDagAccess = new OpeningsDagAccess(_db);
-        _logic = new ReservationLogic(_reserveringAccess, _tafelAccess, userAccess, openingsTijdenAccess, openingsDagAccess);
+        _db = DatabaseContext.Instance;
+        _reserveringAccess = new ReserveringAccess();
+        _tafelAccess = new TafelAccess();
+        _tijdslotAccess = new TijdslotAccess();
+        _logic = new ReservationLogic();
     }
 
     [TestCleanup]
@@ -65,18 +62,18 @@ public sealed class KlantLijstenLezenTests
     /// Verwacht: Toegang tot het overzicht wordt geblokkeerd voor een gebruiker met ID 0 (gast)
     /// </summary>
     [TestMethod]
-    public void OpenReserveringOverzicht_GebruikerNietIngelogd_ToegangsGeweigerd()
+    public void GetRoleByUser_NietIngelogdeGast_RetourneertNull()
     {
-        // arrange
-        Gebruiker gastGebruiker = new(0, 0, "gast", "", "", ""); // niet-ingelogde gast (ID = 0)
+        // Arrange
+        int gastGebruikerID = 0; // niet-ingelogde gast; bestaat niet als echte gebruiker
 
-        // act
-        // Menu.cs blokkeert toegang tot het overzicht als HuidigeGebruiker.ID == 0
-        bool toegangGeweigerd = gastGebruiker.ID == 0;
+        // Act
+        var userAccess = new UserAccess();
+        Gebruiker? gebruiker = userAccess.GetRoleByUser(gastGebruikerID);
 
-        // assert
-        Assert.IsTrue(toegangGeweigerd,
-            "Een niet-ingelogde gast (ID = 0) mag het reserveringsoverzicht niet openen; toegang moet worden geblokkeerd");
+        // Assert
+        Assert.IsNull(gebruiker,
+            "Geen gebruiker met ID 0 mag bestaan; toegang tot het reserveringsoverzicht moet worden geblokkeerd");
     }
 
     // ===== Acceptance Criteria 3: Niet-ingelogde klant probeert via directe toegang reserveringen te bekijken - S3 =====
@@ -90,7 +87,7 @@ public sealed class KlantLijstenLezenTests
     /// Verwacht: GetReserveringenByGebruikerID(0) retourneert een lege lijst; geen data zichtbaar
     /// </summary>
     [TestMethod]
-    public void GetReserveringen_GebruikerIDNul_GeenReserveringenZichtbaar()
+    public void GetReserveringenByGebruikerID_GastIDNul_RetourneertLegeLijst()
     {
         // arrange
         int gastGebruikerID = 0; // ID van niet-ingelogde gast; bestaat niet als echte gebruiker in de database
@@ -114,18 +111,17 @@ public sealed class KlantLijstenLezenTests
     /// Verwacht: De menukoptekst bevat geen "ingelogd als"-tekst voor een gast-gebruiker (Naam == "gast")
     /// </summary>
     [TestMethod]
-    public void MenuHeader_GebruikerIsGast_IngelogdAlsTekstNietZichtbaar()
+    public void GetReserveringenByGebruikerID_GastIDNul_LijstIsLeeg()
     {
-        // arrange
-        Gebruiker gastGebruiker = new(0, 0, "gast", "", "", ""); // standaard niet-ingelogde gast
+        // Arrange
+        int gastGebruikerID = 0; // niet-ingelogde gast
 
-        // act
-        // Menu.cs toont de "Ingelogd als:"-header alleen als Naam != "gast" (zie Menu.cs regel 99-102)
-        bool headerTekstZichtbaar = gastGebruiker.Naam != "gast";
+        // Act
+        List<Reservering> reserveringen = _reserveringAccess.GetReserveringenByGebruikerID(gastGebruikerID);
 
-        // assert
-        Assert.IsFalse(headerTekstZichtbaar,
-            "Voor een niet-ingelogde gast (Naam = 'gast') mag 'ingelogd als' niet worden getoond in het hoofdmenu");
+        // Assert
+        Assert.IsEmpty(reserveringen,
+            "Gast (ID 0) heeft geen reserveringen; er mogen geen gegevens worden getoond in het menu");
     }
 
     // ===== Acceptance Criteria 4: Gastgebruiker ziet "ingelogd als gast" na plaatsen reservering - S4 =====
@@ -133,10 +129,10 @@ public sealed class KlantLijstenLezenTests
     /// <summary>
     /// Path: Sad Path S4
     /// Input: Gastgebruiker "Luca Ferrari" plaatst reservering; navigeert terug naar menu, Actor: Gastgebruiker
-    /// Expected output: "Ingelogd als gast" zichtbaar in menu — ongewenst gedrag gedetecteerd
+    /// Expected output: "Ingelogd als gast" zichtbaar in menu - ongewenst gedrag gedetecteerd
     /// Test type: Unit test
     /// Scenario: Gastgebruiker "Luca Ferrari" plaatst een reservering; zijn naam verschilt van "gast" waardoor het menu "Ingelogd als: Luca Ferrari" toont
-    /// Verwacht: De menukoptekst toont "Ingelogd als: Luca Ferrari" — ongewenste weergave voor een gastgebruiker
+    /// Verwacht: De menukoptekst toont "Ingelogd als: Luca Ferrari" - ongewenste weergave voor een gastgebruiker
     /// </summary>
     [TestMethod]
     public void MenuHeader_GastNaReservering_IngelogdAlsTekstZichtbaar_OngewenstGedrag()
@@ -153,13 +149,13 @@ public sealed class KlantLijstenLezenTests
         Gebruiker gastGebruiker = new(gastID, 0, naam, null, telefoonnummer, "");
 
         // act
-        // Menu.cs toont "Ingelogd als: <Naam>" als Naam != "gast" — dit triggert de ongewenste weergave
+        // Menu.cs toont "Ingelogd als: <Naam>" als Naam != "gast" - dit triggert de ongewenste weergave
         bool headerTekstZichtbaar = gastGebruiker.Naam != "gast";
 
         // assert
         Assert.IsTrue(headerTekstZichtbaar,
-            "Gastgebruiker 'Luca Ferrari' heeft Naam != 'gast', waardoor het menu 'Ingelogd als: Luca Ferrari' toont — ongewenst gedrag gedetecteerd");
+            "Gastgebruiker 'Luca Ferrari' heeft Naam != 'gast', waardoor het menu 'Ingelogd als: Luca Ferrari' toont - ongewenst gedrag gedetecteerd");
 
-        // cleanup — wordt afgehandeld door [TestCleanup]
+        // cleanup - wordt afgehandeld door [TestCleanup]
     }
 }
