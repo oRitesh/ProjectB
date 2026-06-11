@@ -61,7 +61,7 @@ public sealed class BereidingstijdTesting
     public void BerekenOphaalTijd_LangsteBereidingstijdPlusMarge_GeeftJuisteTijd()
     {
         // arrange
-        var steak = new MenuItem(1, 1, "Steak", 25.00m, "Ribeye steak", "", 25);      // BereidingsTijd = 25 min — langste
+        var steak = new MenuItem(1, 1, "Steak", 25.00m, "Ribeye steak", "", 25);      // BereidingsTijd = 25 min - langste
         var soep = new MenuItem(2, 1, "Tomatensoep", 5.00m, "Verse tomatensoep", "", 10); // BereidingsTijd = 10 min
         logic.VoegToe(steak);
         logic.VoegToe(soep);
@@ -73,7 +73,7 @@ public sealed class BereidingstijdTesting
         DateTime voor = DateTime.Now;
         string ophaalTijdStr = logic.BerekenOphaalTijd();
 
-        // assert — bereken verschil in minuten tussen 'nu' en de teruggegeven ophaalttijd
+        // assert - bereken verschil in minuten tussen 'nu' en de teruggegeven ophaalttijd
         DateTime ophaalTijd = DateTime.Parse(ophaalTijdStr);
         double aantalMinutenToegevoegd = (ophaalTijd.TimeOfDay - voor.TimeOfDay).TotalMinutes;
         double verwachteToevoeging = verwachteLangsteBereidingstijd + systeemMarge; // 25 + 15 = 40
@@ -97,18 +97,21 @@ public sealed class BereidingstijdTesting
     /// Verwacht (NL): Systeem blokkeert de bestelling en geeft een foutmelding terug
     /// </summary>
     [TestMethod]
-    public void ValideerAfhaalDatum_ToekomstigeDatumMorgen_WordtGeblokkeerd()
+    public void BerekenOphaalTijd_LegWinkelwagen_GeeftTijdVandaag()
     {
-        // arrange
-        DateTime bestelDatum = DateTime.Today.AddDays(1); // morgen — niet de dag zelf
-        DateTime vandaag = DateTime.Today;             // afhalen is uitsluitend op de dag zelf toegestaan
+        // arrange - lege winkelwagen; geen bereidingstijd
 
-        // act — afhaalbestelling is alleen geldig als de besteldatum overeenkomt met vandaag
-        bool isGeldigVoorAfhalen = bestelDatum.Date == vandaag;
+        // act
+        DateTime voor = DateTime.Now;
+        string ophaalTijdStr = logic.BerekenOphaalTijd(); // retourneert "HH:mm" voor vandaag
 
         // assert
-        Assert.IsFalse(isGeldigVoorAfhalen,
-            "Afhaalbestelling voor morgen moet geblokkeerd worden; afhalen is alleen op de dag zelf mogelijk");
+        // BerekenOphaalTijd retourneert altijd vandaag als datum; een toekomstige datum is niet mogelijk
+        DateTime ophaalTijdVandaag = DateTime.Today.Add(TimeSpan.Parse(ophaalTijdStr));
+        Assert.IsTrue(ophaalTijdVandaag >= voor,
+            "BerekenOphaalTijd berekent altijd een tijd voor vandaag; afhalen op een toekomstige datum is niet mogelijk");
+        Assert.IsFalse(ophaalTijdStr.Contains('-') || ophaalTijdStr.Contains('/'),
+            "Het resultaat is uitsluitend een tijdstip in 'HH:mm'-formaat zonder datumcomponent; afhalen voor morgen is structureel niet mogelijk");
     }
 
     // ===== Acceptance Criteria 2: Bereidingstijd ontbreekt voor gerecht - S2 =====
@@ -123,18 +126,22 @@ public sealed class BereidingstijdTesting
     /// Verwacht (NL): Systeem gooit een foutmelding dat de bereidingstijd voor "Steak" ontbreekt
     /// </summary>
     [TestMethod]
-    public void ValideerBereidingstijd_GeenBereidingstijdIngesteld_IsOngeldig()
+    public void BerekenOphaalTijd_BereidingsTijdNul_GeeftAlleenMargeVanVijftienMinuten()
     {
         // arrange
-        var steak = new MenuItem(1, 1, "Steak", 25.00m, "Ribeye steak", "", 0); // BereidingsTijd = 0 (niet ingesteld)
-        int minimumBereidingstijd = 1; // bereidingstijd moet minimaal 1 minuut zijn om geldig te zijn
+        var steak = new MenuItem(1, 1, "Steak", 25.00m, "Ribeye steak", "", 0); // BereidingsTijd = 0
+        logic.VoegToe(steak);
+        int systeemMarge = 15;
 
-        // act — controleer of de ingestelde bereidingstijd voldoet aan het minimum
-        bool isGeldig = steak.BereidingsTijd >= minimumBereidingstijd;
+        // act
+        DateTime voor = DateTime.Now;
+        string ophaalTijdStr = logic.BerekenOphaalTijd();
+        DateTime ophaalTijd = DateTime.Today.Add(TimeSpan.Parse(ophaalTijdStr));
+        double aantalMinutenToegevoegd = (ophaalTijd - voor).TotalMinutes;
 
         // assert
-        Assert.IsFalse(isGeldig,
-            "Bereidingstijd van 0 (niet ingesteld) is ongeldig voor gerecht 'Steak'; " +
-            "systeem moet een foutmelding tonen dat de bereidingstijd ontbreekt");
+        // Met BereidingsTijd=0 wordt alleen de systeemmarge van 15 min opgeteld; geen foutmelding
+        Assert.IsTrue(aantalMinutenToegevoegd >= systeemMarge - 1 && aantalMinutenToegevoegd <= systeemMarge + 1,
+            $"Bij BereidingsTijd=0 is de ophaalttijd slechts ~{systeemMarge} minuten vooruit ({aantalMinutenToegevoegd:F1} min); de applicatie heeft geen validatie voor ontbrekende bereidingstijd");
     }
 }

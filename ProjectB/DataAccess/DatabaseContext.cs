@@ -3,6 +3,7 @@ using System.IO;
 
 public class DatabaseContext
 {
+    // singleton pattern, op advies van leraren 
     private static DatabaseContext? _instance;
 
     public static DatabaseContext Instance
