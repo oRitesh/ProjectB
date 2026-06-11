@@ -82,9 +82,6 @@ public sealed class GastInlogTests
 
     /// <summary>
     /// Path: Sad Path S1
-    /// Input: Klant op stap "Login of gast?" klikt "Volgende" zonder keuze te maken, Actor: Klant
-    /// Expected output: Foutmelding: maak een keuze om door te gaan; stap geblokkeerd
-    /// Test type: Unit test
     /// Scenario: Klant probeert in te loggen met een leeg e-mailadres
     /// Verwacht: GetUserByEmail retourneert null voor een leeg e-mailadres
     /// </summary>
@@ -118,11 +115,12 @@ public sealed class GastInlogTests
         // arrange
         string naam = "Thomas";                          // naam uit testscript
         string telefoonnummer = "0612345678";            // telefoonnummer uit testscript
-        DateTime datum = new(2026, 6, 10);                 // datum uit testscript: 10-06-2026
+        DateTime datum = DateTime.Today.AddDays(7);
+        string datumString = datum.ToString("yyyy-MM-dd");
         int aantalPersonen = 2;
 
         // Maak tijdsloten aan voor de testdatum als die nog niet bestaan
-        var bestaandeTijdsloten = _tijdslotAccess.GetTijdslotenByDatum("2026-06-10");
+        var bestaandeTijdsloten = _tijdslotAccess.GetTijdslotenByDatum(datumString);
         bool nieuweTijdsloten = bestaandeTijdsloten.Count == 0;
         if (nieuweTijdsloten)
         {
@@ -130,9 +128,9 @@ public sealed class GastInlogTests
                 _tijdslotAccess.AddTijdslot(ts);
         }
 
-        var tijdsloten = _tijdslotAccess.GetTijdslotenByDatum("2026-06-10");
+        var tijdsloten = _tijdslotAccess.GetTijdslotenByDatum(datumString);
         Assert.IsNotEmpty(tijdsloten,
-            "Er moeten tijdsloten beschikbaar zijn voor 10-06-2026");
+            $"Er moeten tijdsloten beschikbaar zijn voor {datum:dd-MM-yyyy}");
 
         if (nieuweTijdsloten)
             foreach (var ts in tijdsloten)
