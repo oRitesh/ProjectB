@@ -28,7 +28,7 @@ public class RegistratieUI
                 case RegistratieStap.Naam:
                     Console.Clear();
                     naam = InputValidatie.ValideerInput(
-                        "=== Registreren ===\n\nNaam",
+                        "=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam",
                         x => x.Length > 1,
                         "Naam moet minimaal 2 letters zijn."
                     );
@@ -59,7 +59,7 @@ public class RegistratieUI
                 case RegistratieStap.Wachtwoord:
                     Console.Clear();
                     wachtwoord = InputValidatie.ValideerInput(
-                        $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
+                        $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
                         x => x.Length >= 8 && x.Any(char.IsUpper) && x.Any(char.IsLower),
                         "Wachtwoord moet minimaal 8 tekens bevatten, én minstens 1 hoofdletter en 1 kleine letter."
                     );
@@ -71,7 +71,7 @@ public class RegistratieUI
                     Console.Clear();
                     string sterren = new string('*', wachtwoord!.Length);
                     string? wachtwoordBevestig = InputValidatie.ValideerInput(
-                        $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter): {sterren}\nBevestig wachtwoord",
+                        $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter): {sterren}\nBevestig wachtwoord",
                         x => x == wachtwoord,
                         "Wachtwoorden komen niet overeen."
                     );
@@ -124,7 +124,7 @@ public class RegistratieUI
         {
             Console.Clear();
             string? email = InputValidatie.ValideerInput(
-                $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres",
+                $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres",
                 x => x.Contains("@") && x.Contains("."),
                 "Ongeldig e-mailadres."
             );
@@ -149,7 +149,7 @@ public class RegistratieUI
         {
             Console.Clear();
             string? telefoon = InputValidatie.ValideerInput(
-                $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer",
+                $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer",
                 x => x.Length >= 8 && x.All(char.IsDigit),
                 "Telefoonnummer moet minimaal 8 cijfers bevatten en mag geen letters bevatten."
             );
