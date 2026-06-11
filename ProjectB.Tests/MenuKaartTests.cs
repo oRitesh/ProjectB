@@ -2,8 +2,8 @@ namespace ProjectB.Tests;
 
 /// <summary>
 /// Test categories:
-/// - H1-H3: Happy paths
-/// - S1-S3: Sad paths
+/// - H4-H6: Happy paths
+/// - S2-S3: Sad paths
 
 /// </summary>
 [TestClass]
@@ -11,143 +11,139 @@ public sealed class MenuKaartTesting
 {
     private readonly DatabaseContext db = new();
     private readonly MenuItemAccess itemAccess;
-    private readonly MenuCategorieAccess categorieAccess;
-    private readonly MenuService menuService;
 
     public MenuKaartTesting()
     {
         itemAccess = new MenuItemAccess(db);
-        categorieAccess = new MenuCategorieAccess(db);
-        menuService = new MenuService(db);
     }
 
     /// <summary>
-    /// H1: Menu items ophalen voor categorie "Starters"
-    /// Scenario: Admin/Bediening vraagt alle starters op uit het menu
+    /// H4: Menu items ophalen voor categorie "Starters"
+    /// Scenario: Gebruiker vraagt alle starters op uit het menu.
     /// </summary>
     [TestMethod]
-    public void GetItemsByCategory_RequestStartersCategory_ReturnsStartersList()
+    public void GetItemsByCategory_VraagVoorgerechtenAan_GeeftVoorgerechtenTerug()
     {
         int categoryId = 1;
 
-        var testItem = new MenuItem(0, categoryId, "Test Starter Item", 8.00m, "Test beschrijving", "geen", 10);
-        itemAccess.AddMenuItem(testItem);
+        var testGerecht = new MenuItem(0, categoryId, "Test voorgerecht", 8.00m, "Test beschrijving", "geen", 10);
+        itemAccess.AddMenuItem(testGerecht);
 
-        var starters = itemAccess.GetItemsByCategory(categoryId);
+        var Voorgerechten = itemAccess.GetItemsByCategory(categoryId);
 
         try
         {
-            Assert.IsNotNull(starters,
-                "Starters lijst mag niet null zijn");
-            Assert.IsNotEmpty(starters,
-                "Starters categorie moet minimaal één item bevatten");
-            Assert.IsTrue(starters.All(s => s.MenuCatogorieID == categoryId),
-                "Alle items in de lijst moeten tot de Starters categorie behoren");
+            Assert.IsNotNull(Voorgerechten,
+                "Voorgerechten lijst mag niet null zijn");
+            Assert.IsNotEmpty(Voorgerechten,
+                "Voorgerechten categorie moet minimaal één item bevatten");
+            Assert.IsTrue(Voorgerechten.All(s => s.MenuCatogorieID == categoryId),
+                "Alle items in de lijst moeten tot de Voorgerechten categorie behoren");
         }
         finally
         {
-            var added = starters?.FirstOrDefault(s => s.Naam == "Test Starter Item");
-            if (added != null) itemAccess.DeleteMenuItem(added.ID);
+            var Toegevoegd = Voorgerechten?.FirstOrDefault(s => s.Naam == "Test voorgerecht");
+            if (Toegevoegd != null) itemAccess.DeleteMenuItem(Toegevoegd.ID);
         }
     }
 
     /// <summary>
-    /// H2: Prijs van bestaand gerecht "Pasta Carbonara" wijzigen van €12 naar €13
-    /// Scenario: Chef wijzigt prijs van populair gerecht vanwege ingrediënten kostenstijging
+    /// H5: Prijs van bestaand gerecht "Pasta test gerecht" wijzigen van €12 naar €13
+    /// Scenario: gebruiker wijzigt prijs van gerecht.
     /// </summary>
     [TestMethod]
-    public void UpdateMenuItem_ChangePriceExistingDish_UpdatedSuccessfully()
+    public void UpdateMenuItem_VeranderPrijsBestaandGerecht_SuccesvolAangepast()
     {
-        string dishName = "Pasta Test Dish";
+        string gerechtNaam = "Pasta Test gerecht";
         int categoryId = 2;
-        decimal originalPrice = 12.00m;
-        decimal newPrice = 13.50m;
-        string description = "Test pasta dish";
-        string allergen = "gluten";
-        int preparationTime = 15;
+        decimal originelePrijs = 12.00m;
+        decimal NieuwePrijs = 13.50m;
+        string beschrijving = "Test gerecht";
+        string allergenen = "gluten";
+        int bereidingstijd = 15;
 
-        var testDish = new MenuItem(0, categoryId, dishName, originalPrice, description, allergen, preparationTime);
+        var testGerecht = new MenuItem(0, categoryId, gerechtNaam, originelePrijs, beschrijving, allergenen, bereidingstijd);
         
 
-        itemAccess.AddMenuItem(testDish);
-        var addedDish = itemAccess.GetItemsByCategory(categoryId).First(m => m.Naam == dishName);
+        itemAccess.AddMenuItem(testGerecht);
+        var toegevoegdGerecht = itemAccess.GetItemsByCategory(categoryId).First(m => m.Naam == gerechtNaam);
 
-        addedDish.Prijs = newPrice;
-        itemAccess.UpdateMenuItem(addedDish);
+        toegevoegdGerecht.Prijs = NieuwePrijs;
+        itemAccess.UpdateMenuItem(toegevoegdGerecht);
 
-        var updatedDish = itemAccess.GetItemsByCategory(categoryId).First(m => m.ID == addedDish.ID);
+        var aangepastGerecht = itemAccess.GetItemsByCategory(categoryId).First(m => m.ID == toegevoegdGerecht.ID);
 
-        Assert.AreEqual(newPrice, updatedDish.Prijs,
+        Assert.AreEqual(NieuwePrijs, aangepastGerecht.Prijs,
             "Prijs van gerecht moet naar nieuw bedrag zijn bijgewerkt");
-        Assert.AreNotEqual(originalPrice, updatedDish.Prijs,
+        Assert.AreNotEqual(originelePrijs, aangepastGerecht.Prijs,
             "Oude prijs mag niet meer zichtbaar zijn");
 
-        itemAccess.DeleteMenuItem(addedDish.ID);
+        itemAccess.DeleteMenuItem(toegevoegdGerecht.ID);
     }
 
     /// <summary>
-    /// H3: MenuService laadt alle 5 categorieën (Starters, Mains, Desserts, Wines, Drinks)
-    /// Scenario: Applicatie start en laadt menu in geheugen voor snelle UI display
+    /// H6: MenuService laadt alle 5 categorieën (Starters, Mains, Desserts, Wines, Drinks)
+    /// Scenario: Applicatie start en laadt menu in.
     /// </summary>
     [TestMethod]
-    public void MenuService_InitializeService_AllCategoriesLoaded()
+    public void MenuService_InitialisatieMenukaart_AlleCategorieenGeladen()
     {
-        var menuService = new MenuService(db);
+        var MenuKaart = new MenuService(db);
 
-        Assert.IsNotNull(menuService.Starters,
+        Assert.IsNotNull(MenuKaart.Starters,
             "Starters categorie mag niet null zijn");
-        Assert.IsNotNull(menuService.Mains,
+        Assert.IsNotNull(MenuKaart.Mains,
             "Mains categorie mag niet null zijn");
-        Assert.IsNotNull(menuService.Desserts,
+        Assert.IsNotNull(MenuKaart.Desserts,
             "Desserts categorie mag niet null zijn");
-        Assert.IsNotNull(menuService.Wines,
+        Assert.IsNotNull(MenuKaart.Wines,
             "Wines categorie mag niet null zijn");
-        Assert.IsNotNull(menuService.Drinks,
+        Assert.IsNotNull(MenuKaart.Drinks,
             "Drinks categorie mag niet null zijn");
     }
 
     /// <summary>
-    /// S1: Allergen informatie ontbreekt bij nieuw gerecht "Noten Dessert"
-    /// Scenario: Chef vergeet allergen info in te voeren bij nieuw gerecht
+    /// S2: Allergen informatie ontbreekt bij nieuw gerecht "Noten Dessert"
+    /// Scenario: Gebruiker vergeet allergen info in te voeren bij nieuw gerecht
     /// </summary>
     [TestMethod]
-    public void AddMenuItem_MissingAllergenInformation_StillAccepted()
+    public void AddMenuItem_GeenAllergenenInfo_Geaccepteerd()
     {
-        string dishName = "Noten Dessert Test";
+        string gerechtNaam = "Noten Dessert Test";
         int categoryId = 3;
-        decimal price = 7.00m;
-        string description = "Heerlijk dessert";
-        string allergen = "geen";
-        int preparationTime = 8;
+        decimal prijs = 7.00m;
+        string beschrijving = "Noten dessert";
+        string allergenen = "geen";
+        int bereidingstijd = 8;
 
-        var dishWithoutAllergen = new MenuItem(0, categoryId, dishName, price, description, allergen, preparationTime);
+        var gerechtZonderAllergenen = new MenuItem(0, categoryId, gerechtNaam, prijs, beschrijving, allergenen, bereidingstijd);
 
-        itemAccess.AddMenuItem(dishWithoutAllergen);
-        var storedDish = itemAccess.GetItemsByCategory(categoryId).FirstOrDefault(m => m.Naam == dishName);
+        itemAccess.AddMenuItem(gerechtZonderAllergenen);
+        var opgeslagenGerecht = itemAccess.GetItemsByCategory(categoryId).FirstOrDefault(m => m.Naam == gerechtNaam);
 
-        Assert.IsNotNull(storedDish,
+        Assert.IsNotNull(opgeslagenGerecht,
             "Gerecht zonder specifieke allergen info mag toch opgeslagen worden");
-        Assert.AreEqual(allergen, storedDish.Allergeen,
+        Assert.AreEqual(allergenen, opgeslagenGerecht.Allergeen,
             "Allergen veld moet bewaard blijven met ingevulde waarde");
 
-        if (storedDish != null)
+        if (opgeslagenGerecht != null)
         {
-            itemAccess.DeleteMenuItem(storedDish.ID);
+            itemAccess.DeleteMenuItem(opgeslagenGerecht.ID);
         }
     }
 
     /// <summary>
-    /// S2: Prijs van gerecht ingesteld op negatief bedrag
-    /// Scenario: Administratie voert per ongeluk negatieve prijs in
+    /// S3: Prijs van gerecht ingesteld op negatief bedrag
+    /// Scenario: Gebruiker voert per ongeluk negatieve prijs in
     /// </summary>
     [TestMethod]
-    public void ValidateMenuItemPrice_NegativePrice_IsRejected()
+    public void ValidateMenuItemPrice_NegatievePrijs_Afgewezen()
     {
-        decimal invalidPrice = -5.00m;
+        decimal NegatievePrijs = -5.00m;
 
-        bool priceIsValid = invalidPrice >= 0;
+        bool PrijsKloppend = NegatievePrijs >= 0;
 
-        Assert.IsFalse(priceIsValid,
+        Assert.IsFalse(PrijsKloppend,
             "Prijs mag niet negatief zijn; -5.00 moet worden geweigerd bij het toevoegen van een menu-item");
     }
 }

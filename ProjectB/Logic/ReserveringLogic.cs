@@ -282,6 +282,14 @@ public class ReservationLogic
             return false;
         }
 
+        DateTime start = DateTime.Parse(tijdslot.StartTijd);
+        DateTime eind = DateTime.Parse(tijdslot.EindTijd);
+
+        if ((eind - start).TotalHours < 2)
+        {   
+            return false;
+        }
+
         Reservering reservering = new Reservering(
             0,
             gebruikerID,
