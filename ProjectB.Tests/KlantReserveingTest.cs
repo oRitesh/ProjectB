@@ -40,62 +40,64 @@ public sealed class KlantReserveringTests
     }
 
 
-    /// <summary>
     /// H1: Klant kan reservering van 2 uur maken
     /// Scenario: Klant maakt een reservering van 2 uur zodat duidelijk is hoelang de reservering duurt
-    /// </summary>
-[TestMethod]
-public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
-{
-    tafelAccess.AddTafel(new Tafel(0, 1, 4));
-    var tafel = tafelAccess.GetAllTafels().First();
-    int tafelNummer = tafel.TafelNummer;
+    [TestMethod]
+    public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
+    {
+        // Arrange
+        tafelAccess.AddTafel(new Tafel(0, 1, 4));
+        var tafel = tafelAccess.GetAllTafels().First();
+        int tafelNummer = tafel.TafelNummer;
 
-    userAccess.AddUser(new Gebruiker(0, 0, "Test", "test@mail.com", "1234", ""));
-    var gebruiker = userAccess.GetAllUsers().First();
-    int gebruikerId = gebruiker.ID;
+        userAccess.AddUser(new Gebruiker(0, 0, "Test", "test@mail.com", "1234", ""));
+        var gebruiker = userAccess.GetAllUsers().First();
+        int gebruikerId = gebruiker.ID;
 
-    string datum = "2026-06-20";
-    string start = "2026-06-20 18:00";
-    string eind = "2026-06-20 20:00";
+        string datum = "2026-06-20";
+        string start = "2026-06-20 18:00";
+        string eind = "2026-06-20 20:00";
 
-    tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
-    var tijdslot = tijdslotAccess.GetTijdslotenByDatum(datum).First();
+        //act   
+        tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
+        var tijdslot = tijdslotAccess.GetTijdslotenByDatum(datum).First();
 
-    var logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
+        var logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
-    bool resultaat = logic.AddReservering(
-        gebruikerId,
-        4,
-        tijdslot,
-        tafelNummer,
-        ""
-    );
+        bool resultaat = logic.AddReservering(
+            gebruikerId,
+            4,
+            tijdslot,
+            tafelNummer,
+            ""
+        );
 
-    Assert.IsTrue(resultaat, "Reservering moet worden opgeslagen");
+        //assert
+        Assert.IsTrue(resultaat, "Reservering moet worden opgeslagen");
 
-    var opgeslagen = reserveringAccess.GetReserveringenVoorDatum(datum);
-    Assert.AreEqual(1, opgeslagen.Count, "Er moet 1 reservering zijn");
+        var opgeslagen = reserveringAccess.GetReserveringenVoorDatum(datum);
+        Assert.AreEqual(1, opgeslagen.Count, "Er moet 1 reservering zijn");
 
-    var r = opgeslagen.First();
-    var duur = DateTime.Parse(r.EindTijd) - DateTime.Parse(r.StartTijd);
+        var r = opgeslagen.First();
+        var duur = DateTime.Parse(r.EindTijd) - DateTime.Parse(r.StartTijd);
 
-    Assert.AreEqual(2, duur.TotalHours, "De reservering moet 2 uur duren");
-}
+        Assert.AreEqual(2, duur.TotalHours, "De reservering moet 2 uur duren");
+    }
 
 
-    /// <summary>
     /// H2: Beschikbare tijdsloten tonen in stappen van 15 minuten
     /// Scenario: Klant wil beschikbare tijdsloten zien in stappen van 15 minuten zodat duidelijk is op welk moment geboekt kan worden
-    /// </summary>
     [TestMethod]
     public void TimeSlotLogic_GenereertTijdslotenVanTweeUur_InStappenVan15Minuten()
     {
+        //arrange
         var logic = new TimeSlotLogic(db);
 
+        //act
         var datum = new DateTime(2026, 6, 20);
         var slots = logic.MaakTijdslotenVoorReservering(datum);
 
+        //assert
         Assert.IsTrue(slots.All(s =>
             (DateTime.Parse(s.EindTijd) - DateTime.Parse(s.StartTijd)).TotalHours == 2),
             "Elk tijdslot moet 2 uur duren");
@@ -111,15 +113,12 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
     }
 
 
-
-
-    /// <summary>
     /// H3: Beschikbare tafels tonen per tijdslot
     /// Scenario: Klant wil duidelijk zien welke tafels beschikbaar zijn op welke tijdsloten
-    /// </summary>
     [TestMethod]
     public void GetBeschikbareTafels_TijdensTijdslot_GeeftAlleenVrijeTafelsTerug()
     {
+        //arrange
         tafelAccess.AddTafel(new Tafel(0, 1, 4));
         tafelAccess.AddTafel(new Tafel(0, 2, 4));
 
@@ -138,6 +137,7 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
         tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
         var tijdslot = tijdslotAccess.GetTijdslotenByDatum(datum).First();
 
+        //act
         var logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
 
         bool resultaat = logic.AddReservering(
@@ -148,6 +148,7 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
             ""
         );
 
+        //assert
         Assert.IsTrue(resultaat, "Reservering moet worden opgeslagen");
 
         var overlappende = reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(tijdslot);
@@ -167,6 +168,7 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
     [TestMethod]
     public void AddReservering_MinderDanTweeUur_WordtNietOpgeslagen()
     {
+        //arrange
         tafelAccess.AddTafel(new Tafel(0, 1, 4));
         var tafel = tafelAccess.GetAllTafels().First();
         int tafelNummer = tafel.ID;
@@ -186,6 +188,7 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
             eind
         ));
 
+        //act
         var tijdslot = tijdslotAccess.GetTijdslotenByDatum(datum).First();
 
 
@@ -199,6 +202,7 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
             ""
         );
 
+        //assert
         Assert.IsFalse(resultaat, "Reservering van minder dan 2 uur moet worden geweigerd");
 
         var opgeslagen = reserveringAccess.GetReserveringenVoorDatum("2026-06-20");
@@ -215,6 +219,7 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
     [TestMethod]
     public void AddReservering_VerledenDatum_WordtNietOpgeslagen()
     {
+        //arrange
         tafelAccess.AddTafel(new Tafel(0, 1, 4));
         var tafel = tafelAccess.GetAllTafels().First();
         int tafelNummer = tafel.TafelNummer;
@@ -228,6 +233,8 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
         string eind = "2020-01-01 20:00";
 
         tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
+
+        //act
         var tijdslot = tijdslotAccess.GetTijdslotenByDatum(datum).First();
 
         var logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
@@ -240,6 +247,7 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
             ""
         );
 
+        //assert
         Assert.IsFalse(resultaat, "Reservering in het verleden moet worden geweigerd");
 
         var opgeslagen = reserveringAccess.GetReserveringenVoorDatum(datum);
@@ -256,10 +264,13 @@ public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
     [TestMethod]
     public void GetTijdslotenByDatum_GeenSlots_GeeftLegeLijst()
     {
+        //arrange
         string datum = "2026-06-21";
 
+        //act
         var slots = tijdslotAccess.GetTijdslotenByDatum(datum);
 
+        //assert
         Assert.IsEmpty(slots,
             "Op een datum zonder tijdsloten kan de klant geen reservering maken lijst moet leeg zijn");
     }
