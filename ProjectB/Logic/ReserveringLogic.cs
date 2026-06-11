@@ -257,6 +257,7 @@ public class ReservationLogic
 
         DateTime datum = DateTime.Parse(tijdslot.Datum);
 
+        // hierzo gaat het fout
         if (!IsGeldigeDatum(datum))
         {
             return false;
@@ -283,6 +284,14 @@ public class ReservationLogic
         );
 
         if (overlappendeReserveringen.Count > 0)
+        {
+            return false;
+        }
+
+        DateTime start = DateTime.Parse(tijdslot.StartTijd);
+        DateTime eind = DateTime.Parse(tijdslot.EindTijd);
+
+        if ((eind - start).TotalHours < 2)
         {
             return false;
         }

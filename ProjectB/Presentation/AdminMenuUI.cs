@@ -56,9 +56,8 @@ public class AdminMenuUI
         opties.Add("Bekijk reserveringen per tijdslot");
 
         if (rol == 2)
-            opties.Add("Wis bestelling geheugen");
 
-        opties.Add("Bekijk alle bestellingen");
+            opties.Add("Bekijk alle bestellingen");
         opties.Add("Wijzig bestelling status");
 
         if (rol == 2)
@@ -81,7 +80,6 @@ public class AdminMenuUI
                 case "Wijzig menukaart": EditMenu(); break;
                 case "Bekijk alle reserveringen": ViewReservations(); break;
                 case "Bekijk reserveringen per tijdslot": ViewReservationsPerTimeSlot(); break;
-                case "Wis bestelling geheugen": WisBestellingGeheugen(); break;
                 case "Bekijk alle bestellingen": BekijkBestellingen(); break;
                 case "Wijzig bestelling status": AanpassenBestellingStatus(); break;
                 case "Wijzig openingstijden": WijzigOpeningstijden(); break;
@@ -417,7 +415,7 @@ public class AdminMenuUI
     public void BekijkBestellingen()
     {
         Console.Clear();
-        Console.WriteLine("=== ALLE BESTELLINGEN ===\n");
+        Console.WriteLine("=== ALLE BESTELLINGEN VAN VANDAAG ===\n");
 
         var bestellingen = bestellingLogic.GetAllBestellingen();
 
@@ -521,26 +519,6 @@ public class AdminMenuUI
         Console.WriteLine($"Status van bestelling #{gekozen.ID} is bijgewerkt.");
         Console.ReadKey(true);
     }
-
-    public void WisBestellingGeheugen()
-    {
-        List<string> bevestigOpties = new() { "Ja, wis alle bestellingen", "Nee, annuleer" };
-
-        string? keuze = ArrowMenu.ShowMenu(
-            "BESTELLINGSGEHEUGEN WISSEN",
-            bevestigOpties,
-            x => x
-        );
-
-        if (keuze == "Ja, wis alle bestellingen")
-        {
-            bestellingLogic.DeleteAllBestellingen();
-            Console.Clear();
-            Console.WriteLine("Alle bestellingen zijn verwijderd.");
-            Console.ReadKey(true);
-        }
-    }
-
     private void WijzigOpeningstijden()
     {
         List<string> opties = new()

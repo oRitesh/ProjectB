@@ -26,7 +26,7 @@ public class RegistratieUI
                 case RegistratieStap.Naam:
                     Console.Clear();
                     naam = InputValidatie.ValideerInput(
-                        "=== Registreren ===\n\nNaam",
+                        "=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam",
                         x => x.Length > 1,
                         "Naam moet minimaal 2 letters zijn."
                     );
@@ -69,7 +69,7 @@ public class RegistratieUI
                     Console.Clear();
                     string sterren = new string('*', wachtwoord!.Length);
                     string? wachtwoordBevestig = InputValidatie.ValideerInput(
-                        $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter): {sterren}\nBevestig wachtwoord",
+                        $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter): {sterren}\nBevestig wachtwoord",
                         x => x == wachtwoord,
                         "Wachtwoorden komen niet overeen."
                     );

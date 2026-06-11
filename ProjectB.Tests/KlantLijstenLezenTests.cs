@@ -128,11 +128,7 @@ public sealed class KlantLijstenLezenTests
 
     /// <summary>
     /// Path: Sad Path S4
-    /// Input: Gastgebruiker "Luca Ferrari" plaatst reservering; navigeert terug naar menu, Actor: Gastgebruiker
-    /// Expected output: "Ingelogd als gast" zichtbaar in menu - ongewenst gedrag gedetecteerd
-    /// Test type: Unit test
     /// Scenario: Gastgebruiker "Luca Ferrari" plaatst een reservering; zijn naam verschilt van "gast" waardoor het menu "Ingelogd als: Luca Ferrari" toont
-    /// Verwacht: De menukoptekst toont "Ingelogd als: Luca Ferrari" - ongewenste weergave voor een gastgebruiker
     /// </summary>
     [TestMethod]
     public void MenuHeader_GastNaReservering_IngelogdAlsTekstZichtbaar_OngewenstGedrag()
@@ -151,6 +147,7 @@ public sealed class KlantLijstenLezenTests
         // act
         // Menu.cs toont "Ingelogd als: <Naam>" als Naam != "gast" - dit triggert de ongewenste weergave
         bool headerTekstZichtbaar = gastGebruiker.Naam != "gast";
+        // if (HuidigeGebruiker.Naam != "gast") staat in menu, dus ik ga t zo houden 
 
         // assert
         Assert.IsTrue(headerTekstZichtbaar,
