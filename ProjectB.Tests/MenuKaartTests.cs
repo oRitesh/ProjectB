@@ -25,13 +25,16 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void GetItemsByCategory_VraagVoorgerechtenAan_GeeftVoorgerechtenTerug()
     {
+        //arrange
         int categoryId = 1;
 
         var testGerecht = new MenuItem(0, categoryId, "Test voorgerecht", 8.00m, "Test beschrijving", "geen", 10);
         itemAccess.AddMenuItem(testGerecht);
 
+        //act
         var Voorgerechten = itemAccess.GetItemsByCategory(categoryId);
 
+        //assert
         try
         {
             Assert.IsNotNull(Voorgerechten,
@@ -55,6 +58,7 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void UpdateMenuItem_VeranderPrijsBestaandGerecht_SuccesvolAangepast()
     {
+        //arrange
         string gerechtNaam = "Pasta Test gerecht";
         int categoryId = 2;
         decimal originelePrijs = 12.00m;
@@ -74,6 +78,7 @@ public sealed class MenuKaartTesting
 
         var aangepastGerecht = itemAccess.GetItemsByCategory(categoryId).First(m => m.ID == toegevoegdGerecht.ID);
 
+        //assert
         Assert.AreEqual(NieuwePrijs, aangepastGerecht.Prijs,
             "Prijs van gerecht moet naar nieuw bedrag zijn bijgewerkt");
         Assert.AreNotEqual(originelePrijs, aangepastGerecht.Prijs,
@@ -110,6 +115,7 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void AddMenuItem_GeenAllergenenInfo_Geaccepteerd()
     {
+        //arrange
         string gerechtNaam = "Noten Dessert Test";
         int categoryId = 3;
         decimal prijs = 7.00m;
@@ -118,10 +124,12 @@ public sealed class MenuKaartTesting
         int bereidingstijd = 8;
 
         var gerechtZonderAllergenen = new MenuItem(0, categoryId, gerechtNaam, prijs, beschrijving, allergenen, bereidingstijd);
-
         itemAccess.AddMenuItem(gerechtZonderAllergenen);
+
+        //act
         var opgeslagenGerecht = itemAccess.GetItemsByCategory(categoryId).FirstOrDefault(m => m.Naam == gerechtNaam);
 
+        //assert
         Assert.IsNotNull(opgeslagenGerecht,
             "Gerecht zonder specifieke allergen info mag toch opgeslagen worden");
         Assert.AreEqual(allergenen, opgeslagenGerecht.Allergeen,
@@ -140,10 +148,13 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void ValidateMenuItemPrice_NegatievePrijs_Afgewezen()
     {
+        //arrange
         decimal NegatievePrijs = -5.00m;
 
+        //act
         bool PrijsKloppend = NegatievePrijs >= 0;
 
+        //assert
         Assert.IsFalse(PrijsKloppend,
             "Prijs mag niet negatief zijn; -5.00 moet worden geweigerd bij het toevoegen van een menu-item");
     }

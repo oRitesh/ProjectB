@@ -2,16 +2,6 @@ using Dapper;
 
 namespace ProjectB.Tests;
 
-/// <summary>
-/// Tests voor bestelling status updates en menu item bereidingstijd beheer.
-/// Volgt MSTest stijl: [Class]Testing pattern met duidelijke AC-scheiding.
-///
-/// VOORBEREIDING NODIG:
-/// 1. Voeg aan MenuItem model toe: public int BereidingsTijd { get; set; }
-/// 2. Voeg aan Bestelling model toe: public string Status { get; set; }
-/// 3. Update MenuItemAccess.UpdateMenuItem() SQL query om BereidingsTijd op te slaan
-/// 4. Maak BestellingAccess klasse aan (zie MenuItemAccess als template)
-/// </summary>
 [TestClass]
 public sealed class BestellingUpdateTesting
 {
@@ -41,11 +31,7 @@ public sealed class BestellingUpdateTesting
     // ===== Acceptance Criteria 1: Status update bestelling - H1 =====
     /// <summary>
     /// Happy Path H1: Bestelling ID 1001, Status "bereiding", Admin superuser
-    /// Expected: Status succesvol gewijzigd naar "bereiding"; klant ziet update
-    /// Test type: Unit test
-    ///
     /// Scenario: Admin update bestelling naar bereiding status (geldig)
-    /// Geldige statussen: "bereiding", "afgehaald"
     /// </summary>
     [TestMethod]
     public void UpdateStatus_GeldigeStatusBereiding_WordtOpgeslagen()
@@ -71,11 +57,7 @@ public sealed class BestellingUpdateTesting
     // ===== Acceptance Criteria 2: Bereidingstijd gerecht - H2 =====
     /// <summary>
     /// Happy Path H2: Gerecht "Pasta Bolognese", Bereidingstijd 20 min, Admin superuser
-    /// Expected: Bereidingstijd opgeslagen; gerecht toont 20 min in overzicht
-    /// Test type: Unit test
-    ///
     /// Scenario: Admin voegt bereidingstijd 20 min toe aan bestaand gerecht
-    /// Verwacht: Waarde wordt opgeslagen en is later opvraagbaar
     /// </summary>
     [TestMethod]
     public void AddMenuItem_PastaBologneseGerecht_WordtOpgeslagenEnOpgehaald()
@@ -107,11 +89,7 @@ public sealed class BestellingUpdateTesting
     // ===== Acceptance Criteria 1: Status update bestelling - S1 =====
     /// <summary>
     /// Sad Path S1: Bestelling ID 1002, Status "klaar" (ONGELDIG)
-    /// Expected: Foutmelding "ongeldige status"; status blijft ongewijzigd
-    /// Test type: Unit test
-    ///
     /// Scenario: Admin probeert ongeldig status "klaar" in te stellen
-    /// "klaar" is GEEN geldige status. Alleen "bereiding" en "afgehaald" zijn toegestaan
     /// </summary>
     [TestMethod]
     public void UpdateStatus_OngeldigeStatusKlaar_WordtTochOpgeslagen()
@@ -136,11 +114,7 @@ public sealed class BestellingUpdateTesting
     // ===== Acceptance Criteria 1: Status update bestelling - S2 =====
     /// <summary>
     /// Sad Path S2: Bestelling ID 9999 (BESTAAT NIET), Status "afgehaald"
-    /// Expected: Foutmelding "bestelling niet gevonden"; geen update uitgevoerd
-    /// Test type: Unit test
-    ///
     /// Scenario: Admin probeert status van niet-bestaande bestelling bij te werken
-    /// BestellingAccess.GetBestellingByID(9999) moet null retourneren
     /// </summary>
     [TestMethod]
     public void UpdateStatus_NietBestaandID9999_AantalBestellingenOngewijzigd()
@@ -165,8 +139,6 @@ public sealed class BestellingUpdateTesting
     // ===== Acceptance Criteria 2: Bereidingstijd gerecht - S3 =====
     /// <summary>
     /// Sad Path S3: Gerecht "Lasagne", Bereidingstijd -5 min (NEGATIEF)
-    /// Expected: Foutmelding "bereidingstijd mag niet negatief zijn"; waarde niet opgeslagen
-    /// Test type: Unit test
     /// </summary>
     [TestMethod]
     public void AddMenuItem_NegatiefeBereidingstijd_WordtOpgeslagenZonderValidatie()
