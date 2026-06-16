@@ -1,8 +1,8 @@
-public class UserValidationLogic
+public class UserUniqueLogic
 {
     private readonly UserAccess userAccess;
 
-    public UserValidationLogic(UserAccess userAccess)
+    public UserUniqueLogic(UserAccess userAccess)
     {
         this.userAccess = userAccess;
     }

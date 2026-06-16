@@ -5,16 +5,17 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class RegistratieValidatieTests
 {
-    private readonly DatabaseContext _db = new();
+    // private readonly DatabaseContext _db = new();
+    private readonly DatabaseContext dataBaseInstance = DatabaseContext.Instance;
     private readonly UserAccess _userAccess;
-    private readonly UserValidationLogic _validationLogic;
+    private readonly UserUniqueLogic _validationLogic;
 
-    public RegistratieValidatieTests()
-    {
-        _db = DatabaseContext.Instance;
-        _userAccess = new UserAccess();
-        _validationLogic = new UserValidationLogic(_userAccess);
-    }
+    // public RegistratieValidatieTests()
+    // {
+    //     _db = DatabaseContext.Instance;
+    //     _userAccess = new UserAccess();
+    //     _validationLogic = new UserUniqueLogic(_userAccess);
+    // }
 
     /// <summary>
     /// Path: Happy Path H2
@@ -25,10 +26,11 @@ public sealed class RegistratieValidatieTests
     public void IsGeldigWachtwoord_GeldigWachtwoord_RetourneertTrue()
     {
         // Arrange
+        UserLogic userLogic = new();
         string wachtwoord = "Sterk1234!";
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigWachtwoord(wachtwoord);
+        bool isGeldig = userLogic.IsGeldigWachtwoord(wachtwoord);
 
         // Assert
         Assert.IsTrue(isGeldig,
@@ -44,10 +46,11 @@ public sealed class RegistratieValidatieTests
     public void IsGeldigEmail_GeldigEmail_RetourneertTrue()
     {
         // Arrange
+        UserLogic userLogic = new();
         string email = "info@restauranttest.nl";
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigEmail(email);
+        bool isGeldig = userLogic.IsGeldigEmail(email);
 
         // Assert
         Assert.IsTrue(isGeldig,
@@ -64,9 +67,10 @@ public sealed class RegistratieValidatieTests
     {
         // Arrange
         string telefoonnummer = "0612345679";
+        UserLogic userLogic = new();
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
+        bool isGeldig = userLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
         // Assert
         Assert.IsTrue(isGeldig,
@@ -86,8 +90,8 @@ public sealed class RegistratieValidatieTests
 
         // Act
         int id = _userAccess.AddUser(gebruiker);
-        _aangemaakteGebruikerIDs.Add(id);
-        var opgeslagen = _db.Connection.QueryFirstOrDefault<Gebruiker>(
+        // _aangemaakteGebruikerIDs.Add(id);
+        var opgeslagen = dataBaseInstance.Connection.QueryFirstOrDefault<Gebruiker>(
             $"SELECT * FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
 
         // Assert
@@ -107,11 +111,12 @@ public sealed class RegistratieValidatieTests
     [TestMethod]
     public void IsGeldigTelefoonnummer_LeegNummer_RetourneertFalse()
     {
+        UserLogic userLogic = new();
         // Arrange
         string telefoonnummer = "";
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
+        bool isGeldig = userLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
         // Assert
         Assert.IsFalse(isGeldig,
@@ -135,7 +140,7 @@ public sealed class RegistratieValidatieTests
         bool isUniek = _validationLogic.IsEmailUnique(email);
 
         // cleanup
-        _db.Connection.Execute($"DELETE FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
+        dataBaseInstance.Connection.Execute($"DELETE FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
 
         // assert
         Assert.IsFalse(isUniek,
@@ -151,10 +156,11 @@ public sealed class RegistratieValidatieTests
     public void IsGeldigWachtwoord_TeKortWachtwoord_RetourneertFalse()
     {
         // Arrange
+        UserLogic userLogic = new();
         string wachtwoord = "abc";
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigWachtwoord(wachtwoord);
+        bool isGeldig = userLogic.IsGeldigWachtwoord(wachtwoord);
 
         // Assert
         Assert.IsFalse(isGeldig,
@@ -171,9 +177,10 @@ public sealed class RegistratieValidatieTests
     {
         // Arrange
         string email = "gebruikerzonderpunt@domein";
+        UserLogic userLogic = new();
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigEmail(email);
+        bool isGeldig = userLogic.IsGeldigEmail(email);
 
         // Assert
         Assert.IsFalse(isGeldig,
@@ -190,9 +197,10 @@ public sealed class RegistratieValidatieTests
     {
         // Arrange
         string telefoonnummer = "06ABCDEFG";
+        UserLogic userLogic = new();
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
+        bool isGeldig = userLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
         // Assert
         Assert.IsFalse(isGeldig,
@@ -213,8 +221,8 @@ public sealed class RegistratieValidatieTests
 
         // Act
         int id = _userAccess.AddUser(gebruiker);
-        _aangemaakteGebruikerIDs.Add(id);
-        var opgeslagen = _db.Connection.QueryFirstOrDefault<Gebruiker>(
+        // _aangemaakteGebruikerIDs.Add(id);
+        var opgeslagen = dataBaseInstance.Connection.QueryFirstOrDefault<Gebruiker>(
             $"SELECT * FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
 
         // Assert

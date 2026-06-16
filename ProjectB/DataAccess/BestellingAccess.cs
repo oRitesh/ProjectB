@@ -19,6 +19,8 @@ public class bestellingAccess
         return db.Connection.Query<Bestelling>(sql).ToList();
     }
 
+
+
     public int AddBestelling(Bestelling bestelling)
     {
         string sql = $@"
@@ -57,11 +59,7 @@ public class bestellingAccess
         db.Connection.Execute(sql);
     }
 
-    public List<Bestelling> GetAllBestellingen()
-    {
-        string sql = $@"SELECT * FROM {Table};";
-        return db.Connection.Query<Bestelling>(sql).ToList();
-    }
+
 
 
 }

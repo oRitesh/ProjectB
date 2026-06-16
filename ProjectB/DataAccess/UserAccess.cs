@@ -54,6 +54,7 @@ public class UserAccess
         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { Email = email });
     }
 
+
     public Gebruiker? GetUserByPhoneNumber(string phoneNumber)
     {
         string sql = "SELECT * FROM Gebruiker WHERE Telefoonnummer = @Phone";
@@ -86,6 +87,13 @@ public class UserAccess
     public Gebruiker? GetRoleByUser(int userId)
     {
         string sql = "SELECT Rol FROM Gebruiker WHERE Id = @UserId";
+
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
+    }
+
+    public Gebruiker? GetUserById(int userId)
+    {
+        string sql = "SELECT * FROM Gebruiker WHERE Id = @UserId";
 
         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
     }

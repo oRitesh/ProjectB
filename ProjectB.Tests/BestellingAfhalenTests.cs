@@ -35,6 +35,7 @@ public sealed class BestellingAfhalenTesting
                 "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
     }
 
+
     public BestellingAfhalenTesting()
     {
         logic = new AfhaalSysteemLogic();
@@ -107,7 +108,7 @@ public sealed class BestellingAfhalenTesting
         logic.SlaBestellingOp(0, ophaalTijd, opmerking);
         int bestellingID = DatabaseContext.Instance.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _aangemaakteBestellingIDs.Add(bestellingID);
-        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
+        var opgeslagen = _bestellingAccess.GetBestellingenVanVandaag().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
         Assert.AreEqual(10.00m, totaal,
@@ -175,7 +176,7 @@ public sealed class BestellingAfhalenTesting
         logic.SlaBestellingOp(0, ophaalTijd, telangeOpmerking);
         int bestellingID = DatabaseContext.Instance.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _aangemaakteBestellingIDs.Add(bestellingID);
-        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
+        var opgeslagen = _bestellingAccess.GetBestellingenVanVandaag().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
         Assert.IsNotNull(opgeslagen,

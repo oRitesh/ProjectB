@@ -3,6 +3,7 @@ public class AfhaalSysteemUI
     private readonly AfhaalSysteemLogic logic;
     private readonly MenuService menuService;
     private readonly UserLogic userLogic;
+    private readonly BestellingLogic _bestellingLogic;
     private int gebruikerID;
 
     // Gastgegevens
@@ -14,6 +15,7 @@ public class AfhaalSysteemUI
         logic = new AfhaalSysteemLogic();
         menuService = new MenuService();
         userLogic = new UserLogic();
+        _bestellingLogic = new BestellingLogic();
         this.gebruikerID = gebruiker.ID;
     }
 
@@ -273,6 +275,9 @@ public class AfhaalSysteemUI
         }
 
         logic.SlaBestellingOp(definitiefID, ophaalTijd, opmerking);
+        // private readonly BestellingLogic _bestellingLogic = new();
+        // PakBestellingenVanVandaag()
+        var bestelnummer = _bestellingLogic.PakBestellingenVanVandaag().Where(s => s.GebruikerID == definitiefID).FirstOrDefault()?.ID.ToString();
 
         Console.Clear();
         Console.WriteLine("==================================");
@@ -280,7 +285,8 @@ public class AfhaalSysteemUI
         Console.WriteLine("==================================");
         Console.WriteLine();
         Console.WriteLine($"  Uw bestelling wordt klaargemaakt.");
-        Console.WriteLine($"  Ophaaltijd: {ophaalTijd}");
+        Console.WriteLine($"  Bestelnummer: #{bestelnummer}");
+        Console.WriteLine($"  Ophaaltijd  : {ophaalTijd}");
         Console.WriteLine();
         Console.WriteLine("  Betalen op locatie bij afhalen.");
         Console.WriteLine($"Totaal: €{logic.BerekenTotaal():0.00}");

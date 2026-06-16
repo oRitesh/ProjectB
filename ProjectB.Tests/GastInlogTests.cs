@@ -227,11 +227,12 @@ public sealed class GastInlogTests
     [TestMethod]
     public void IsGeldigTelefoonnummer_TelefoonnummerMetLetters_RetourneertFalse()
     {
+        UserLogic userLogic = new();
         // Arrange
         string telefoonnummer = "abcdefghij";
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
+        bool isGeldig = userLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
         // Assert
         Assert.IsFalse(isGeldig,

@@ -7,9 +7,10 @@ public class BestellingLogic
         bestellingAccess = new bestellingAccess();
     }
 
-    public List<Bestelling> GetAllBestellingen() => bestellingAccess.GetAllBestellingen();
-
     public void UpdateStatus(int bestellingId, string nieuweStatus) => bestellingAccess.UpdateStatus(bestellingId, nieuweStatus);
 
     public void DeleteAllBestellingen() => bestellingAccess.DeleteAllBestellingen();
+
+    public List<Bestelling> PakBestellingenVanVandaag() => bestellingAccess.GetBestellingenVanVandaag();
+
 }

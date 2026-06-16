@@ -45,7 +45,7 @@ public sealed class BestellingUpdateTesting
 
         // act
         bestellingLogic.UpdateStatus(bestellingID, nieuweStatus);
-        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
+        var opgeslagen = _bestellingAccess.GetBestellingenVanVandaag().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
         Assert.IsNotNull(opgeslagen,
@@ -103,7 +103,7 @@ public sealed class BestellingUpdateTesting
 
         // act
         bestellingLogic.UpdateStatus(bestellingID, ongeldigeStatus);
-        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
+        var opgeslagen = _bestellingAccess.GetBestellingenVanVandaag().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
         Assert.IsNotNull(opgeslagen);
@@ -121,13 +121,13 @@ public sealed class BestellingUpdateTesting
     {
         // arrange
         int nietBestaandID = 9999;
-        var alleBestellingenVoor = _bestellingAccess.GetAllBestellingen();
+        var alleBestellingenVoor = _bestellingAccess.GetBestellingenVanVandaag();
         int aantalVoor = alleBestellingenVoor.Count;
         var bestellingLogic = new BestellingLogic();
 
         // act
         bestellingLogic.UpdateStatus(nietBestaandID, "afgehaald");
-        var alleBestellingenNa = _bestellingAccess.GetAllBestellingen();
+        var alleBestellingenNa = _bestellingAccess.GetBestellingenVanVandaag();
 
         // assert
         Assert.HasCount(aantalVoor, alleBestellingenNa,
