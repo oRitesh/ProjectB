@@ -5,17 +5,22 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class RegistratieValidatieTests
 {
-    // private readonly DatabaseContext _db = new();
     private readonly DatabaseContext dataBaseInstance = DatabaseContext.Instance;
-    private readonly UserAccess _userAccess;
-    private readonly UserUniqueLogic _validationLogic;
+    private readonly UserLogic _userLogic;
+    private readonly List<int> _aangemaakteGebruikerIDs = [];
 
-    // public RegistratieValidatieTests()
-    // {
-    //     _db = DatabaseContext.Instance;
-    //     _userAccess = new UserAccess();
-    //     _validationLogic = new UserUniqueLogic(_userAccess);
-    // }
+    public RegistratieValidatieTests()
+    {
+        _userLogic = new UserLogic();
+    }
+
+    [TestCleanup]
+    public void Cleanup()
+    {
+        foreach (int id in _aangemaakteGebruikerIDs)
+            dataBaseInstance.Connection.Execute($"DELETE FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
+        _aangemaakteGebruikerIDs.Clear();
+    }
 
     /// <summary>
     /// Path: Happy Path H2
@@ -89,8 +94,8 @@ public sealed class RegistratieValidatieTests
         var gebruiker = new Gebruiker(0, 1, "Jo", "testvalidnaam@testdata.com", "0612345670", "Test1234!");
 
         // Act
-        int id = _userAccess.AddUser(gebruiker);
-        // _aangemaakteGebruikerIDs.Add(id);
+        int id = _userLogic.AddUser(gebruiker);
+        _aangemaakteGebruikerIDs.Add(id);
         var opgeslagen = dataBaseInstance.Connection.QueryFirstOrDefault<Gebruiker>(
             $"SELECT * FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
 
@@ -134,10 +139,10 @@ public sealed class RegistratieValidatieTests
         // arrange
         string email = "testreg.s2@testdata.com";
         Gebruiker bestaandeGebruiker = new(0, 1, "Kevin Mulder", email, "0645678901", "Veilig123!");
-        int id = _userAccess.AddUser(bestaandeGebruiker);
+        int id = _userLogic.AddUser(bestaandeGebruiker);
 
         // act
-        bool isUniek = _validationLogic.IsEmailUnique(email);
+        bool isUniek = _userLogic.IsEmailUnique(email);
 
         // cleanup
         dataBaseInstance.Connection.Execute($"DELETE FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
@@ -220,8 +225,8 @@ public sealed class RegistratieValidatieTests
         var gebruiker = new Gebruiker(0, 1, "X", "testkortenaam@testdata.com", "0612345671", "Test1234!");
 
         // Act
-        int id = _userAccess.AddUser(gebruiker);
-        // _aangemaakteGebruikerIDs.Add(id);
+        int id = _userLogic.AddUser(gebruiker);
+        _aangemaakteGebruikerIDs.Add(id);
         var opgeslagen = dataBaseInstance.Connection.QueryFirstOrDefault<Gebruiker>(
             $"SELECT * FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
 

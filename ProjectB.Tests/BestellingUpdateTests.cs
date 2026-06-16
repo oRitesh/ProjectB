@@ -37,7 +37,7 @@ public sealed class BestellingUpdateTesting
     public void UpdateStatus_GeldigeStatusBereiding_WordtOpgeslagen()
     {
         // arrange
-        var testBestelling = new Bestelling(0, 0, DateTime.Now.ToString("HH:mm"), 10.00m, "17:00", "Ontvangen");
+        var testBestelling = new Bestelling(0, 0, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), 10.00m, "17:00", "Ontvangen");
         int bestellingID = _bestellingAccess.AddBestelling(testBestelling);
         _aangemaakteBestellingIDs.Add(bestellingID);
         string nieuweStatus = "bereiding";
@@ -95,7 +95,7 @@ public sealed class BestellingUpdateTesting
     public void UpdateStatus_OngeldigeStatusKlaar_WordtTochOpgeslagen()
     {
         // arrange
-        var testBestelling = new Bestelling(0, 0, DateTime.Now.ToString("HH:mm"), 10.00m, "17:00", "Ontvangen");
+        var testBestelling = new Bestelling(0, 0, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), 10.00m, "17:00", "Ontvangen");
         int bestellingID = _bestellingAccess.AddBestelling(testBestelling);
         _aangemaakteBestellingIDs.Add(bestellingID);
         string ongeldigeStatus = "klaar"; // niet-bestaande status; geen validatie in de applicatie
