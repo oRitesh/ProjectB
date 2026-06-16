@@ -25,18 +25,4 @@ public class UserValidationLogic
         return existingUser != null && existingUser.Rol == 0;
     }
 
-    public static bool IsGeldigTelefoonnummer(string telefoon)
-    {
-        return !string.IsNullOrEmpty(telefoon) && telefoon.All(char.IsDigit) && telefoon.Length == 10;
-    }
-
-    public static bool IsGeldigWachtwoord(string wachtwoord)
-    {
-        return wachtwoord.Length >= 8 && wachtwoord.Any(char.IsUpper) && wachtwoord.Any(char.IsLower);
-    }
-
-    public static bool IsGeldigEmail(string email)
-    {
-        return email.Contains("@") && email.Contains(".");
-    }
 }

@@ -26,7 +26,7 @@ public class DatabaseContext
         string baseDirectory = AppContext.BaseDirectory; // nu zit je in ProjectB/ProjectB/bin/Debug/net10.0
         // hier staat namelijk de pad nadat de project is gebuild bij runtime
 
-        // Navigeer naar het project root directory en vervolgens naar DataSource
+        // Navigeer naar het project root directory en vervolgens naar DataSource 
         string projectRoot = Path.Combine(baseDirectory, "..", "..", ".."); // nu zit je in ProjectB/ProjectB
         string dbPath = Path.Combine(projectRoot, "DataSource", "restaurant.db"); // nu heb je de database path
 

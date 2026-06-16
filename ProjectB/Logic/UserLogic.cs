@@ -22,9 +22,12 @@ public class UserLogic
 
     public bool IsPhoneNumberForGuest(string telefoon) => validationLogic.IsPhoneNumberForGuest(telefoon);
 
-    public bool IsGeldigTelefoonnummer(string telefoon) => UserValidationLogic.IsGeldigTelefoonnummer(telefoon);
+    public bool IsGeldigTelefoonnummer(string telefoon) =>
+    !string.IsNullOrEmpty(telefoon) && telefoon.All(char.IsDigit) && telefoon.Length == 10;
 
-    public bool IsGeldigWachtwoord(string wachtwoord) => UserValidationLogic.IsGeldigWachtwoord(wachtwoord);
+    public bool IsGeldigWachtwoord(string wachtwoord) =>
+    wachtwoord.Length >= 8 && wachtwoord.Any(char.IsUpper) && wachtwoord.Any(char.IsLower);
 
-    public bool IsGeldigEmail(string email) => UserValidationLogic.IsGeldigEmail(email);
+    public bool IsGeldigEmail(string email) =>
+    email.Contains("@") && email.Contains(".");
 }
