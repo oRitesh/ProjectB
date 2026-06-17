@@ -15,7 +15,7 @@ public class bestellingAccess
     public List<Bestelling> GetBestellingenVanVandaag()
     {
         string sql = $@"SELECT * FROM {Table}
-        WHERE DATE(GemaaktOp) = DATE('now');";
+        WHERE DATE(GemaaktOp) = DATE('now', 'localtime');";
         return db.Connection.Query<Bestelling>(sql).ToList();
     }
 

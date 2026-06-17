@@ -11,14 +11,12 @@ public sealed class KlantReserveringTests
     private readonly DatabaseContext _db;
     private readonly ReserveringAccess _reserveringAccess;
     private readonly TafelAccess _tafelAccess;
-    private readonly TijdslotAccess _tijdslotAccess;
     private readonly UserAccess _userAccess;
 
     private readonly OpeningsTijdenAccess _openingstijdenAccess;
     private readonly OpeningsDagAccess _openingsdagAccess;
 
     private readonly List<int> _reserveringIDs = [];
-    private readonly List<int> _tijdslotIDs = [];
     private readonly List<int> _tafelIDs = [];
     private readonly List<int> _gebruikerIDs = [];
 
@@ -28,7 +26,6 @@ public sealed class KlantReserveringTests
 
         _reserveringAccess = new ReserveringAccess();
         _tafelAccess = new TafelAccess();
-        _tijdslotAccess = new TijdslotAccess();
         _userAccess = new UserAccess();
         _openingstijdenAccess = new OpeningsTijdenAccess();
         _openingsdagAccess = new OpeningsDagAccess();
@@ -40,10 +37,6 @@ public sealed class KlantReserveringTests
         foreach (int id in _reserveringIDs)
             _reserveringAccess.DeleteReservering(id);
         _reserveringIDs.Clear();
-
-        foreach (int id in _tijdslotIDs)
-            _tijdslotAccess.DeleteTijdslot(id);
-        _tijdslotIDs.Clear();
 
         foreach (int id in _tafelIDs)
             _tafelAccess.DeleteTafel(id);
@@ -77,13 +70,9 @@ public sealed class KlantReserveringTests
         string start = "2026-06-20 18:00";
         string eind = "2026-06-20 20:00";
 
-        _tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
-        int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
-        _tijdslotIDs.Add(tijdslotID);
+        var tijdslot = new Tijdslot(0, datum, start, eind);
 
         //Act
-        var tijdslot = _tijdslotAccess.GetTijdslotenByDatum(datum).First();
-
         var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
 
         bool resultaat = logic.AddReservering(
@@ -165,11 +154,7 @@ public sealed class KlantReserveringTests
         string eind = "2026-06-20 20:00";
 
         //Act
-        _tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
-        int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
-        _tijdslotIDs.Add(tijdslotID);
-
-        var tijdslot = _tijdslotAccess.GetTijdslotenByDatum(datum).First();
+        var tijdslot = new Tijdslot(0, datum, start, eind);
 
         var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
 
@@ -218,11 +203,7 @@ public sealed class KlantReserveringTests
         string eind = "2026-06-20 19:00";
 
         //Act
-        _tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
-        int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
-        _tijdslotIDs.Add(tijdslotID);
-
-        var tijdslot = _tijdslotAccess.GetTijdslotenByDatum(datum).First();
+        var tijdslot = new Tijdslot(0, datum, start, eind);
 
         var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
 
@@ -265,11 +246,7 @@ public sealed class KlantReserveringTests
         string eind = "2020-01-01 20:00";
 
         //Act
-        _tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
-        int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
-        _tijdslotIDs.Add(tijdslotID);
-
-        var tijdslot = _tijdslotAccess.GetTijdslotenByDatum(datum).First();
+        var tijdslot = new Tijdslot(0, datum, start, eind);
 
         var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
 
@@ -291,18 +268,20 @@ public sealed class KlantReserveringTests
 
 
     /// S3: Geen tijdsloten beschikbaar voor datum
-    /// Scenario: Klant vraagt tijdsloten op een dag zonder tijdsloten.
+    /// Scenario: Klant vraagt tijdsloten op een datum buiten het boekingsvenster.
     [TestMethod]
     public void GetTijdslotenByDatum_GeenSlots_GeeftLegeLijst()
     {
         //Arrange
-        string datum = "2026-06-21";
+        DateTime datum = new(2027, 1, 1); // buiten het geldige boekingsvenster van 1 maand
+
+        var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
 
         //Act
-        var slots = _tijdslotAccess.GetTijdslotenByDatum(datum);
+        var slots = logic.GetBeschikbareTijdsloten(2, datum);
 
         //Assert
         Assert.IsEmpty(slots,
-            "Op een datum zonder tijdsloten kan de klant geen reservering maken lijst moet leeg zijn");
+            "Op een datum buiten het boekingsvenster kan de klant geen reservering maken; lijst moet leeg zijn");
     }
 }
