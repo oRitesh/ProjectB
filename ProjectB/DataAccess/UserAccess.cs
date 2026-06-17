@@ -49,6 +49,7 @@ public class UserAccess
 
     public Gebruiker? GetUserByEmail(string email)
     {
+        if (email is "") return null;
         string sql = "SELECT * FROM Gebruiker WHERE Email = @Email";
 
         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { Email = email });

@@ -7,7 +7,6 @@ public sealed class GastInlogTests
 {
     private readonly DatabaseContext _db;
     private readonly ReservationLogic _logic;
-    private readonly TijdslotAccess _tijdslotAccess;
     private readonly ReserveringAccess _reserveringAccess;
     private readonly TafelAccess _tafelAccess;
     private readonly UserAccess _userAccess;
@@ -41,7 +40,6 @@ public sealed class GastInlogTests
     // Testdata bijhouden voor opruimen na elke test
     private readonly List<int> _aangemaakteGebruikerIDs = [];
     private readonly List<int> _aangemaakteReserveringIDs = [];
-    private readonly List<int> _aangemaakteTijdslotIDs = [];
     private readonly List<int> _aangemaakteTafelIDs = [];
 
     public GastInlogTests()
@@ -50,7 +48,7 @@ public sealed class GastInlogTests
         _db = DatabaseContext.Instance;
         _reserveringAccess = new ReserveringAccess();
         _tafelAccess = new TafelAccess();
-        _tijdslotAccess = new TijdslotAccess();
+
         _userAccess = new UserAccess();
         _logic = new ReservationLogic();
     }
@@ -64,10 +62,6 @@ public sealed class GastInlogTests
         foreach (int id in _aangemaakteReserveringIDs)
             _reserveringAccess.DeleteReservering(id);
         _aangemaakteReserveringIDs.Clear();
-
-        foreach (int id in _aangemaakteTijdslotIDs)
-            _tijdslotAccess.DeleteTijdslot(id);
-        _aangemaakteTijdslotIDs.Clear();
 
         foreach (int id in _aangemaakteGebruikerIDs)
             _db.Connection.Execute($"DELETE FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
@@ -112,25 +106,11 @@ public sealed class GastInlogTests
         string naam = "Thomas";                          // naam uit testscript
         string telefoonnummer = "0612345678";            // telefoonnummer uit testscript
         DateTime datum = DateTime.Today.AddDays(7);
-        string datumString = datum.ToString("yyyy-MM-dd");
         int aantalPersonen = 2;
 
-        // Maak tijdsloten aan voor de testdatum als die nog niet bestaan
-        var bestaandeTijdsloten = _tijdslotAccess.GetTijdslotenByDatum(datumString);
-        bool nieuweTijdsloten = bestaandeTijdsloten.Count == 0;
-        if (nieuweTijdsloten)
-        {
-            foreach (var ts in _logic.MaakTijdslotenVoorDatum(datum))
-                _tijdslotAccess.AddTijdslot(ts);
-        }
-
-        var tijdsloten = _tijdslotAccess.GetTijdslotenByDatum(datumString);
+        var tijdsloten = _logic.MaakTijdslotenVoorDatum(datum);
         Assert.IsNotEmpty(tijdsloten,
             $"Er moeten tijdsloten beschikbaar zijn voor {datum:dd-MM-yyyy}");
-
-        if (nieuweTijdsloten)
-            foreach (var ts in tijdsloten)
-                _aangemaakteTijdslotIDs.Add(ts.ID);
 
         Tijdslot tijdslot = tijdsloten.First();
         // Zorg dat er tafels met de juiste capaciteit bestaan in de test-DB
