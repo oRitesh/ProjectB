@@ -23,12 +23,7 @@ public sealed class AdminBezettingTijdsslotTests
 
     /// <summary>
     /// Path ID: Happy Path H1
-    /// Input: Zoekdatum: 15-06-2026; 3 reserveringen op die dag aanwezig
-    /// Actor: Admin
-    /// Verwachte output: Tijdsloten 12:00, 14:30 en 19:00 getoond voor 15-06-2026
-    /// Test type: Unit test
     /// Scenario: Admin zoekt tijdsloten op 15-06-2026 waarop drie tijdsloten beschikbaar zijn
-    /// Verwacht: Drie tijdsloten worden teruggegeven met starttijden 12:00, 14:30 en 19:00
     /// </summary>
     [TestMethod]
     public void GetTijdslotenByDatum_DrieReserveringenOpDatum_RetourneertDrieTijdsloten()
@@ -65,12 +60,7 @@ public sealed class AdminBezettingTijdsslotTests
 
     /// <summary>
     /// Path ID: Sad Path S1
-    /// Input: Zoekdatum: 25-06-2026; 0 reserveringen op die dag
-    /// Actor: Admin
-    /// Verwachte output: Melding "Geen reserveringen op deze datum"; lege weergave
-    /// Test type: Unit test
     /// Scenario: Admin zoekt op een datum waarop geen tijdsloten bestaan
-    /// Verwacht: De geretourneerde lijst is leeg
     /// </summary>
     [TestMethod]
     public void GetTijdslotenByDatum_GeenReserveringenOpDatum_RetourneertLegeLijst()
@@ -92,12 +82,7 @@ public sealed class AdminBezettingTijdsslotTests
 
     /// <summary>
     /// Path ID: Sad Path S2
-    /// Input: Zoekdatum: 01-01-2020 (verleden datum)
-    /// Actor: Admin
-    /// Verwachte output: Foutmelding of lege weergave; datum in verleden niet toegestaan
-    /// Test type: Unit test
     /// Scenario: Admin voert een datum in het verleden in als zoekdatum
-    /// Verwacht: De datum wordt herkend als verleden datum en is niet toegestaan
     /// </summary>
     [TestMethod]
     public void GetTijdslotenByDatum_DatumInVerleden_RetourneertLegeLijst()
@@ -119,12 +104,7 @@ public sealed class AdminBezettingTijdsslotTests
 
     /// <summary>
     /// Path ID: Sad Path S3
-    /// Input: Datumveld leeg; admin klikt op "Zoek"
-    /// Actor: Admin
-    /// Verwachte output: Foutmelding: voer een geldige datum in; geen resultaten getoond
-    /// Test type: Unit test
     /// Scenario: Admin laat het datumveld leeg en probeert te zoeken
-    /// Verwacht: Het systeem herkent de lege invoer als ongeldig en geeft geen resultaten terug
     /// </summary>
     [TestMethod]
     public void GetTijdslotenByDatum_LegeDatumInvoer_RetourneertLegeLijst()

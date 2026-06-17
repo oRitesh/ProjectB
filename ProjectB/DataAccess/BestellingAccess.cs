@@ -12,11 +12,14 @@ public class bestellingAccess
         this.db = DatabaseContext.Instance;
     }
 
-    public List<Bestelling> GetAllBestellingen()
+    public List<Bestelling> GetBestellingenVanVandaag()
     {
-        string sql = $@"SELECT * FROM {Table};";
+        string sql = $@"SELECT * FROM {Table}
+        WHERE DATE(GemaaktOp) = DATE('now');";
         return db.Connection.Query<Bestelling>(sql).ToList();
     }
+
+
 
     public int AddBestelling(Bestelling bestelling)
     {
@@ -55,5 +58,8 @@ public class bestellingAccess
         string sql = $@"DELETE FROM {Table};";
         db.Connection.Execute(sql);
     }
+
+
+
 
 }

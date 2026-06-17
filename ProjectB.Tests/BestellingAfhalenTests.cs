@@ -35,6 +35,7 @@ public sealed class BestellingAfhalenTesting
                 "INSERT INTO OpeningsTijden (OpeningsTijd, SluitingsTijd) VALUES ('00:00', '23:45')");
     }
 
+
     public BestellingAfhalenTesting()
     {
         logic = new AfhaalSysteemLogic();
@@ -56,12 +57,7 @@ public sealed class BestellingAfhalenTesting
     // ===== Acceptatiecriterium 1: Tijdslot kiezen - H2 =====
     /// <summary>
     /// Happy Path H2
-    /// Input: Tijdkeuze: 45 minuten vanaf nu, Items: [Salade €7.00, Water €2.00], Klant: Fatima
-    /// Expected: Bestelling ingepland op 15:45; klant ontvangt bevestiging
-    /// Test type: Unit test
-    ///
     /// Scenario: Klant voegt Salade en Water toe en controleert of de beschikbare tijdopties per kwartier stijgen
-    /// Verwacht: GetOphaalTijdOpties geeft een niet-lege lijst terug waarbij opeenvolgende slots 15 minuten uit elkaar liggen
     /// </summary>
     [TestMethod]
     public void GetOphaalTijdOpties_ItemsInWinkelwagen_RetourneertKwartierSlots()
@@ -94,10 +90,6 @@ public sealed class BestellingAfhalenTesting
     // ===== Acceptatiecriterium 2: Bestelling overzicht met prijs - H4 =====
     /// <summary>
     /// Happy Path H4
-    /// Input: Items: [Pizza €10.00], Opmerking: leeg, Klant: Marieke
-    /// Expected: Bestelling succesvol geplaatst zonder opmerking; totaal €10.00
-    /// Test type: Unit test
-    ///
     /// Scenario: Klant plaatst bestelling met één item en laat het opmerkingsveld leeg
     /// Verwacht: Totaalprijs is €10.00 en de status is exact "Ontvangen" zonder aangehangen opmerking
     /// </summary>
@@ -116,7 +108,7 @@ public sealed class BestellingAfhalenTesting
         logic.SlaBestellingOp(0, ophaalTijd, opmerking);
         int bestellingID = DatabaseContext.Instance.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _aangemaakteBestellingIDs.Add(bestellingID);
-        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
+        var opgeslagen = _bestellingAccess.GetBestellingenVanVandaag().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
         Assert.AreEqual(10.00m, totaal,
@@ -129,12 +121,7 @@ public sealed class BestellingAfhalenTesting
     // ===== Acceptatiecriterium 1: Tijdslot kiezen - S1 =====
     /// <summary>
     /// Sad Path S1
-    /// Input: Tijdkeuze: over 90 minuten (buiten 1-uursvenster), Klant: Bilal
-    /// Expected: Foutmelding: tijdslot buiten toegestaan bereik; keuze geweigerd
-    /// Test type: Unit test
-    ///
     /// Scenario: Klant probeert een tijdslot te kiezen dat meer dan 1 uur in de toekomst ligt
-    /// Verwacht: Een tijdslot 90 minuten vooruit overschrijdt het maximale venster van 60 minuten en is ongeldig
     /// </summary>
     [TestMethod]
     public void GetOphaalTijdOpties_ItemsInWinkelwagen_GeeftMeerdereSlots()
@@ -155,12 +142,7 @@ public sealed class BestellingAfhalenTesting
     // ===== Acceptatiecriterium 2: Bestelling overzicht met prijs - S2 =====
     /// <summary>
     /// Sad Path S2
-    /// Input: Winkelmandje: leeg, Klant: Nadia
-    /// Expected: Foutmelding: winkelmandje is leeg; bestellen niet mogelijk
-    /// Test type: Unit test
-    ///
     /// Scenario: Klant probeert te bestellen terwijl het winkelmandje geen items bevat
-    /// Verwacht: Winkelmandje telt 0 items en BerekenTotaal geeft €0.00 terug
     /// </summary>
     [TestMethod]
     public void BerekenTotaal_LeegWinkelmandje_RetourneertNul()
@@ -181,12 +163,7 @@ public sealed class BestellingAfhalenTesting
     // ===== Acceptatiecriterium 3: Opmerking voor allergieën - S3 =====
     /// <summary>
     /// Sad Path S3
-    /// Input: Opmerking: 520 tekens lange tekst, Items: [Burger €8.50], Klant: Karim
-    /// Expected: Foutmelding: opmerking te lang (max 500 tekens); invoer geblokkeerd
-    /// Test type: Unit test
-    ///
     /// Scenario: Klant voert een opmerking in van 520 tekens, meer dan het toegestane maximum
-    /// Verwacht: De opmerking van 520 tekens overschrijdt de grens van 500 tekens en moet geblokkeerd worden
     /// </summary>
     [TestMethod]
     public void SlaBestellingOp_Opmerking520Tekens_WordtOpgeslagenZonderValidatie()
@@ -199,7 +176,7 @@ public sealed class BestellingAfhalenTesting
         logic.SlaBestellingOp(0, ophaalTijd, telangeOpmerking);
         int bestellingID = DatabaseContext.Instance.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _aangemaakteBestellingIDs.Add(bestellingID);
-        var opgeslagen = _bestellingAccess.GetAllBestellingen().FirstOrDefault(b => b.ID == bestellingID);
+        var opgeslagen = _bestellingAccess.GetBestellingenVanVandaag().FirstOrDefault(b => b.ID == bestellingID);
 
         // assert
         Assert.IsNotNull(opgeslagen,

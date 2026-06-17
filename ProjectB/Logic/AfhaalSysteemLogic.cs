@@ -25,7 +25,7 @@ public class AfhaalSysteemLogic
         }
 
         string status = opmerking.Length > 0 ? $"Ontvangen - {opmerking}" : "Ontvangen";
-        var bestelling = new Bestelling(0, gebruikerID, DateTime.Now.ToString("HH:mm"), BerekenTotaal(), ophaalTijd, status);
+        var bestelling = new Bestelling(0, gebruikerID, DateTime.Now.ToString("yyyy-MM-dd HH:mm"), BerekenTotaal(), ophaalTijd, status);
         int bestellingId = bestellingAccess.AddBestelling(bestelling);
 
         foreach (var (item, aantal) in Winkelwagen)

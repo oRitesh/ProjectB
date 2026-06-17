@@ -20,7 +20,7 @@ public static class InputValidatie
                 return input;
 
             Console.WriteLine();
-            Console.WriteLine($"❌ {foutmelding}");
+            Console.WriteLine($"{foutmelding}");
             Console.WriteLine("Druk op een toets om opnieuw te proberen...");
             Console.ReadKey(true);
             Console.Clear();

@@ -10,6 +10,7 @@ public class AdminMenuUI
     private readonly OpeningsTijdenLogic openingsTijdenLogic;
     private readonly OpeningsDagLogic openingsDagLogic;
     private readonly TimeSlotLogic timeSlotLogic;
+    private readonly UserLogic userLogic;
 
     public AdminMenuUI()
     {
@@ -21,6 +22,7 @@ public class AdminMenuUI
         this.openingsTijdenLogic = new OpeningsTijdenLogic();
         this.openingsDagLogic = new OpeningsDagLogic();
         this.timeSlotLogic = new TimeSlotLogic();
+        this.userLogic = new UserLogic();
     }
 
     private void ToonReserveringKaart(Reservering r, int nummer)
@@ -37,6 +39,7 @@ public class AdminMenuUI
         Console.WriteLine($"  │  Tafel      : #{r.TafelID,-27}│");
         Console.WriteLine($"  │  Gasten     : {r.AantalGasten,-28}│");
         Console.WriteLine($"  │  Opmerking  : {opmerking,-28}│");
+        Console.WriteLine($"  │  Naam       : {userLogic.GetGebruikerByID(r.GebruikerID)?.Naam,-28}│");
         Console.WriteLine($"  │  Geboekt op : {r.GemaaktOp,-28}│");
         Console.WriteLine($"  └───────────────────────────────────────────┘");
         Console.WriteLine();
@@ -56,9 +59,8 @@ public class AdminMenuUI
         opties.Add("Bekijk reserveringen per tijdslot");
 
         if (rol == 2)
-            opties.Add("Wis bestelling geheugen");
 
-        opties.Add("Bekijk alle bestellingen");
+            opties.Add("Bekijk alle bestellingen");
         opties.Add("Wijzig bestelling status");
 
         if (rol == 2)
@@ -68,14 +70,19 @@ public class AdminMenuUI
 
         while (true)
         {
-            string? keuze = ArrowMenu.ShowMenu("ADMIN MENU", opties, x => x);
+            string? keuze = ArrowMenu.ShowMenu(@"                  
+  ▄▄▄▄   ▄▄▄▄▄▄   ▄▄▄      ▄▄▄ ▄▄▄▄▄ ▄▄▄    ▄▄▄   ▄▄▄      ▄▄▄  ▄▄▄▄▄▄▄ ▄▄▄    ▄▄▄ ▄▄▄  ▄▄▄ 
+▄██▀▀██▄ ███▀▀██▄ ████▄  ▄████  ███  ████▄  ███   ████▄  ▄████ ███▀▀▀▀▀ ████▄  ███ ███  ███ 
+███  ███ ███  ███ ███▀████▀███  ███  ███▀██▄███   ███▀████▀███ ███▄▄    ███▀██▄███ ███  ███ 
+███▀▀███ ███  ███ ███  ▀▀  ███  ███  ███  ▀████   ███  ▀▀  ███ ███      ███  ▀████ ███▄▄███ 
+███  ███ ██████▀  ███      ███ ▄███▄ ███    ███   ███      ███ ▀███████ ███    ███ ▀██████▀ 
+", opties, x => x);
 
             switch (keuze)
             {
                 case "Wijzig menukaart": EditMenu(); break;
                 case "Bekijk alle reserveringen": ViewReservations(); break;
                 case "Bekijk reserveringen per tijdslot": ViewReservationsPerTimeSlot(); break;
-                case "Wis bestelling geheugen": WisBestellingGeheugen(); break;
                 case "Bekijk alle bestellingen": BekijkBestellingen(); break;
                 case "Wijzig bestelling status": AanpassenBestellingStatus(); break;
                 case "Wijzig openingstijden": WijzigOpeningstijden(); break;
@@ -153,8 +160,15 @@ public class AdminMenuUI
         Console.Write("Allergenen   : ");
         string allergeen = Console.ReadLine() ?? "";
 
-        Console.Write("Bereidingstijd: ");
-        int bereidingsTijd = int.Parse(Console.ReadLine() ?? "0");
+        int bereidingsTijd;
+
+
+        Console.Write("Bereidingstijd (compleet aantal min): ");
+
+        do
+        {
+            Console.Write("Bereidingstijd (compleet aantal min): ");
+        } while (!int.TryParse(Console.ReadLine(), out bereidingsTijd));
 
         menuItemLogic.AddMenuItem(new MenuItem
         {
@@ -411,9 +425,9 @@ public class AdminMenuUI
     public void BekijkBestellingen()
     {
         Console.Clear();
-        Console.WriteLine("=== ALLE BESTELLINGEN ===\n");
+        Console.WriteLine("=== ALLE BESTELLINGEN VAN VANDAAG ===\n");
 
-        var bestellingen = bestellingLogic.GetAllBestellingen();
+        List<Bestelling> bestellingen = bestellingLogic.PakBestellingenVanVandaag();
 
         if (bestellingen.Count == 0)
         {
@@ -425,7 +439,7 @@ public class AdminMenuUI
         var gekozen = ArrowMenu.ShowMenu(
            "KIES BESTELLING",
            bestellingen,
-           b => $"Bestelling: {b.ID}  |  Gebruiker: {b.GebruikerID}  |  Status: {b.Status}"
+           b => $"Bestelling: {b.ID}  |  Naam: {userLogic.GetGebruikerByID(b.GebruikerID)?.Naam}  |  Status: {b.Status}"
        );
 
         if (gekozen == null) return;
@@ -435,6 +449,7 @@ public class AdminMenuUI
         Console.Clear();
         Console.WriteLine($"  ┌─ Bestelling #{gekozen.ID} ────────────────────────────");
         Console.WriteLine($"  │  Gebruiker  : {gekozen.GebruikerID,-28}");
+        Console.WriteLine($"  │  Naam       : {userLogic.GetGebruikerByID(gekozen.GebruikerID)?.Naam,-28}");
         Console.WriteLine($"  │  Status     : {gekozen.Status,-28}");
         Console.WriteLine($"  │  Ophaaltijd : {gekozen.OphaalTijd,-28}");
         Console.WriteLine($"  │  Totaalprijs: €{gekozen.TotaalPrijs,-27}");
@@ -463,7 +478,7 @@ public class AdminMenuUI
         Console.Clear();
         Console.WriteLine("=== BESTELLING STATUS WIJZIGEN ===\n");
 
-        var bestellingen = bestellingLogic.GetAllBestellingen();
+        var bestellingen = bestellingLogic.PakBestellingenVanVandaag();
 
         if (bestellingen.Count == 0)
         {
@@ -515,26 +530,6 @@ public class AdminMenuUI
         Console.WriteLine($"Status van bestelling #{gekozen.ID} is bijgewerkt.");
         Console.ReadKey(true);
     }
-
-    public void WisBestellingGeheugen()
-    {
-        List<string> bevestigOpties = new() { "Ja, wis alle bestellingen", "Nee, annuleer" };
-
-        string? keuze = ArrowMenu.ShowMenu(
-            "BESTELLINGSGEHEUGEN WISSEN",
-            bevestigOpties,
-            x => x
-        );
-
-        if (keuze == "Ja, wis alle bestellingen")
-        {
-            bestellingLogic.DeleteAllBestellingen();
-            Console.Clear();
-            Console.WriteLine("Alle bestellingen zijn verwijderd.");
-            Console.ReadKey(true);
-        }
-    }
-
     private void WijzigOpeningstijden()
     {
         List<string> opties = new()

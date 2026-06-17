@@ -50,12 +50,7 @@ public sealed class BereidingstijdTesting
 
     /// <summary>
     /// Path: Happy Path H2
-    /// Input data: Bestelling datum: vandaag (27-05-2026), Tijdstip: 13:00, Klant: Sara
-    /// Actor: Sara
-    /// Expected output: Afhaalbestelling succesvol geplaatst; bereidingstijd zichtbaar
-    /// Test type: Unit test
     /// Scenario (NL): Klant plaatst afhaalbestelling op de dag zelf en ziet bereidingstijd
-    /// Verwacht (NL): Bestelling wordt succesvol aangemaakt en bereidingstijd is zichtbaar
     /// </summary>
     [TestMethod]
     public void BerekenOphaalTijd_LangsteBereidingstijdPlusMarge_GeeftJuisteTijd()
@@ -89,12 +84,7 @@ public sealed class BereidingstijdTesting
 
     /// <summary>
     /// Path: Sad Path S1
-    /// Input data: Bestelling datum: morgen (28-05-2026), Klant: Daan
-    /// Actor: Daan
-    /// Expected output: Foutmelding: afhalen alleen mogelijk op de dag zelf; bestelling geblokkeerd
-    /// Test type: Unit test
     /// Scenario (NL): Klant probeert afhaalbestelling te plaatsen voor een toekomstige datum
-    /// Verwacht (NL): Systeem blokkeert de bestelling en geeft een foutmelding terug
     /// </summary>
     [TestMethod]
     public void BerekenOphaalTijd_LegWinkelwagen_GeeftTijdVandaag()
@@ -118,12 +108,7 @@ public sealed class BereidingstijdTesting
 
     /// <summary>
     /// Path: Sad Path S2
-    /// Input data: Menu: [Steak, bereidingstijd: niet ingesteld], Klant: Roos
-    /// Actor: Roos
-    /// Expected output: Foutmelding: bereidingstijd ontbreekt voor gerecht "Steak"
-    /// Test type: Unit test
     /// Scenario (NL): Gerecht in het menu heeft geen bereidingstijd ingesteld
-    /// Verwacht (NL): Systeem gooit een foutmelding dat de bereidingstijd voor "Steak" ontbreekt
     /// </summary>
     [TestMethod]
     public void BerekenOphaalTijd_BereidingsTijdNul_GeeftAlleenMargeVanVijftienMinuten()

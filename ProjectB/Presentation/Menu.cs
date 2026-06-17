@@ -57,20 +57,6 @@ public static class Menu
 
         while (running)
         {
-            AdminLogic adminLogicCheck = new AdminLogic();
-            string? tempPassword = adminLogicCheck.EnsureAdminExists();
-
-            if (tempPassword != null)
-            {
-                Console.Clear();
-                Console.WriteLine("=== EERSTE OPSTART ===");
-                Console.WriteLine($"Admin aangemaakt. Wachtwoord: {tempPassword}");
-                Console.WriteLine("Bewaar dit wachtwoord veilig!");
-                Console.WriteLine("======================");
-                Console.WriteLine("Druk op een toets om door te gaan...");
-                Console.ReadKey(true);
-            }
-            Console.Clear();
 
             // ===== MENU OPTIES (gast vs user) =====
             List<MainMenuOption?> opties = new();
@@ -95,8 +81,6 @@ public static class Menu
                 opties.Add(MainMenuOption.Loguit);
             }
 
-            opties.Add(MainMenuOption.Exit);
-
             // ===== ARROWMENU (vervangt Console.ReadLine + switch input) =====
             MainMenuOption? keuze = ArrowMenu.ShowMenu(
                 "",
@@ -111,7 +95,6 @@ public static class Menu
                     MainMenuOption.Login => "Login / registreer",
                     MainMenuOption.Loguit => "Loguit",
                     MainMenuOption.Admin => "Open Admin menu",
-                    MainMenuOption.Exit => "Afsluiten",
                     _ => ""
                 },
                 () =>
@@ -270,9 +253,6 @@ public static class Menu
                         break;
                     }
 
-                case MainMenuOption.Exit:
-                    running = false;
-                    break;
 
                 default:
                     Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");

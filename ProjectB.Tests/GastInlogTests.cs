@@ -82,9 +82,6 @@ public sealed class GastInlogTests
 
     /// <summary>
     /// Path: Sad Path S1
-    /// Input: Klant op stap "Login of gast?" klikt "Volgende" zonder keuze te maken, Actor: Klant
-    /// Expected output: Foutmelding: maak een keuze om door te gaan; stap geblokkeerd
-    /// Test type: Unit test
     /// Scenario: Klant probeert in te loggen met een leeg e-mailadres
     /// Verwacht: GetUserByEmail retourneert null voor een leeg e-mailadres
     /// </summary>
@@ -106,11 +103,7 @@ public sealed class GastInlogTests
 
     /// <summary>
     /// Path: Happy Path H2
-    /// Input: Naam: Thomas, Telefoonnummer: 0612345678, Datum: 10-06-2026, Actor: Gast
-    /// Expected output: Reservering succesvol geplaatst; bevestigingspagina getoond
-    /// Test type: Unit test
     /// Scenario: Gast vult geldige naam en telefoonnummer in en plaatst succesvol een reservering
-    /// Verwacht: VoegGastToe retourneert een geldig gast-ID en AddReservering retourneert true
     /// </summary>
     [TestMethod]
     public void VoegGastToe_GeldigeGegevens_GastIDEnReserveringAangemaakt()
@@ -118,11 +111,12 @@ public sealed class GastInlogTests
         // arrange
         string naam = "Thomas";                          // naam uit testscript
         string telefoonnummer = "0612345678";            // telefoonnummer uit testscript
-        DateTime datum = new(2026, 6, 10);                 // datum uit testscript: 10-06-2026
+        DateTime datum = DateTime.Today.AddDays(7);
+        string datumString = datum.ToString("yyyy-MM-dd");
         int aantalPersonen = 2;
 
         // Maak tijdsloten aan voor de testdatum als die nog niet bestaan
-        var bestaandeTijdsloten = _tijdslotAccess.GetTijdslotenByDatum("2026-06-10");
+        var bestaandeTijdsloten = _tijdslotAccess.GetTijdslotenByDatum(datumString);
         bool nieuweTijdsloten = bestaandeTijdsloten.Count == 0;
         if (nieuweTijdsloten)
         {
@@ -130,9 +124,9 @@ public sealed class GastInlogTests
                 _tijdslotAccess.AddTijdslot(ts);
         }
 
-        var tijdsloten = _tijdslotAccess.GetTijdslotenByDatum("2026-06-10");
+        var tijdsloten = _tijdslotAccess.GetTijdslotenByDatum(datumString);
         Assert.IsNotEmpty(tijdsloten,
-            "Er moeten tijdsloten beschikbaar zijn voor 10-06-2026");
+            $"Er moeten tijdsloten beschikbaar zijn voor {datum:dd-MM-yyyy}");
 
         if (nieuweTijdsloten)
             foreach (var ts in tijdsloten)
@@ -177,11 +171,7 @@ public sealed class GastInlogTests
 
     /// <summary>
     /// Path: Sad Path S2
-    /// Input: Naam: leeg, Telefoonnummer: 0698765432, Datum: 14-06-2026, Actor: Gast
-    /// Expected output: Foutmelding: naam is verplicht; reservering niet geplaatst
-    /// Test type: Unit test
     /// Scenario: Gast probeert te reserveren zonder naam in te vullen
-    /// Verwacht: VoegGastToe slaat gast op met lege naam; naamvalidatie ontbreekt in de logic-laag
     /// </summary>
     [TestMethod]
     public void VoegGastToe_LegeNaam_GastWordtTochAangemaakt()
@@ -203,11 +193,7 @@ public sealed class GastInlogTests
 
     /// <summary>
     /// Path: Sad Path S3
-    /// Input: E-mail: alice@example.com, Wachtwoord: VerkeedWW99, Actor: Klant
-    /// Expected output: Foutmelding: ongeldige inloggegevens; toegang geweigerd
-    /// Test type: Unit test
     /// Scenario: Klant probeert in te loggen met een verkeerd wachtwoord
-    /// Verwacht: GetUserByEmail retourneert null bij een onjuist wachtwoord
     /// </summary>
     [TestMethod]
     public void GetUserByEmail_VerkeedWachtwoord_RetourneertNull()
@@ -236,20 +222,17 @@ public sealed class GastInlogTests
 
     /// <summary>
     /// Path: Sad Path S4
-    /// Input: Naam: Bob, Telefoonnummer: abcdefghij, Datum: 15-06-2026, Actor: Gast
-    /// Expected output: Foutmelding: ongeldig telefoonnummer; alleen cijfers toegestaan
-    /// Test type: Unit test
     /// Scenario: Gast vult een telefoonnummer in dat uitsluitend letters bevat
-    /// Verwacht: Telefoonnummer met letters wordt als ongeldig beschouwd
     /// </summary>
     [TestMethod]
     public void IsGeldigTelefoonnummer_TelefoonnummerMetLetters_RetourneertFalse()
     {
+        UserLogic userLogic = new();
         // Arrange
         string telefoonnummer = "abcdefghij";
 
         // Act
-        bool isGeldig = UserValidationLogic.IsGeldigTelefoonnummer(telefoonnummer);
+        bool isGeldig = userLogic.IsGeldigTelefoonnummer(telefoonnummer);
 
         // Assert
         Assert.IsFalse(isGeldig,
