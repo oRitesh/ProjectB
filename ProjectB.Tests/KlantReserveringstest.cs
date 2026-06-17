@@ -61,6 +61,7 @@ public sealed class KlantReserveringTests
     [TestMethod]
     public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
     {
+        //Arrange
         _tafelAccess.AddTafel(new Tafel(0, 1, 4));
         int tafelID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tafelIDs.Add(tafelID);
@@ -80,6 +81,7 @@ public sealed class KlantReserveringTests
         int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tijdslotIDs.Add(tijdslotID);
 
+        //Act
         var tijdslot = _tijdslotAccess.GetTijdslotenByDatum(datum).First();
 
         var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
@@ -92,6 +94,7 @@ public sealed class KlantReserveringTests
             ""
         );
 
+        //Assert
         Assert.IsTrue(resultaat, "Reservering moet worden opgeslagen");
 
         var opgeslagen = _reserveringAccess.GetReserveringenVoorDatum(datum);
@@ -111,11 +114,14 @@ public sealed class KlantReserveringTests
     [TestMethod]
     public void TimeSlotLogic_GenereertTijdslotenVanTweeUur_InStappenVan15Minuten()
     {
+        //Arrange
         var logic = new TimeSlotLogic();
 
+        //Act
         var datum = new DateTime(2026, 6, 20);
         var slots = logic.MaakTijdslotenVoorReservering(datum);
 
+        //Assert
         Assert.IsTrue(slots.All(s =>
             (DateTime.Parse(s.EindTijd) - DateTime.Parse(s.StartTijd)).TotalHours == 2),
             "Elk tijdslot moet 2 uur duren");
@@ -137,6 +143,7 @@ public sealed class KlantReserveringTests
     [TestMethod]
     public void GetBeschikbareTafels_TijdensTijdslot_GeeftAlleenVrijeTafelsTerug()
     {
+        //Arrange
         _tafelAccess.AddTafel(new Tafel(0, 1, 4));
         int tafelID1 = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tafelIDs.Add(tafelID1);
@@ -157,6 +164,7 @@ public sealed class KlantReserveringTests
         string start = "2026-06-20 18:00";
         string eind = "2026-06-20 20:00";
 
+        //Act
         _tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
         int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tijdslotIDs.Add(tijdslotID);
@@ -173,6 +181,7 @@ public sealed class KlantReserveringTests
             ""
         );
 
+        //Assert
         Assert.IsTrue(resultaat, "Reservering moet worden opgeslagen");
 
         var overlappende = _reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(tijdslot);
@@ -192,6 +201,7 @@ public sealed class KlantReserveringTests
     [TestMethod]
     public void AddReservering_MinderDanTweeUur_WordtNietOpgeslagen()
     {
+        //Arrange
         _tafelAccess.AddTafel(new Tafel(0, 1, 4));
         int tafelID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tafelIDs.Add(tafelID);
@@ -207,6 +217,7 @@ public sealed class KlantReserveringTests
         string start = "2026-06-20 18:00";
         string eind = "2026-06-20 19:00";
 
+        //Act
         _tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
         int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tijdslotIDs.Add(tijdslotID);
@@ -223,6 +234,7 @@ public sealed class KlantReserveringTests
             ""
         );
 
+        //Assert
         Assert.IsFalse(resultaat, "Reservering van minder dan 2 uur moet worden geweigerd");
 
         var opgeslagen = _reserveringAccess.GetReserveringenVoorDatum("2026-06-20");
@@ -236,6 +248,7 @@ public sealed class KlantReserveringTests
     [TestMethod]
     public void AddReservering_VerledenDatum_WordtNietOpgeslagen()
     {
+        //Arrange
         _tafelAccess.AddTafel(new Tafel(0, 1, 4));
         int tafelID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tafelIDs.Add(tafelID);
@@ -251,6 +264,7 @@ public sealed class KlantReserveringTests
         string start = "2020-01-01 18:00";
         string eind = "2020-01-01 20:00";
 
+        //Act
         _tijdslotAccess.AddTijdslot(new Tijdslot(0, datum, start, eind));
         int tijdslotID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
         _tijdslotIDs.Add(tijdslotID);
@@ -267,6 +281,7 @@ public sealed class KlantReserveringTests
             ""
         );
 
+        //Assert
         Assert.IsFalse(resultaat, "Reservering in het verleden moet worden geweigerd");
 
         var opgeslagen = _reserveringAccess.GetReserveringenVoorDatum(datum);
@@ -280,10 +295,13 @@ public sealed class KlantReserveringTests
     [TestMethod]
     public void GetTijdslotenByDatum_GeenSlots_GeeftLegeLijst()
     {
+        //Arrange
         string datum = "2026-06-21";
 
+        //Act
         var slots = _tijdslotAccess.GetTijdslotenByDatum(datum);
 
+        //Assert
         Assert.IsEmpty(slots,
             "Op een datum zonder tijdsloten kan de klant geen reservering maken lijst moet leeg zijn");
     }
