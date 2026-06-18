@@ -33,7 +33,8 @@ public class AdminMenuUI
         string datum = DateTime.TryParse(r.StartTijd, out DateTime sd) ? sd.ToString("dd MMMM yyyy", nl) : "";
         string opmerking = string.IsNullOrWhiteSpace(r.Opmerking) ? "–" : r.Opmerking;
 
-        Console.WriteLine($"  ┌─ Reservering #{nummer} ──────────────────────────┐");
+        if (nummer < 10) Console.WriteLine($"  ┌─ Reservering #{nummer} ──────────────────────────┐");
+        else Console.WriteLine($"  ┌─ Reservering #{nummer} ─────────────────────────┐");
         Console.WriteLine($"  │  Datum      : {datum,-28}│");
         Console.WriteLine($"  │  Tijdslot   : {startTijd} – {eindTijd,-20}│");
         Console.WriteLine($"  │  Tafel      : #{r.TafelID,-27}│");
@@ -490,8 +491,9 @@ public class AdminMenuUI
         var gekozen = ArrowMenu.ShowMenu(
            "KIES BESTELLING",
            bestellingen,
-           b => $"Bestelling: {b.ID}  |  Gebruiker: {b.GebruikerID}  |  Status: {b.Status}"
+           b => $"Bestelling: {b.ID}  |  Naam: {userLogic.GetGebruikerByID(b.GebruikerID)?.Naam}  |  Status: {b.Status}"
        );
+        if (gekozen == null) return;
 
         List<string> statusOpties = new()
         {
@@ -517,10 +519,8 @@ public class AdminMenuUI
                 break;
 
             case "Bestelling afgerond":
-                Console.Clear();
-                Console.WriteLine($"Bestelling #{gekozen.ID} is afgerond.");
-                Console.ReadKey(true);
-                return;
+                bestellingLogic.UpdateStatus(gekozen.ID, "Bestelling afgerond");
+                break;
 
             default:
                 return;
