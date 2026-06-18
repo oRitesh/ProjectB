@@ -318,6 +318,14 @@ public class ReservationLogic
         return gastID;
     }
 
+    public bool MagReserveringNogWijzigen(Reservering reservering)
+    {
+        DateTime startTijd = DateTime.Parse(reservering.StartTijd);
+        DateTime uitersteWijzigTijd = startTijd.AddHours(-24);
+
+        return DateTime.Now <= uitersteWijzigTijd;
+    }
+
     public List<Reservering> GetAllReserveringen()
         => reserveringAccess.GetAllReserveringen();
 
