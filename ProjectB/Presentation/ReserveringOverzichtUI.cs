@@ -73,10 +73,26 @@ public class ReserveringOverzichtUI
             switch (keuze)
             {
                 case "Reservering wijzigen":
+                    if (!logic.MagReserveringNogWijzigen(r))
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Deze reservering kan niet meer worden gewijzigd, omdat dit minimaal 24 uur van tevoren moet.");
+                        Console.ReadKey();
+                        break;
+                    }
+
                     WijzigVolledigeReservering(r);
                     break;
 
                 case "Opmerking wijzigen":
+                    if (!logic.MagReserveringNogWijzigen(r))
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine("Deze reservering kan niet meer worden gewijzigd, omdat dit minimaal 24 uur van tevoren moet.");
+                        Console.ReadKey();
+                        break;
+                    }
+
                     WijzigOpmerking(r);
                     break;
 
