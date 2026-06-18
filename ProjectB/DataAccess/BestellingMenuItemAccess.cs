@@ -7,9 +7,9 @@ public class BestellingMenuItemAccess
     private readonly DatabaseContext db;
     public const string Table = "BestellingMenuItem";
 
-    public BestellingMenuItemAccess(DatabaseContext db)
+    public BestellingMenuItemAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public List<BestellingMenuItem> GetAllBestellingMenuItems()

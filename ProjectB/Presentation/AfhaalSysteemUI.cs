@@ -2,18 +2,20 @@ public class AfhaalSysteemUI
 {
     private readonly AfhaalSysteemLogic logic;
     private readonly MenuService menuService;
-    private readonly DatabaseContext db;
+    private readonly UserLogic userLogic;
+    private readonly BestellingLogic _bestellingLogic;
     private int gebruikerID;
 
     // Gastgegevens
     private string gastNaam = "";
     private string gastTelefoon = "";
 
-    public AfhaalSysteemUI(DatabaseContext db, Gebruiker gebruiker)
+    public AfhaalSysteemUI(Gebruiker gebruiker)
     {
-        logic = new AfhaalSysteemLogic(db);
-        menuService = new MenuService(db);
-        this.db = db;
+        logic = new AfhaalSysteemLogic();
+        menuService = new MenuService();
+        userLogic = new UserLogic();
+        _bestellingLogic = new BestellingLogic();
         this.gebruikerID = gebruiker.ID;
     }
 
@@ -35,7 +37,13 @@ public class AfhaalSysteemUI
             };
 
             string? keuze = ArrowMenu.ShowMenu(
-                "AFHAALBESTELLING",
+                @"                                                                                               
+  ▄▄▄▄    ▄▄▄▄▄▄▄ ▄▄▄   ▄▄▄   ▄▄▄▄     ▄▄▄▄   ▄▄▄      ▄▄▄▄▄▄▄    ▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄ ▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄ ▄▄▄      ▄▄▄      ▄▄▄▄▄ ▄▄▄    ▄▄▄  ▄▄▄▄▄▄▄  
+▄██▀▀██▄ ███▀▀▀▀▀ ███   ███ ▄██▀▀██▄ ▄██▀▀██▄ ███      ███▀▀███▄ ███▀▀▀▀▀ █████▀▀▀ ▀▀▀███▀▀▀ ███▀▀▀▀▀ ███      ███       ███  ████▄  ███ ███▀▀▀▀▀  
+███  ███ ███▄▄    █████████ ███  ███ ███  ███ ███      ███▄▄███▀ ███▄▄     ▀████▄     ███    ███▄▄    ███      ███       ███  ███▀██▄███ ███       
+███▀▀███ ███▀▀    ███▀▀▀███ ███▀▀███ ███▀▀███ ███      ███  ███▄ ███         ▀████    ███    ███      ███      ███       ███  ███  ▀████ ███  ███▀ 
+███  ███ ███      ███   ███ ███  ███ ███  ███ ████████ ████████▀ ▀███████ ███████▀    ███    ▀███████ ████████ ████████ ▄███▄ ███    ███ ▀██████▀  
+                                                                                                                                                   ",
                 categorieen,
                 x => x,
                 () =>
@@ -266,7 +274,10 @@ public class AfhaalSysteemUI
             definitiefID = logic.VoegGastToe(gastNaam, gastTelefoon);
         }
 
-        logic.SlaBestellingOp(db, definitiefID, ophaalTijd, opmerking);
+        logic.SlaBestellingOp(definitiefID, ophaalTijd, opmerking);
+        // private readonly BestellingLogic _bestellingLogic = new();
+        // PakBestellingenVanVandaag()
+        var bestelnummer = _bestellingLogic.PakBestellingenVanVandaag().Where(s => s.GebruikerID == definitiefID).FirstOrDefault()?.ID.ToString();
 
         Console.Clear();
         Console.WriteLine("==================================");
@@ -274,7 +285,8 @@ public class AfhaalSysteemUI
         Console.WriteLine("==================================");
         Console.WriteLine();
         Console.WriteLine($"  Uw bestelling wordt klaargemaakt.");
-        Console.WriteLine($"  Ophaaltijd: {ophaalTijd}");
+        Console.WriteLine($"  Bestelnummer: #{bestelnummer}");
+        Console.WriteLine($"  Ophaaltijd  : {ophaalTijd}");
         Console.WriteLine();
         Console.WriteLine("  Betalen op locatie bij afhalen.");
         Console.WriteLine($"Totaal: €{logic.BerekenTotaal():0.00}");
@@ -298,28 +310,23 @@ public class AfhaalSysteemUI
 
             if (keuze == null) return null; // Escape = terug
 
-            DatabaseContext db2 = new DatabaseContext();
-            UserAccess userAccess = new UserAccess(db2);
+            UserLogic userLogic = new UserLogic();
             Gebruiker? user = null;
 
             if (keuze == "Inloggen")
-                user = new InlogUI(userAccess).Login();
+                user = new InlogUI(userLogic).Login();
             else if (keuze == "Registreren")
-                user = new RegistratieUI(userAccess).Registreer();
+                user = new RegistratieUI(userLogic).Registreer();
             else if (keuze == "Doorgaan als gast")
             {
-                db2.Close();
                 return false;
             }
 
             if (user != null)
             {
                 gebruikerID = user.ID;
-                db2.Close();
                 return true;
             }
-
-            db2.Close();
         }
     }
 
@@ -343,7 +350,7 @@ public class AfhaalSysteemUI
         string? telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");
         if (telefoon == null) return false;
 
-        while (string.IsNullOrEmpty(telefoon) || !telefoon.All(char.IsDigit) || telefoon.Length != 10)
+        while (!userLogic.IsGeldigTelefoonnummer(telefoon))
         {
             Console.WriteLine("Ongeldig telefoonnummer. Voer precies 10 cijfers in.");
             telefoon = LeesInvoer.LeesInvoerMetEscape("Voer uw telefoonnummer in (10 cijfers): ");

@@ -1,1 +1,2 @@
-﻿Menu.Show();
+Menu.Show();
+DatabaseContext.Instance.Close();

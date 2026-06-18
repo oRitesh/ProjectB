@@ -3,13 +3,11 @@ using System.Linq;
 
 public class RegistratieUI
 {
-    private readonly UserAccess userAccess;
-    private readonly UserValidationLogic validationLogic;
+    private readonly UserLogic userLogic;
 
-    public RegistratieUI(UserAccess userAccess)
+    public RegistratieUI(UserLogic userLogic)
     {
-        this.userAccess = userAccess;
-        this.validationLogic = new UserValidationLogic(userAccess);
+        this.userLogic = userLogic;
     }
 
     public Gebruiker? Registreer()
@@ -59,8 +57,8 @@ public class RegistratieUI
                 case RegistratieStap.Wachtwoord:
                     Console.Clear();
                     wachtwoord = InputValidatie.ValideerInput(
-                        $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
-                        x => x.Length >= 8 && x.Any(char.IsUpper) && x.Any(char.IsLower),
+                        $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer: {telefoon}\nWachtwoord (min. 8 tekens, 1 hoofdletter, 1 kleine letter)",
+                        x => userLogic.IsGeldigWachtwoord(x),
                         "Wachtwoord moet minimaal 8 tekens bevatten, én minstens 1 hoofdletter en 1 kleine letter."
                     );
                     if (wachtwoord == null) stap = RegistratieStap.Telefoon;
@@ -90,7 +88,7 @@ public class RegistratieUI
             Console.WriteLine("We hebben uw gegevens gevonden van een eerdere reservering.");
             Console.WriteLine("Uw gast-account wordt omgezet naar een officieel account...");
 
-            var result = userAccess.ChangeRole(telefoon, naam, 1, email, wachtwoord);
+            var result = userLogic.ChangeRole(telefoon!, naam!, 1, email!, wachtwoord);
 
             if (result == null)
             {
@@ -105,8 +103,8 @@ public class RegistratieUI
         }
         else
         {
-            nieuweGebruiker = new Gebruiker(0, 1, naam, email, telefoon, wachtwoord);
-            int id = userAccess.AddUser(nieuweGebruiker);
+            nieuweGebruiker = new Gebruiker(0, 1, naam!, email, telefoon!, wachtwoord);
+            int id = userLogic.AddUser(nieuweGebruiker);
             nieuweGebruiker.ID = id;
         }
 
@@ -124,13 +122,13 @@ public class RegistratieUI
         {
             Console.Clear();
             string? email = InputValidatie.ValideerInput(
-                $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres",
-                x => x.Contains("@") && x.Contains("."),
+                $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres",
+                x => userLogic.IsGeldigEmail(x),
                 "Ongeldig e-mailadres."
             );
             if (email == null) return null;
 
-            if (!validationLogic.IsEmailUnique(email))
+            if (!userLogic.IsEmailUnique(email))
             {
                 Console.WriteLine();
                 Console.WriteLine("E-mailadres is al in gebruik. Probeer het opnieuw.");
@@ -149,13 +147,13 @@ public class RegistratieUI
         {
             Console.Clear();
             string? telefoon = InputValidatie.ValideerInput(
-                $"=== Registreren ===\nDruk op Escape om terug te gaan.\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer",
-                x => x.Length >= 8 && x.All(char.IsDigit),
-                "Telefoonnummer moet minimaal 8 cijfers bevatten en mag geen letters bevatten."
+                $"=== Registreren ===\n\nNaam: {naam}\nE-mailadres: {email}\nTelefoonnummer",
+                x => userLogic.IsGeldigTelefoonnummer(x),
+                "Telefoonnummer moet precies 10 cijfers bevatten en mag geen letters bevatten."
             );
             if (telefoon == null) return null;
 
-            if (!validationLogic.IsPhoneNumberAvailable(telefoon))
+            if (!userLogic.IsPhoneNumberAvailable(telefoon))
             {
                 Console.WriteLine();
                 Console.WriteLine("Dit telefoonnummer is al gekoppeld aan een account.");
@@ -164,7 +162,7 @@ public class RegistratieUI
                 continue;
             }
 
-            if (validationLogic.IsPhoneNumberForGuest(telefoon))
+            if (userLogic.IsPhoneNumberForGuest(telefoon))
             {
                 userExists = true;
             }

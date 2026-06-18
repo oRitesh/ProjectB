@@ -1,8 +1,8 @@
-public class UserValidationLogic
+public class UserUniqueLogic
 {
     private readonly UserAccess userAccess;
 
-    public UserValidationLogic(UserAccess userAccess)
+    public UserUniqueLogic(UserAccess userAccess)
     {
         this.userAccess = userAccess;
     }
@@ -24,4 +24,5 @@ public class UserValidationLogic
         var existingUser = userAccess.GetUserByPhoneNumber(telefoonnummer);
         return existingUser != null && existingUser.Rol == 0;
     }
+
 }

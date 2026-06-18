@@ -7,9 +7,9 @@ public class UserAccess
     private readonly DatabaseContext db;
     public const string table = "Gebruiker";
 
-    public UserAccess(DatabaseContext db)
+    public UserAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public int AddUser(Gebruiker gebruiker)
@@ -49,10 +49,12 @@ public class UserAccess
 
     public Gebruiker? GetUserByEmail(string email)
     {
+        if (email is "") return null;
         string sql = "SELECT * FROM Gebruiker WHERE Email = @Email";
 
         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { Email = email });
     }
+
 
     public Gebruiker? GetUserByPhoneNumber(string phoneNumber)
     {
@@ -86,6 +88,13 @@ public class UserAccess
     public Gebruiker? GetRoleByUser(int userId)
     {
         string sql = "SELECT Rol FROM Gebruiker WHERE Id = @UserId";
+
+        return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
+    }
+
+    public Gebruiker? GetUserById(int userId)
+    {
+        string sql = "SELECT * FROM Gebruiker WHERE Id = @UserId";
 
         return db.Connection.QueryFirstOrDefault<Gebruiker>(sql, new { UserId = userId });
     }

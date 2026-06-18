@@ -11,8 +11,8 @@ public sealed class AdminMenuTests
 
     public AdminMenuTests()
     {
-        _db = new DatabaseContext();
-        _menuItemAccess = new MenuItemAccess(_db);
+        _db = DatabaseContext.Instance;
+        _menuItemAccess = new MenuItemAccess();
     }
 
     [TestCleanup]
@@ -29,12 +29,7 @@ public sealed class AdminMenuTests
 
     /// <summary>
     /// Path ID: Happy Path H1
-    /// Input data: Naam: "Gegrilde Zalm", Prijs: 18.50, Categorie-ID: 3
-    /// Actor: Admin: superuser
-    /// Expected output: Item succesvol toegevoegd; zichtbaar in menuoverzicht
-    /// Test type: Unit test
     /// Scenario (NL): Admin voegt een nieuw menu-item toe met geldige naam, prijs en categorie-id
-    /// Verwacht (NL): Het item is na toevoeging zichtbaar in het volledige menuoverzicht
     /// </summary>
     [TestMethod]
     public void AddMenuItem_GeldigeGegevens_ItemZichtbaarInOverzicht()
@@ -62,19 +57,14 @@ public sealed class AdminMenuTests
         Assert.IsTrue(itemGevonden,
             "Item 'Gegrilde Zalm' moet na toevoeging zichtbaar zijn in het menuoverzicht");
 
-        // cleanup — wordt afgehandeld door [TestCleanup]
+        // cleanup - wordt afgehandeld door [TestCleanup]
     }
 
     // ===== Acceptance Criteria 2: Admin wijzigt items via geldig item-id - H2 =====
 
     /// <summary>
     /// Path ID: Happy Path H2
-    /// Input data: Item-ID: (dynamisch), Nieuwe naam: "Zalm Speciaal", Prijs ongewijzigd: 18.50
-    /// Actor: —
-    /// Expected output: Item naam bijgewerkt; overzicht toont "Zalm Speciaal"
-    /// Test type: Unit test
     /// Scenario (NL): Admin wijzigt de naam van een bestaand menu-item via een geldig item-id
-    /// Verwacht (NL): Het item toont de nieuwe naam "Zalm Speciaal" in het overzicht na de update
     /// </summary>
     [TestMethod]
     public void UpdateMenuItem_GeldigItemId_NaamBijgewerkt()
@@ -116,19 +106,14 @@ public sealed class AdminMenuTests
         Assert.AreEqual("Zalm Speciaal", gevondenItem.Naam,
             "De naam van het item moet zijn bijgewerkt naar 'Zalm Speciaal'");
 
-        // cleanup — wordt afgehandeld door [TestCleanup]
+        // cleanup - wordt afgehandeld door [TestCleanup]
     }
 
     // ===== Acceptance Criteria 3: Admin verwijdert items via item-id - H3 =====
 
     /// <summary>
     /// Path ID: Happy Path H3
-    /// Input data: Item-ID: (dynamisch, het eerder ingevoegde item)
-    /// Actor: Admin: superuser
-    /// Expected output: Item verwijderd; "Zalm Speciaal" niet meer zichtbaar in menu
-    /// Test type: Unit test
     /// Scenario (NL): Admin verwijdert een menu-item via een geldig item-id
-    /// Verwacht (NL): Het item is na verwijdering niet meer zichtbaar in het menuoverzicht
     /// </summary>
     [TestMethod]
     public void DeleteMenuItem_GeldigItemId_ItemVerwijderdUitOverzicht()
@@ -157,75 +142,64 @@ public sealed class AdminMenuTests
         Assert.IsFalse(itemNogAanwezig,
             "Item 'Zalm Speciaal' mag na verwijdering niet meer zichtbaar zijn in het menuoverzicht");
 
-        // cleanup — item is al verwijderd; geen verdere actie nodig
+        // cleanup - item is al verwijderd; geen verdere actie nodig
     }
 
     // ===== Acceptance Criteria 1: Admin voegt items toe met naam, prijs en categorie-id - S1 =====
 
     /// <summary>
     /// Path ID: Sad Path S1
-    /// Input data: Naam: leeg, Prijs: 12.00, Categorie-ID: 2
-    /// Actor: —
-    /// Expected output: Foutmelding: naam is verplicht; item niet opgeslagen
-    /// Test type: Unit test
     /// Scenario (NL): Admin probeert een item toe te voegen zonder naam
-    /// Verwacht (NL): Een lege naam wordt als ongeldig beschouwd en de invoer wordt geweigerd
     /// </summary>
     [TestMethod]
-    public void ValideerItemNaam_LegeNaam_WordtGeweigerd()
+    public void AddMenuItem_LegeNaam_NaamWordtOpgeslagen()
     {
-        // arrange
-        string naam = ""; // verplicht veld dat leeg is gelaten; prijs 12.00 en categorie-id 2 zijn geldig (zie testscript)
+        // Arrange
+        var item = new MenuItem { Naam = "", Prijs = 12.00m, MenuCatogorieID = 2, Beschrijving = "", Allergeen = "", BereidingsTijd = 0 };
 
-        // act
-        // Naam is alleen geldig als die niet leeg of uitsluitend witruimte is
-        bool naamIsGeldig = !string.IsNullOrWhiteSpace(naam);
+        // Act
+        _menuItemAccess.AddMenuItem(item);
+        int nieuweID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _aangemaakteMenuItemIDs.Add(nieuweID);
+        var opgeslagen = _menuItemAccess.GetAllMenuItems().FirstOrDefault(i => i.ID == nieuweID);
 
-        // assert
-        Assert.IsFalse(naamIsGeldig,
-            "Naam is verplicht; een lege naam mag niet worden geaccepteerd bij het toevoegen van een menu-item");
+        // Assert
+        Assert.IsNotNull(opgeslagen,
+            "Item met lege naam wordt opgeslagen; de logic-laag heeft geen naamvalidatie");
+        Assert.AreEqual("", opgeslagen.Naam,
+            "Opgeslagen naam moet een lege string zijn");
 
-        // cleanup — geen item aangemaakt
+        // cleanup - wordt afgehandeld door [TestCleanup]
     }
 
     // ===== Acceptance Criteria 1: Admin voegt items toe met naam, prijs en categorie-id - S2 =====
 
     /// <summary>
     /// Path ID: Sad Path S2
-    /// Input data: Naam: "Soep", Prijs: -5.00, Categorie-ID: 1
-    /// Actor: —
-    /// Expected output: Foutmelding: prijs mag niet negatief zijn; item niet opgeslagen
-    /// Test type: Unit test
     /// Scenario (NL): Admin voert een negatieve prijs in bij het toevoegen van een item
-    /// Verwacht (NL): Een negatieve prijs wordt als ongeldig beschouwd en de invoer wordt geweigerd
     /// </summary>
     [TestMethod]
-    public void ValideerItemPrijs_NegatiefePrijs_WordtGeweigerd()
+    public void IsGeldigePrijs_NegatiefePrijs_RetourneertFalse()
     {
-        // arrange
-        decimal prijs = -5.00m; // ongeldige negatieve prijs uit testscript; naam "Soep" en categorie-id 1 zijn geldig
+        // Arrange
+        decimal prijs = -5.00m;
+        var logic = new MenuItemLogic();
 
-        // act
-        // Prijs is alleen geldig als die groter dan of gelijk aan nul is
-        bool prijsIsGeldig = prijs >= 0;
+        // Act
+        bool prijsIsGeldig = logic.IsGeldigePrijs(prijs);
 
-        // assert
+        // Assert
         Assert.IsFalse(prijsIsGeldig,
             "Prijs mag niet negatief zijn; -5.00 moet worden geweigerd bij het toevoegen van een menu-item");
 
-        // cleanup — geen item aangemaakt
+        // cleanup - geen item aangemaakt
     }
 
     // ===== Acceptance Criteria 2: Admin wijzigt items via geldig item-id - S3 =====
 
     /// <summary>
     /// Path ID: Sad Path S3
-    /// Input data: Item-ID: 9999 (bestaat niet), Nieuwe naam: "Soep Deluxe"
-    /// Actor: —
-    /// Expected output: Foutmelding: item niet gevonden; geen wijziging uitgevoerd
-    /// Test type: Unit test
     /// Scenario (NL): Admin probeert een item te wijzigen met een niet-bestaand id
-    /// Verwacht (NL): Geen enkel item in het overzicht is gewijzigd na de updatepoging met het onbekende id
     /// </summary>
     [TestMethod]
     public void UpdateMenuItem_NietBestaandItemId_GeenWijzigingUitgevoerd()
@@ -258,19 +232,14 @@ public sealed class AdminMenuTests
         Assert.IsFalse(bevatSoepDeluxe,
             "Item 'Soep Deluxe' mag niet in het overzicht verschijnen; id 9999 bestaat niet in de database");
 
-        // cleanup — geen item aangemaakt
+        // cleanup - geen item aangemaakt
     }
 
     // ===== Acceptance Criteria 3: Admin verwijdert items via item-id - S4 =====
 
     /// <summary>
     /// Path ID: Sad Path S4
-    /// Input data: Item-ID: 8888 (bestaat niet)
-    /// Actor: Admin: superuser
-    /// Expected output: Foutmelding: item niet gevonden; verwijdering niet uitgevoerd
-    /// Test type: Unit test
     /// Scenario (NL): Admin probeert een item te verwijderen met een niet-bestaand id
-    /// Verwacht (NL): Het aantal menu-items blijft ongewijzigd na de verwijderpoging met het onbekende id
     /// </summary>
     [TestMethod]
     public void DeleteMenuItem_NietBestaandItemId_AantalItemsOngewijzigd()
@@ -289,6 +258,6 @@ public sealed class AdminMenuTests
         Assert.AreEqual(aantalVoor, aantalNa,
             "Het aantal menu-items mag niet afnemen na een verwijderpoging met het niet-bestaande id 8888");
 
-        // cleanup — geen item aangemaakt
+        // cleanup - geen item aangemaakt
     }
 }

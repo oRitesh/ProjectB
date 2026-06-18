@@ -9,12 +9,13 @@ namespace ProjectB.Tests;
 [TestClass]
 public sealed class MenuKaartTesting
 {
-    private readonly DatabaseContext db = new();
     private readonly MenuItemAccess itemAccess;
+    private readonly MenuService menuService;
 
     public MenuKaartTesting()
     {
-        itemAccess = new MenuItemAccess(db);
+        itemAccess = new MenuItemAccess();
+        menuService = new MenuService();
     }
 
     /// <summary>
@@ -67,8 +68,8 @@ public sealed class MenuKaartTesting
         int bereidingstijd = 15;
 
         var testGerecht = new MenuItem(0, categoryId, gerechtNaam, originelePrijs, beschrijving, allergenen, bereidingstijd);
-        
-        //act
+
+
         itemAccess.AddMenuItem(testGerecht);
         var toegevoegdGerecht = itemAccess.GetItemsByCategory(categoryId).First(m => m.Naam == gerechtNaam);
 
@@ -93,19 +94,17 @@ public sealed class MenuKaartTesting
     [TestMethod]
     public void MenuService_InitialisatieMenukaart_AlleCategorieenGeladen()
     {
-        //act
-        var MenuKaart = new MenuService(db);
+        var menuService = new MenuService();
 
-        //assert
-        Assert.IsNotNull(MenuKaart.Starters,
+        Assert.IsNotNull(menuService.Starters,
             "Starters categorie mag niet null zijn");
-        Assert.IsNotNull(MenuKaart.Mains,
+        Assert.IsNotNull(menuService.Mains,
             "Mains categorie mag niet null zijn");
-        Assert.IsNotNull(MenuKaart.Desserts,
+        Assert.IsNotNull(menuService.Desserts,
             "Desserts categorie mag niet null zijn");
-        Assert.IsNotNull(MenuKaart.Wines,
+        Assert.IsNotNull(menuService.Wines,
             "Wines categorie mag niet null zijn");
-        Assert.IsNotNull(MenuKaart.Drinks,
+        Assert.IsNotNull(menuService.Drinks,
             "Drinks categorie mag niet null zijn");
     }
 

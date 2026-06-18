@@ -5,9 +5,9 @@ public class TafelAccess
     private readonly DatabaseContext db;
     public const string Table = "Tafel";
 
-    public TafelAccess(DatabaseContext db)
+    public TafelAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public void AddTafel(Tafel tafel)

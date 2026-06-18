@@ -9,20 +9,25 @@ public class ReservationLogic
     public ReservationLogic(
         ReserveringAccess reserveringAccess,
         TafelAccess tafelAccess,
-        UserAccess userAccess)
+        UserAccess userAccess,
+        OpeningsTijdenAccess openingsTijdenAccess,
+        OpeningsDagAccess openingsDagAccess)
     {
         this.reserveringAccess = reserveringAccess;
         this.tafelAccess = tafelAccess;
         this.userAccess = userAccess;
-
-        DatabaseContext db = new DatabaseContext();
-        this.openingsTijdenAccess = new OpeningsTijdenAccess(db);
-        this.openingsDagAccess = new OpeningsDagAccess(db);
+        this.openingsTijdenAccess = openingsTijdenAccess;
+        this.openingsDagAccess = openingsDagAccess;
     }
 
-    public ReserveringAccess ReserveringAccess => reserveringAccess;
-    public TafelAccess TafelAccess => tafelAccess;
-    public UserAccess UserAccess => userAccess;
+    public ReservationLogic()
+    {
+        this.reserveringAccess = new ReserveringAccess();
+        this.tafelAccess = new TafelAccess();
+        this.userAccess = new UserAccess();
+        this.openingsTijdenAccess = new OpeningsTijdenAccess();
+        this.openingsDagAccess = new OpeningsDagAccess();
+    }
 
     public List<int> GetAantalPersonenOpties()
     {
@@ -252,6 +257,7 @@ public class ReservationLogic
 
         DateTime datum = DateTime.Parse(tijdslot.Datum);
 
+        // hierzo gaat het fout
         if (!IsGeldigeDatum(datum))
         {
             return false;
@@ -286,7 +292,7 @@ public class ReservationLogic
         DateTime eind = DateTime.Parse(tijdslot.EindTijd);
 
         if ((eind - start).TotalHours < 2)
-        {   
+        {
             return false;
         }
 
@@ -311,4 +317,19 @@ public class ReservationLogic
         int gastID = userAccess.AddUser(NieuweGast);
         return gastID;
     }
+
+    public List<Reservering> GetAllReserveringen()
+        => reserveringAccess.GetAllReserveringen();
+
+    public List<Reservering> GetReserveringenByGebruikerID(int gebruikerID)
+        => reserveringAccess.GetReserveringenByGebruikerID(gebruikerID);
+
+    public List<Reservering> GetOverlappendeReserveringenVoorTijdslot(Tijdslot tijdslot)
+        => reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(tijdslot);
+
+    public void UpdateReservering(Reservering reservering)
+        => reserveringAccess.UpdateReservering(reservering);
+
+    public void DeleteReservering(int id)
+        => reserveringAccess.DeleteReservering(id);
 }

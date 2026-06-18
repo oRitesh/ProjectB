@@ -8,25 +8,26 @@ public static class Menu
 
     static void ShowInformationPage()
     {
-        DatabaseContext db = new DatabaseContext();
+        OpeningsTijdenLogic openingsTijdenLogic = new OpeningsTijdenLogic();
+        OpeningsDagLogic openingsDagLogic = new OpeningsDagLogic();
 
-        OpeningsTijdenAccess openingsTijdenAccess = new OpeningsTijdenAccess(db);
-        OpeningsDagAccess openingsDagAccess = new OpeningsDagAccess(db);
+        OpeningsTijden? tijden = openingsTijdenLogic.GetOpeningsTijden();
+        List<OpeningsDag> dagen = openingsDagLogic.GetAllOpeningsDagen();
 
-        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
-        List<OpeningsDag> dagen = openingsDagAccess.GetAllOpeningsDagen();
-
-        db.Close();
-
-        string openingsDagenTekst = MaakOpeningsDagenTekst(dagen);
+        string openingsDagenTekst = openingsDagLogic.GetOpeningsDagenTekst(dagen);
         string openingsTijdenTekst = tijden == null
             ? "Onbekend"
             : $"{tijden.OpeningsTijd} - {tijden.SluitingsTijd}";
 
         Console.Clear();
-        Console.WriteLine("==================================");
-        Console.WriteLine("         INFORMATIEPAGINA         ");
-        Console.WriteLine("==================================");
+        Console.WriteLine(@"                                                                                                                                                      
+▄▄▄▄▄ ▄▄▄    ▄▄▄  ▄▄▄▄▄▄▄   ▄▄▄▄▄   ▄▄▄▄▄▄▄   ▄▄▄      ▄▄▄   ▄▄▄▄   ▄▄▄▄▄▄▄▄▄ ▄▄▄▄▄  ▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄     ▄▄▄▄    ▄▄▄▄▄▄▄  ▄▄▄▄▄ ▄▄▄    ▄▄▄   ▄▄▄▄   
+ ███  ████▄  ███ ███▀▀▀▀▀ ▄███████▄ ███▀▀███▄ ████▄  ▄████ ▄██▀▀██▄ ▀▀▀███▀▀▀  ███  ███▀▀▀▀▀   ███▀▀███▄ ▄██▀▀██▄ ███▀▀▀▀▀   ███  ████▄  ███ ▄██▀▀██▄ 
+ ███  ███▀██▄███ ███▄▄    ███   ███ ███▄▄███▀ ███▀████▀███ ███  ███    ███     ███  ███▄▄      ███▄▄███▀ ███  ███ ███        ███  ███▀██▄███ ███  ███ 
+ ███  ███  ▀████ ███▀▀    ███▄▄▄███ ███▀▀██▄  ███  ▀▀  ███ ███▀▀███    ███     ███  ███        ███▀▀▀▀   ███▀▀███ ███  ███▀  ███  ███  ▀████ ███▀▀███ 
+▄███▄ ███    ███ ███       ▀█████▀  ███  ▀███ ███      ███ ███  ███    ███    ▄███▄ ▀███████   ███       ███  ███ ▀██████▀  ▄███▄ ███    ███ ███  ███
+");
+        Console.WriteLine();
         Console.WriteLine("Restaurantnaam : Het Culinaire Bootje");
         Console.WriteLine("Telefoonnummer : 0612345678");
         Console.WriteLine("Adres          : Witte de Withstraat 12, Rotterdam");
@@ -41,55 +42,13 @@ public static class Menu
         Console.ReadKey(true);
     }
 
-    static string MaakOpeningsDagenTekst(List<OpeningsDag> dagen)
-    {
-        List<int> openDagen = dagen
-            .Where(d => d.IsOpen == 1)
-            .Select(d => d.DagVanWeek)
-            .OrderBy(d => d)
-            .ToList();
-
-        if (openDagen.Count == 0)
-        {
-            return "Gesloten";
-        }
-
-        if (openDagen.Count == 7)
-        {
-            return "Elke dag";
-        }
-
-        return string.Join(", ", openDagen.Select(DagNaam));
-    }
-
-    static string DagNaam(int dagVanWeek)
-    {
-        return dagVanWeek switch
-        {
-            0 => "Zondag",
-            1 => "Maandag",
-            2 => "Dinsdag",
-            3 => "Woensdag",
-            4 => "Donderdag",
-            5 => "Vrijdag",
-            6 => "Zaterdag",
-            _ => "Onbekend"
-        };
-    }
-
     static void ShowReservationPage()
     {
-        DatabaseContext db = new DatabaseContext();
+        ReservationLogic reservationLogic = new ReservationLogic();
+        UserLogic userLogic = new UserLogic();
 
-        ReserveringAccess reserveringAccess = new ReserveringAccess(db);
-        TafelAccess tafelAccess = new TafelAccess(db);
-        UserAccess userAccess = new UserAccess(db);
-        ReservationLogic reservationLogic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
-
-        ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, HuidigeGebruiker);
+        ReserveringUI reserveringUI = new ReserveringUI(reservationLogic, HuidigeGebruiker, userLogic);
         reserveringUI.ShowReserveringPage();
-
-        db.Close();
     }
 
     public static void Show()
@@ -98,11 +57,6 @@ public static class Menu
 
         while (running)
         {
-            DatabaseContext adminDb = new DatabaseContext();
-            AdminAccess adminAccess = new AdminAccess(adminDb);
-            adminAccess.CheckAdminAccountExistence();
-            adminDb.Close();
-            Console.Clear();
 
             // ===== MENU OPTIES (gast vs user) =====
             List<MainMenuOption?> opties = new();
@@ -127,8 +81,6 @@ public static class Menu
                 opties.Add(MainMenuOption.Loguit);
             }
 
-            opties.Add(MainMenuOption.Exit);
-
             // ===== ARROWMENU (vervangt Console.ReadLine + switch input) =====
             MainMenuOption? keuze = ArrowMenu.ShowMenu(
                 "",
@@ -143,11 +95,28 @@ public static class Menu
                     MainMenuOption.Login => "Login / registreer",
                     MainMenuOption.Loguit => "Loguit",
                     MainMenuOption.Admin => "Open Admin menu",
-                    MainMenuOption.Exit => "Afsluiten",
                     _ => ""
                 },
                 () =>
                 {
+                    Console.WriteLine(@"
+                                                                                                                                           
+                                                                                                                                            ⠀⣠⣾⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                                                                                                                                           ⠀⠀⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣶⣆⠀⠀⠀⠀
+                                                                                                                                           ⠀⠀⢿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣿⣿⣿⣿⣦⠀⠀
+                                                                                                                                           ⠀⠀⠀⠙⠛⠛⠛⠋⠀⠀⠀⠀⠀⠀⠀⢠⣤⣿⣿⣿⣿⣿⣿⣿⣤⡄
+                                                                                                                                           ⢠⣤⣶⠀⠀⠀⠀⠀⣶⣶⣤⣤⡀⠀⠀⠸⠿⠿⠿⠿⠿⠿⠿⠿⠿⠇
+                                                                                                                                           ⢸⣿⣿⡇⠀⠀⠀⢸⣿⣿⣿⣿⣷⡄⠀⠀⠀⣤⣤⣤⣤⣤⣤⠄⠀⠀
+                                                                                                                                           ⢸⣿⣿⣿⡀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣆⠀⣼⣿⣿⠛⠉⠉⠀⠀⠀⠀
+ ▄▄▄▄▄▄▄ ▄▄▄  ▄▄▄ ▄▄▄      ▄▄▄▄▄ ▄▄▄    ▄▄▄   ▄▄▄▄   ▄▄▄▄▄ ▄▄▄▄▄▄▄    ▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄     ▄▄▄▄▄     ▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄     ▄▄▄  ▄▄▄▄▄▄▄   ⢸⣿⣿⣿⡇⠀⢰⣿⣿⣿⣿⡿⢿⣿⣿⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀
+███▀▀▀▀▀ ███  ███ ███       ███  ████▄  ███ ▄██▀▀██▄  ███  ███▀▀███▄ ███▀▀▀▀▀   ███▀▀███▄ ▄███████▄ ▄███████▄ ▀▀▀███▀▀▀     ███ ███▀▀▀▀▀   ⢸⣿⣿⣿⣷⠀⢸⣿⣿⣿⣿⡇⠀⠹⣿⣿⡿⠁⠀⠀⠀⠀⠀⠀⠀⠀
+███      ███  ███ ███       ███  ███▀██▄███ ███  ███  ███  ███▄▄███▀ ███▄▄      ███▄▄███▀ ███   ███ ███   ███    ███        ███ ███▄▄      ⢸⣿⣿⣿⣿⣇⣿⣿⣿⣿⣿⡇⠀⠀⠈⠉⠁⠀⠀⠀⠀⠀⠀
+███      ███▄▄███ ███       ███  ███  ▀████ ███▀▀███  ███  ███▀▀██▄  ███        ███  ███▄ ███▄▄▄███ ███▄▄▄███    ███   ▄▄▄  ███ ███        ⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+▀███████ ▀██████▀ ████████ ▄███▄ ███    ███ ███  ███ ▄███▄ ███  ▀███ ▀███████   ████████▀  ▀█████▀   ▀█████▀     ███    ▀████▀  ▀███████    ⠛⠿⠿⠿⠿⠿⠿⠿⠿⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀  
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀                                                                                                                                         
+
+                                                                                                                                         ");
                     Console.WriteLine("===================================");
                     Console.WriteLine("  WELKOM BIJ HET CULINAIRE BOOTJE     ");
 
@@ -176,10 +145,8 @@ public static class Menu
 
                 case MainMenuOption.Menu:
                     {
-                        DatabaseContext db = new DatabaseContext();
-                        ShowMenuUI menuUI = new ShowMenuUI(db);
+                        ShowMenuUI menuUI = new ShowMenuUI(new MenuService());
                         menuUI.ShowMenuPage();
-                        db.Close();
                         break;
                     }
 
@@ -189,21 +156,16 @@ public static class Menu
 
                 case MainMenuOption.Afhalen:
                     {
-                        DatabaseContext db = new DatabaseContext();
-                        AfhaalSysteemUI afhaalUI = new AfhaalSysteemUI(db, HuidigeGebruiker);
+                        AfhaalSysteemUI afhaalUI = new AfhaalSysteemUI(HuidigeGebruiker);
                         afhaalUI.Start();
-                        db.Close();
                         break;
                     }
 
                 case MainMenuOption.Login:
                     {
-                        DatabaseContext db = new DatabaseContext();
-                        UserAccess userAccess = new UserAccess(db);
-                        AdminLogic adminLogic = new AdminLogic(db);
-
-                        InlogUI inlogUI = new InlogUI(userAccess);
-                        RegistratieUI registratieUI = new RegistratieUI(userAccess);
+                        UserLogic userLogic = new UserLogic();
+                        InlogUI inlogUI = new InlogUI(userLogic);
+                        RegistratieUI registratieUI = new RegistratieUI(userLogic);
 
                         if (HuidigeGebruiker.ID != 0)
                         {
@@ -230,9 +192,15 @@ public static class Menu
                             },
                             () =>
                             {
-                                Console.WriteLine("==================================");
-                                Console.WriteLine("            LOGIN MENU            ");
-                                Console.WriteLine("==================================");
+                                Console.WriteLine("==========================================================================================");
+                                Console.WriteLine(@"                                                 
+▄▄▄        ▄▄▄▄▄    ▄▄▄▄▄▄▄  ▄▄▄▄▄ ▄▄▄    ▄▄▄   ▄▄▄      ▄▄▄  ▄▄▄▄▄▄▄ ▄▄▄    ▄▄▄ ▄▄▄  ▄▄▄ 
+███      ▄███████▄ ███▀▀▀▀▀   ███  ████▄  ███   ████▄  ▄████ ███▀▀▀▀▀ ████▄  ███ ███  ███ 
+███      ███   ███ ███        ███  ███▀██▄███   ███▀████▀███ ███▄▄    ███▀██▄███ ███  ███ 
+███      ███▄▄▄███ ███  ███▀  ███  ███  ▀████   ███  ▀▀  ███ ███      ███  ▀████ ███▄▄███ 
+████████  ▀█████▀  ▀██████▀  ▄███▄ ███    ███   ███      ███ ▀███████ ███    ███ ▀██████▀ 
+                                                                                          ");
+                                Console.WriteLine("==========================================================================================");
                                 Console.WriteLine();
                             },
                             false
@@ -249,7 +217,6 @@ public static class Menu
                             if (user != null) HuidigeGebruiker = user;
                         }
 
-                        db.Close();
                         break;
                     }
 
@@ -277,23 +244,15 @@ public static class Menu
                             break;
                         }
 
-                        DatabaseContext db = new DatabaseContext();
-                        ReserveringAccess reserveringAccess = new ReserveringAccess(db);
-                        TafelAccess tafelAccess = new TafelAccess(db);
-                        UserAccess userAccess = new UserAccess(db);
+                        ReservationLogic logic = new ReservationLogic();
+                        UserLogic userLogic = new UserLogic();
 
-                        ReservationLogic logic = new ReservationLogic(reserveringAccess, tafelAccess, userAccess);
-
-                        ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker);
+                        ReserveringOverzichtUI overzichtUI = new ReserveringOverzichtUI(logic, HuidigeGebruiker, userLogic);
                         overzichtUI.ShowOverzicht();
 
-                        db.Close();
                         break;
                     }
 
-                case MainMenuOption.Exit:
-                    running = false;
-                    break;
 
                 default:
                     Console.WriteLine("Ongeldige keuze. Druk op een toets om verder te gaan...");

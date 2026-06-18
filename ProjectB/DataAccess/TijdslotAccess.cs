@@ -7,9 +7,9 @@ public class TijdslotAccess
     private readonly DatabaseContext db;
     public const string Table = "Tijdslot";
 
-    public TijdslotAccess(DatabaseContext db)
+    public TijdslotAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public void AddTijdslot(Tijdslot tijdslot)

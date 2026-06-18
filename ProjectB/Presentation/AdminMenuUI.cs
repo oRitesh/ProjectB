@@ -1,46 +1,28 @@
 using System.Globalization;
-using Dapper;
 
 public class AdminMenuUI
 {
-    private readonly MenuItemAccess menuItemAccess;
-    private readonly ReserveringAccess reserveringAccess;
-    private readonly MenuCategorieAccess menuCategorieAccess;
-    private readonly bestellingAccess BestellingAccess;
-    private readonly OpeningsTijdenAccess openingsTijdenAccess;
-    private readonly OpeningsDagAccess openingsDagAccess;
+    private readonly MenuItemLogic menuItemLogic;
+    private readonly ReservationLogic reservationLogic;
+    private readonly MenuCategorieLogic menuCategorieLogic;
+    private readonly BestellingLogic bestellingLogic;
+    private readonly BestellingMenuItemLogic bestellingMenuItemLogic;
+    private readonly OpeningsTijdenLogic openingsTijdenLogic;
+    private readonly OpeningsDagLogic openingsDagLogic;
     private readonly TimeSlotLogic timeSlotLogic;
-
-    private readonly DatabaseContext menuItemDb;
-    private readonly DatabaseContext reserveringDb;
-    private readonly DatabaseContext menuCategorieDb;
-    private readonly DatabaseContext bestellingDb;
-    private readonly DatabaseContext openingsDb;
+    private readonly UserLogic userLogic;
 
     public AdminMenuUI()
     {
-        this.menuItemDb = new DatabaseContext();
-        this.reserveringDb = new DatabaseContext();
-        this.menuCategorieDb = new DatabaseContext();
-        this.bestellingDb = new DatabaseContext();
-        this.openingsDb = new DatabaseContext();
-
-        this.menuItemAccess = new MenuItemAccess(menuItemDb);
-        this.reserveringAccess = new ReserveringAccess(reserveringDb);
-        this.menuCategorieAccess = new MenuCategorieAccess(menuCategorieDb);
-        this.BestellingAccess = new bestellingAccess(bestellingDb);
-        this.openingsTijdenAccess = new OpeningsTijdenAccess(openingsDb);
-        this.openingsDagAccess = new OpeningsDagAccess(openingsDb);
-        this.timeSlotLogic = new TimeSlotLogic(openingsDb);
-    }
-
-    ~AdminMenuUI()
-    {
-        menuItemDb?.Close();
-        reserveringDb?.Close();
-        menuCategorieDb?.Close();
-        bestellingDb?.Close();
-        openingsDb?.Close();
+        this.menuItemLogic = new MenuItemLogic();
+        this.reservationLogic = new ReservationLogic();
+        this.menuCategorieLogic = new MenuCategorieLogic();
+        this.bestellingLogic = new BestellingLogic();
+        this.bestellingMenuItemLogic = new BestellingMenuItemLogic();
+        this.openingsTijdenLogic = new OpeningsTijdenLogic();
+        this.openingsDagLogic = new OpeningsDagLogic();
+        this.timeSlotLogic = new TimeSlotLogic();
+        this.userLogic = new UserLogic();
     }
 
     private void ToonReserveringKaart(Reservering r, int nummer)
@@ -57,6 +39,7 @@ public class AdminMenuUI
         Console.WriteLine($"  │  Tafel      : #{r.TafelID,-27}│");
         Console.WriteLine($"  │  Gasten     : {r.AantalGasten,-28}│");
         Console.WriteLine($"  │  Opmerking  : {opmerking,-28}│");
+        Console.WriteLine($"  │  Naam       : {userLogic.GetGebruikerByID(r.GebruikerID)?.Naam,-28}│");
         Console.WriteLine($"  │  Geboekt op : {r.GemaaktOp,-28}│");
         Console.WriteLine($"  └───────────────────────────────────────────┘");
         Console.WriteLine();
@@ -77,7 +60,7 @@ public class AdminMenuUI
 
         if (rol == 2)
 
-        opties.Add("Bekijk alle bestellingen");
+            opties.Add("Bekijk alle bestellingen");
         opties.Add("Wijzig bestelling status");
 
         if (rol == 2)
@@ -87,7 +70,13 @@ public class AdminMenuUI
 
         while (true)
         {
-            string? keuze = ArrowMenu.ShowMenu("ADMIN MENU", opties, x => x);
+            string? keuze = ArrowMenu.ShowMenu(@"                  
+  ▄▄▄▄   ▄▄▄▄▄▄   ▄▄▄      ▄▄▄ ▄▄▄▄▄ ▄▄▄    ▄▄▄   ▄▄▄      ▄▄▄  ▄▄▄▄▄▄▄ ▄▄▄    ▄▄▄ ▄▄▄  ▄▄▄ 
+▄██▀▀██▄ ███▀▀██▄ ████▄  ▄████  ███  ████▄  ███   ████▄  ▄████ ███▀▀▀▀▀ ████▄  ███ ███  ███ 
+███  ███ ███  ███ ███▀████▀███  ███  ███▀██▄███   ███▀████▀███ ███▄▄    ███▀██▄███ ███  ███ 
+███▀▀███ ███  ███ ███  ▀▀  ███  ███  ███  ▀████   ███  ▀▀  ███ ███      ███  ▀████ ███▄▄███ 
+███  ███ ██████▀  ███      ███ ▄███▄ ███    ███   ███      ███ ▀███████ ███    ███ ▀██████▀ 
+", opties, x => x);
 
             switch (keuze)
             {
@@ -130,7 +119,7 @@ public class AdminMenuUI
 
     private void VoegMenuItemToe()
     {
-        var categorieen = menuCategorieAccess.GetAllCategories();
+        var categorieen = menuCategorieLogic.GetAllCategories();
 
         if (categorieen.Count == 0)
         {
@@ -157,7 +146,7 @@ public class AdminMenuUI
         Console.Write("Prijs        : ");
         string prijsInput = Console.ReadLine() ?? "";
 
-        if (!decimal.TryParse(prijsInput, out decimal prijs) || prijs < 0)
+        if (!decimal.TryParse(prijsInput, out decimal prijs) || !menuItemLogic.IsGeldigePrijs(prijs))
         {
             Console.WriteLine("Je kan geen negatieve prijs invoeren.");
             Console.ReadKey(true);
@@ -171,10 +160,17 @@ public class AdminMenuUI
         Console.Write("Allergenen   : ");
         string allergeen = Console.ReadLine() ?? "";
 
-        Console.Write("Bereidingstijd: ");
-        int bereidingsTijd = int.Parse(Console.ReadLine() ?? "0");
+        int bereidingsTijd;
 
-        menuItemAccess.AddMenuItem(new MenuItem
+
+        Console.Write("Bereidingstijd (compleet aantal min): ");
+
+        do
+        {
+            Console.Write("Bereidingstijd (compleet aantal min): ");
+        } while (!int.TryParse(Console.ReadLine(), out bereidingsTijd));
+
+        menuItemLogic.AddMenuItem(new MenuItem
         {
             Naam = naam,
             Prijs = prijs,
@@ -199,7 +195,7 @@ public class AdminMenuUI
 
     private void WerkMenuItemBij()
     {
-        var items = menuItemAccess.GetAllMenuItems();
+        var items = menuItemLogic.GetAllMenuItems();
 
         if (items.Count == 0)
         {
@@ -218,7 +214,7 @@ public class AdminMenuUI
 
         if (gekozenItem == null) return;
 
-        var categorieen = menuCategorieAccess.GetAllCategories();
+        var categorieen = menuCategorieLogic.GetAllCategories();
 
         MenuCategorie? gekozenCat = ArrowMenu.ShowMenu(
             "KIES NIEUWE CATEGORIE",
@@ -246,7 +242,7 @@ public class AdminMenuUI
         {
             updatePrijs = gekozenItem.Prijs;
         }
-        else if (!decimal.TryParse(prijsInput, out updatePrijs) || updatePrijs < 0)
+        else if (!decimal.TryParse(prijsInput, out updatePrijs) || !menuItemLogic.IsGeldigePrijs(updatePrijs))
         {
             Console.WriteLine("Je kan geen negatieve prijs invoeren.");
             Console.ReadKey(true);
@@ -266,7 +262,7 @@ public class AdminMenuUI
         input = Console.ReadLine() ?? "";
         int updateBereidingsTijd = string.IsNullOrWhiteSpace(input) ? gekozenItem.BereidingsTijd : int.Parse(input);
 
-        menuItemAccess.UpdateMenuItem(new MenuItem
+        menuItemLogic.UpdateMenuItem(new MenuItem
         {
             Naam = updateNaam,
             Prijs = updatePrijs,
@@ -292,7 +288,7 @@ public class AdminMenuUI
 
     private void VerwijderMenuItem()
     {
-        var items = menuItemAccess.GetAllMenuItems();
+        var items = menuItemLogic.GetAllMenuItems();
 
         if (items.Count == 0)
         {
@@ -321,7 +317,7 @@ public class AdminMenuUI
 
         if (bevestig != "Ja, verwijderen") return;
 
-        menuItemAccess.DeleteMenuItem(teVerwijderen.ID);
+        menuItemLogic.DeleteMenuItem(teVerwijderen.ID);
 
         Console.Clear();
         Console.WriteLine($"'{teVerwijderen.Naam}' verwijderd.");
@@ -338,7 +334,7 @@ public class AdminMenuUI
         Console.WriteLine("==================================");
         Console.WriteLine();
 
-        var reserveringen = reserveringAccess.GetAllReserveringen();
+        var reserveringen = reservationLogic.GetAllReserveringen();
 
         if (reserveringen.Count == 0)
         {
@@ -358,7 +354,7 @@ public class AdminMenuUI
 
     public void ViewReservationsPerTimeSlot()
     {
-        List<string> datums = reserveringAccess.GetAllReserveringen()
+        List<string> datums = reservationLogic.GetAllReserveringen()
             .Select(r => DateTime.Parse(r.StartTijd).ToString("yyyy-MM-dd"))
             .Distinct()
             .OrderBy(d => d)
@@ -408,7 +404,7 @@ public class AdminMenuUI
         Console.WriteLine("==================================");
         Console.WriteLine();
 
-        var reserveringen = reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(geselecteerd);
+        var reserveringen = reservationLogic.GetOverlappendeReserveringenVoorTijdslot(geselecteerd);
 
         if (reserveringen.Count == 0)
         {
@@ -431,7 +427,7 @@ public class AdminMenuUI
         Console.Clear();
         Console.WriteLine("=== ALLE BESTELLINGEN VAN VANDAAG ===\n");
 
-        var bestellingen = BestellingAccess.GetBestellingenVanVandaag();
+        List<Bestelling> bestellingen = bestellingLogic.PakBestellingenVanVandaag();
 
         if (bestellingen.Count == 0)
         {
@@ -443,17 +439,17 @@ public class AdminMenuUI
         var gekozen = ArrowMenu.ShowMenu(
            "KIES BESTELLING",
            bestellingen,
-           b => $"Bestelling: {b.ID}  |  Gebruiker: {b.GebruikerID}  |  Status: {b.Status}"
+           b => $"Bestelling: {b.ID}  |  Naam: {userLogic.GetGebruikerByID(b.GebruikerID)?.Naam}  |  Status: {b.Status}"
        );
 
         if (gekozen == null) return;
 
-        var itemAccess = new BestellingMenuItemAccess(new DatabaseContext());
-        var items = itemAccess.GetBestellingMenuItemsByBestellingId(gekozen.ID);
+        var items = bestellingMenuItemLogic.GetBestellingMenuItemsByBestellingId(gekozen.ID);
 
         Console.Clear();
         Console.WriteLine($"  ┌─ Bestelling #{gekozen.ID} ────────────────────────────");
         Console.WriteLine($"  │  Gebruiker  : {gekozen.GebruikerID,-28}");
+        Console.WriteLine($"  │  Naam       : {userLogic.GetGebruikerByID(gekozen.GebruikerID)?.Naam,-28}");
         Console.WriteLine($"  │  Status     : {gekozen.Status,-28}");
         Console.WriteLine($"  │  Ophaaltijd : {gekozen.OphaalTijd,-28}");
         Console.WriteLine($"  │  Totaalprijs: €{gekozen.TotaalPrijs,-27}");
@@ -467,7 +463,7 @@ public class AdminMenuUI
         {
             foreach (var item in items)
             {
-                string naam = menuItemAccess.GetMenuItemNameById(item.MenuItemID);
+                string naam = menuItemLogic.GetMenuItemNameById(item.MenuItemID);
                 string regel = $"{naam}:  x{item.Aantal} - €{item.PrijsPerStuk}";
                 Console.WriteLine($"  │  {regel,-45}");
             }
@@ -482,7 +478,7 @@ public class AdminMenuUI
         Console.Clear();
         Console.WriteLine("=== BESTELLING STATUS WIJZIGEN ===\n");
 
-        var bestellingen = BestellingAccess.GetBestellingenVanVandaag();
+        var bestellingen = bestellingLogic.PakBestellingenVanVandaag();
 
         if (bestellingen.Count == 0)
         {
@@ -513,17 +509,16 @@ public class AdminMenuUI
         switch (statusKeuze)
         {
             case "Bezig met bereiden":
-                BestellingAccess.UpdateStatus(gekozen.ID, "Bezig met bereiden");
+                bestellingLogic.UpdateStatus(gekozen.ID, "Bezig met bereiden");
                 break;
 
             case "Bestelling bereid":
-                BestellingAccess.UpdateStatus(gekozen.ID, "Bestelling bereid");
+                bestellingLogic.UpdateStatus(gekozen.ID, "Bestelling bereid");
                 break;
 
             case "Bestelling afgerond":
                 Console.Clear();
                 Console.WriteLine($"Bestelling #{gekozen.ID} is afgerond.");
-                BestellingAccess.UpdateStatus(gekozen.ID, "Bestelling afgerond");
                 Console.ReadKey(true);
                 return;
 
@@ -567,7 +562,7 @@ public class AdminMenuUI
 
     private void WijzigOpeningsEnSluitingsTijd()
     {
-        OpeningsTijden? tijden = openingsTijdenAccess.GetOpeningsTijden();
+        OpeningsTijden? tijden = openingsTijdenLogic.GetOpeningsTijden();
 
         if (tijden == null)
         {
@@ -592,7 +587,7 @@ public class AdminMenuUI
         Console.Write("Nieuwe sluitingstijd (HH:mm): ");
         string nieuweSluiting = Console.ReadLine() ?? "";
 
-        if (!TimeSpan.TryParse(nieuweOpening, out _) || !TimeSpan.TryParse(nieuweSluiting, out _))
+        if (!openingsTijdenLogic.ZijnGeldigeTijden(nieuweOpening, nieuweSluiting))
         {
             Console.WriteLine("Ongeldige tijd. Gebruik bijvoorbeeld 17:00 of 00:00.");
             Console.ReadKey(true);
@@ -602,7 +597,7 @@ public class AdminMenuUI
         tijden.OpeningsTijd = nieuweOpening;
         tijden.SluitingsTijd = nieuweSluiting;
 
-        openingsTijdenAccess.UpdateOpeningsTijden(tijden);
+        openingsTijdenLogic.UpdateOpeningsTijden(tijden);
 
         Console.WriteLine("Openingstijden bijgewerkt.");
         Console.ReadKey(true);
@@ -612,12 +607,12 @@ public class AdminMenuUI
     {
         while (true)
         {
-            List<OpeningsDag> dagen = openingsDagAccess.GetAllOpeningsDagen();
+            List<OpeningsDag> dagen = openingsDagLogic.GetAllOpeningsDagen();
 
             OpeningsDag? gekozenDag = ArrowMenu.ShowMenu(
                 "OPENINGSDAGEN WIJZIGEN",
                 dagen,
-                d => $"{DagNaam(d.DagVanWeek)} - {(d.IsOpen == 1 ? "Open" : "Gesloten")}"
+                d => $"{openingsDagLogic.GetDagNaam(d.DagVanWeek)} - {(d.IsOpen == 1 ? "Open" : "Gesloten")}"
             );
 
             if (gekozenDag == null)
@@ -626,22 +621,8 @@ public class AdminMenuUI
             }
 
             gekozenDag.IsOpen = gekozenDag.IsOpen == 1 ? 0 : 1;
-            openingsDagAccess.UpdateOpeningsDag(gekozenDag);
+            openingsDagLogic.UpdateOpeningsDag(gekozenDag);
         }
     }
 
-    private string DagNaam(int dagVanWeek)
-    {
-        return dagVanWeek switch
-        {
-            0 => "Zondag",
-            1 => "Maandag",
-            2 => "Dinsdag",
-            3 => "Woensdag",
-            4 => "Donderdag",
-            5 => "Vrijdag",
-            6 => "Zaterdag",
-            _ => "Onbekend"
-        };
-    }
 }

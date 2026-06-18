@@ -1,0 +1,287 @@
+namespace ProjectB.Tests;
+
+using Dapper;
+
+/// Test categories:
+/// - H1-H3: Happy paths (klant kan reservering maken, ziet beschikbare slots, ziet beschikbare tafels)
+/// - S1-S3: Sad paths (boeken op bezette tafel, te korte duratie, verleden datum)
+[TestClass]
+public sealed class KlantReserveringTests
+{
+    private readonly DatabaseContext _db;
+    private readonly ReserveringAccess _reserveringAccess;
+    private readonly TafelAccess _tafelAccess;
+    private readonly UserAccess _userAccess;
+
+    private readonly OpeningsTijdenAccess _openingstijdenAccess;
+    private readonly OpeningsDagAccess _openingsdagAccess;
+
+    private readonly List<int> _reserveringIDs = [];
+    private readonly List<int> _tafelIDs = [];
+    private readonly List<int> _gebruikerIDs = [];
+
+    public KlantReserveringTests()
+    {
+        _db = DatabaseContext.Instance;
+
+        _reserveringAccess = new ReserveringAccess();
+        _tafelAccess = new TafelAccess();
+        _userAccess = new UserAccess();
+        _openingstijdenAccess = new OpeningsTijdenAccess();
+        _openingsdagAccess = new OpeningsDagAccess();
+    }
+
+    [TestCleanup]
+    public void Cleanup()
+    {
+        foreach (int id in _reserveringIDs)
+            _reserveringAccess.DeleteReservering(id);
+        _reserveringIDs.Clear();
+
+        foreach (int id in _tafelIDs)
+            _tafelAccess.DeleteTafel(id);
+        _tafelIDs.Clear();
+
+        foreach (int id in _gebruikerIDs)
+            _db.Connection.Execute($"DELETE FROM {UserAccess.table} WHERE ID = @ID", new { ID = id });
+        _gebruikerIDs.Clear();
+    }
+
+
+    /// H1: Klant kan reservering van 2 uur maken
+    /// Scenario: Klant maakt een reservering van 2 uur zodat duidelijk is hoelang de reservering duurt
+    /// </summary>
+    [TestMethod]
+    public void CreateReservering_DuurtTweeUur_WordtSuccesvolAangemaakt()
+    {
+        //Arrange
+        _tafelAccess.AddTafel(new Tafel(0, 1, 4));
+        int tafelID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _tafelIDs.Add(tafelID);
+
+        var tafel = _tafelAccess.GetAllTafels().First();
+        int tafelNummer = tafel.TafelNummer;
+
+        _userAccess.AddUser(new Gebruiker(0, 0, "Test", "test@mail.com", "1234", ""));
+        int gebruikerId = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _gebruikerIDs.Add(gebruikerId);
+
+        string datum = "2026-06-20";
+        string start = "2026-06-20 18:00";
+        string eind = "2026-06-20 20:00";
+
+        var tijdslot = new Tijdslot(0, datum, start, eind);
+
+        //Act
+        var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
+
+        bool resultaat = logic.AddReservering(
+            gebruikerId,
+            4,
+            tijdslot,
+            tafelNummer,
+            ""
+        );
+
+        //Assert
+        Assert.IsTrue(resultaat, "Reservering moet worden opgeslagen");
+
+        var opgeslagen = _reserveringAccess.GetReserveringenVoorDatum(datum);
+        Assert.AreEqual(1, opgeslagen.Count, "Er moet 1 reservering zijn");
+
+        var r = opgeslagen.First();
+        _reserveringIDs.Add(r.ID);
+
+        var duur = DateTime.Parse(r.EindTijd) - DateTime.Parse(r.StartTijd);
+        Assert.AreEqual(2, duur.TotalHours, "De reservering moet 2 uur duren");
+    }
+
+
+
+    /// H2: Beschikbare tijdsloten tonen in stappen van 15 minuten
+    /// Scenario: Klant wil beschikbare tijdsloten zien in stappen van 15 minuten zodat duidelijk is op welk moment geboekt kan worden
+    [TestMethod]
+    public void TimeSlotLogic_GenereertTijdslotenVanTweeUur_InStappenVan15Minuten()
+    {
+        //Arrange
+        var logic = new TimeSlotLogic();
+
+        //Act
+        var datum = new DateTime(2026, 6, 20);
+        var slots = logic.MaakTijdslotenVoorReservering(datum);
+
+        //Assert
+        Assert.IsTrue(slots.All(s =>
+            (DateTime.Parse(s.EindTijd) - DateTime.Parse(s.StartTijd)).TotalHours == 2),
+            "Elk tijdslot moet 2 uur duren");
+
+        for (int i = 1; i < slots.Count; i++)
+        {
+            var vorige = DateTime.Parse(slots[i - 1].StartTijd);
+            var huidige = DateTime.Parse(slots[i].StartTijd);
+
+            Assert.AreEqual(15, (huidige - vorige).TotalMinutes,
+                "Starttijden moeten 15 minuten uit elkaar liggen");
+        }
+    }
+
+
+
+    /// H3: Beschikbare tafels tonen per tijdslot
+    /// Scenario: Klant wil duidelijk zien welke tafels beschikbaar zijn op welke tijdsloten
+    [TestMethod]
+    public void GetBeschikbareTafels_TijdensTijdslot_GeeftAlleenVrijeTafelsTerug()
+    {
+        //Arrange
+        _tafelAccess.AddTafel(new Tafel(0, 1, 4));
+        int tafelID1 = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _tafelIDs.Add(tafelID1);
+
+        _tafelAccess.AddTafel(new Tafel(0, 2, 4));
+        int tafelID2 = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _tafelIDs.Add(tafelID2);
+
+        var tafels = _tafelAccess.GetAllTafels();
+        var tafel = tafels.First();
+        int tafelNummer = tafel.TafelNummer;
+
+        _userAccess.AddUser(new Gebruiker(0, 0, "Test", "test@mail.com", "1234", ""));
+        int gebruikerId = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _gebruikerIDs.Add(gebruikerId);
+
+        string datum = "2026-06-20";
+        string start = "2026-06-20 18:00";
+        string eind = "2026-06-20 20:00";
+
+        //Act
+        var tijdslot = new Tijdslot(0, datum, start, eind);
+
+        var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
+
+        bool resultaat = logic.AddReservering(
+            gebruikerId,
+            4,
+            tijdslot,
+            tafelNummer,
+            ""
+        );
+
+        //Assert
+        Assert.IsTrue(resultaat, "Reservering moet worden opgeslagen");
+
+        var overlappende = _reserveringAccess.GetOverlappendeReserveringenVoorTijdslot(tijdslot);
+        foreach (var r in overlappende)
+            _reserveringIDs.Add(r.ID);
+
+        var gereserveerdeTafels = overlappende.Select(r => r.TafelID).ToList();
+        var beschikbareTafels = tafels.Where(t => !gereserveerdeTafels.Contains(t.ID)).ToList();
+
+        Assert.IsNotEmpty(beschikbareTafels, "Er moet minstens 1 vrije tafel zijn");
+    }
+
+
+
+    /// S1: Reservering korter dan 2 uur wordt geweigerd
+    /// Scenario: Klant probeert een reservering van 1 uur te maken.
+    [TestMethod]
+    public void AddReservering_MinderDanTweeUur_WordtNietOpgeslagen()
+    {
+        //Arrange
+        _tafelAccess.AddTafel(new Tafel(0, 1, 4));
+        int tafelID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _tafelIDs.Add(tafelID);
+
+        var tafel = _tafelAccess.GetAllTafels().First();
+        int tafelNummer = tafel.ID;
+
+        _userAccess.AddUser(new Gebruiker(0, 0, "Test", "test@mail.com", "1234", ""));
+        int gebruikerId = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _gebruikerIDs.Add(gebruikerId);
+
+        string datum = "2026-06-20";
+        string start = "2026-06-20 18:00";
+        string eind = "2026-06-20 19:00";
+
+        //Act
+        var tijdslot = new Tijdslot(0, datum, start, eind);
+
+        var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
+
+        bool resultaat = logic.AddReservering(
+            gebruikerId,
+            4,
+            tijdslot,
+            tafelNummer,
+            ""
+        );
+
+        //Assert
+        Assert.IsFalse(resultaat, "Reservering van minder dan 2 uur moet worden geweigerd");
+
+        var opgeslagen = _reserveringAccess.GetReserveringenVoorDatum("2026-06-20");
+        Assert.IsFalse(opgeslagen.Any());
+    }
+
+
+
+    /// S2: Reservering voor datum in het verleden wordt geweigerd
+    /// Scenario: Klant probeert te reserveren voor een datum die al voorbij is.
+    [TestMethod]
+    public void AddReservering_VerledenDatum_WordtNietOpgeslagen()
+    {
+        //Arrange
+        _tafelAccess.AddTafel(new Tafel(0, 1, 4));
+        int tafelID = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _tafelIDs.Add(tafelID);
+
+        var tafel = _tafelAccess.GetAllTafels().First();
+        int tafelNummer = tafel.ID;
+
+        _userAccess.AddUser(new Gebruiker(0, 0, "Test", "test@mail.com", "1234", ""));
+        int gebruikerId = _db.Connection.QuerySingle<int>("SELECT last_insert_rowid();");
+        _gebruikerIDs.Add(gebruikerId);
+
+        string datum = "2020-01-01";
+        string start = "2020-01-01 18:00";
+        string eind = "2020-01-01 20:00";
+
+        //Act
+        var tijdslot = new Tijdslot(0, datum, start, eind);
+
+        var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
+
+        bool resultaat = logic.AddReservering(
+            gebruikerId,
+            4,
+            tijdslot,
+            tafelNummer,
+            ""
+        );
+
+        //Assert
+        Assert.IsFalse(resultaat, "Reservering in het verleden moet worden geweigerd");
+
+        var opgeslagen = _reserveringAccess.GetReserveringenVoorDatum(datum);
+        Assert.IsFalse(opgeslagen.Any(), "Er mag geen reservering worden opgeslagen");
+    }
+
+
+
+    /// S3: Geen tijdsloten beschikbaar voor datum
+    /// Scenario: Klant vraagt tijdsloten op een datum buiten het boekingsvenster.
+    [TestMethod]
+    public void GetTijdslotenByDatum_GeenSlots_GeeftLegeLijst()
+    {
+        //Arrange
+        DateTime datum = new(2027, 1, 1); // buiten het geldige boekingsvenster van 1 maand
+
+        var logic = new ReservationLogic(_reserveringAccess, _tafelAccess, _userAccess, _openingstijdenAccess, _openingsdagAccess);
+
+        //Act
+        var slots = logic.GetBeschikbareTijdsloten(2, datum);
+
+        //Assert
+        Assert.IsEmpty(slots,
+            "Op een datum buiten het boekingsvenster kan de klant geen reservering maken; lijst moet leeg zijn");
+    }
+}

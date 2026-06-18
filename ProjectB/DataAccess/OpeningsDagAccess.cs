@@ -5,9 +5,9 @@ public class OpeningsDagAccess
     private readonly DatabaseContext db;
     public const string Table = "OpeningsDag";
 
-    public OpeningsDagAccess(DatabaseContext db)
+    public OpeningsDagAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public List<OpeningsDag> GetAllOpeningsDagen()

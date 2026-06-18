@@ -5,9 +5,9 @@ public class MenuItemAccess
     private readonly DatabaseContext db;
     public const string Table = "MenuItem";
 
-    public MenuItemAccess(DatabaseContext db)
+    public MenuItemAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public List<MenuItem> GetItemsByCategory(int categoryId)
@@ -20,17 +20,13 @@ public class MenuItemAccess
         return db.Connection.Query<MenuItem>(sql, new { CategoryID = categoryId }).ToList();
     }
 
-    public void DisplayAllItems()
+    public List<MenuItem> DisplayAllItems()
     {
         string sql = $@"
             SELECT * FROM {Table}
             ORDER BY Prijs;";
 
-        var items = db.Connection.Query<MenuItem>(sql).ToList();
-        foreach (var item in items)
-        {
-            Console.WriteLine($"ID: {item.ID}, Naam: {item.Naam}, Prijs: {item.Prijs}, CategorieID: {item.MenuCatogorieID}");
-        }
+        return db.Connection.Query<MenuItem>(sql).ToList();
     }
 
     public void AddMenuItem(MenuItem item)

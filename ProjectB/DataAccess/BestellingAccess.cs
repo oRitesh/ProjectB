@@ -7,17 +7,19 @@ public class bestellingAccess
     private readonly DatabaseContext db;
     public const string Table = "Bestelling";
 
-    public bestellingAccess(DatabaseContext db)
+    public bestellingAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public List<Bestelling> GetBestellingenVanVandaag()
     {
         string sql = $@"SELECT * FROM {Table}
-        WHERE DATE(GemaaktOp) = DATE('now');";
+        WHERE DATE(GemaaktOp) = DATE('now', 'localtime');";
         return db.Connection.Query<Bestelling>(sql).ToList();
     }
+
+
 
     public int AddBestelling(Bestelling bestelling)
     {
@@ -56,5 +58,8 @@ public class bestellingAccess
         string sql = $@"DELETE FROM {Table};";
         db.Connection.Execute(sql);
     }
+
+
+
 
 }

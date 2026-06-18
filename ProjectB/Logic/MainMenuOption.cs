@@ -8,6 +8,5 @@ public enum MainMenuOption
     Login,
     Loguit,
 
-    Admin,
-    Exit
+    Admin
 }

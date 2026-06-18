@@ -2,11 +2,11 @@ using System;
 
 public class InlogUI
 {
-    private readonly UserAccess userAccess;
+    private readonly UserLogic userLogic;
 
-    public InlogUI(UserAccess userAccess)
+    public InlogUI(UserLogic userLogic)
     {
-        this.userAccess = userAccess;
+        this.userLogic = userLogic;
     }
 
     public Gebruiker? Login()
@@ -20,7 +20,7 @@ public class InlogUI
             Console.Clear();
             email = InputValidatie.ValideerInput(
             "=== Inloggen ===\nDruk op Escape om terug te gaan.\n\nE-mailadres",
-            x => x.Contains("@") && x.Contains("."),
+            x => userLogic.IsGeldigEmail(x),
             "Ongeldig e-mailadres."
         );
             if (email == null) return null;
@@ -35,7 +35,7 @@ public class InlogUI
         }
 
 
-        var user = userAccess.GetUserByEmail(email, wachtwoord);
+        var user = userLogic.Login(email, wachtwoord);
 
         if (user != null)
         {

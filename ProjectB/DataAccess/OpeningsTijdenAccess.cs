@@ -5,9 +5,9 @@ public class OpeningsTijdenAccess
     private readonly DatabaseContext db;
     public const string Table = "OpeningsTijden";
 
-    public OpeningsTijdenAccess(DatabaseContext db)
+    public OpeningsTijdenAccess()
     {
-        this.db = db;
+        this.db = DatabaseContext.Instance;
     }
 
     public OpeningsTijden? GetOpeningsTijden()

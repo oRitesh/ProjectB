@@ -2,9 +2,9 @@ public class ShowMenuUI
 {
     private readonly MenuService menuService;
 
-    public ShowMenuUI(DatabaseContext db)
+    public ShowMenuUI(MenuService menuService)
     {
-        menuService = new MenuService(db);
+        this.menuService = menuService;
     }
     public void ShowMenuPage()
     {
@@ -22,7 +22,13 @@ public class ShowMenuUI
             };
 
             MenuKaartOption? keuze = ArrowMenu.ShowMenu(
-                "MENUKAART",
+                @"                                                                                          
+▄▄▄      ▄▄▄  ▄▄▄▄▄▄▄ ▄▄▄    ▄▄▄ ▄▄▄  ▄▄▄ ▄▄▄   ▄▄▄   ▄▄▄▄     ▄▄▄▄   ▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄ 
+████▄  ▄████ ███▀▀▀▀▀ ████▄  ███ ███  ███ ███ ▄███▀ ▄██▀▀██▄ ▄██▀▀██▄ ███▀▀███▄ ▀▀▀███▀▀▀ 
+███▀████▀███ ███▄▄    ███▀██▄███ ███  ███ ███████   ███  ███ ███  ███ ███▄▄███▀    ███    
+███  ▀▀  ███ ███      ███  ▀████ ███▄▄███ ███▀███▄  ███▀▀███ ███▀▀███ ███▀▀██▄     ███    
+███      ███ ▀███████ ███    ███ ▀██████▀ ███  ▀███ ███  ███ ███  ███ ███  ▀███    ███    
+                                                                                          ",
                 opties,
                 x => x switch
                 {

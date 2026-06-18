@@ -1,10 +1,12 @@
 public class AdminLogic
 {
     private readonly UserAccess userAccess;
+    private readonly AdminAccess adminAccess;
 
-    public AdminLogic(DatabaseContext db)
+    public AdminLogic()
     {
-        this.userAccess = new UserAccess(db);
+        this.userAccess = new UserAccess();
+        this.adminAccess = new AdminAccess();
     }
 
     public Gebruiker? GetUserIfAuthorized(int userId)
@@ -27,4 +29,5 @@ public class AdminLogic
     {
         return user.Rol == 2 || user.Rol == 3;
     }
+
 }
