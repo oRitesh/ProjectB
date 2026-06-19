@@ -163,9 +163,6 @@ public class AdminMenuUI
 
         int bereidingsTijd;
 
-
-        Console.Write("Bereidingstijd (compleet aantal min): ");
-
         do
         {
             Console.Write("Bereidingstijd (compleet aantal min): ");
